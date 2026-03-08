@@ -9,7 +9,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700&display=swap');
 
-        /* VARIÁVEIS DE TEMA (Claro/Escuro) */
+        /* VARIÁVEIS DE TEMA */
         :root {
             --bg-color: #F7F7F2;
             --text-color: #1A1A1A;
@@ -30,7 +30,6 @@
             --btn-text: #0A0A0A;
         }
 
-        /* RESET E BASE (Corrigido para preencher 100% da tela) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { 
             width: 100%; min-height: 100vh; font-family: 'Jost', sans-serif; 
@@ -55,7 +54,7 @@
         .container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; width: 100%; max-width: 400px; margin: 0 auto; min-height: 80vh; }
         
         input { 
-            width: 100%; padding: 18px; font-size: 1.2rem; text-align: center; letter-spacing: 2px;
+            width: 100%; padding: 18px; font-size: 1.1rem; text-align: center; letter-spacing: 2px;
             background: transparent; border: 2px solid var(--border-color); color: var(--text-color);
             border-radius: 12px; margin-bottom: 15px; font-family: inherit; font-weight: 600; text-transform: uppercase;
             outline: none; transition: 0.3s;
@@ -70,7 +69,6 @@
         button:active { transform: scale(0.97); }
         .btn-revelar { background: var(--accent-color); color: #fff; }
         
-        /* SEPARADOR */
         .divider { display: flex; align-items: center; width: 100%; margin: 20px 0; color: var(--muted-text); font-weight: 600; font-size: 0.9rem; }
         .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); margin: 0 15px; }
 
@@ -94,7 +92,6 @@
         .interrogacao { font-size: 15vh; font-weight: 400; opacity: 0.2; transition: 0.2s; z-index: 10; }
         .instrucao { position: absolute; bottom: 50px; font-size: 0.9rem; opacity: 0.4; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
 
-        /* ELEMENTOS DECORATIVOS DOS TEMAS */
         .linha-decorativa { display: none; }
         .neon-circle { display: none; }
 
@@ -116,7 +113,6 @@
         body.dark-theme #card-principal.active .neon-circle { opacity: 1; box-shadow: 0 0 50px rgba(255,0,85,0.3); transform: scale(1.05); }
         body.dark-theme #card-principal.active .numero-secreto { text-shadow: 0 0 20px rgba(255,255,255,0.4); }
 
-        /* CONTROLES DO HOST SOBREPOSTOS À CARTA */
         .host-overlay { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 100; display: none; }
         .sala-header-overlay { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 100; font-size: 1rem; font-weight: 700; letter-spacing: 3px; opacity: 0.5; display: none; }
 
@@ -145,9 +141,12 @@
 
     <div id="setup-section" class="container">
         <h1>ITO</h1>
+        
+        <input type="text" id="input-nome" placeholder="SEU NOME" autocomplete="off" maxlength="15" style="border-color: transparent; border-bottom-color: var(--border-color); border-radius: 0; margin-bottom: 30px;">
+        
         <button onclick="criarSala()">CRIAR NOVA SALA</button>
         <div class="divider">OU</div>
-        <input type="text" id="input-sala" placeholder="CÓDIGO DA SALA" autocomplete="off">
+        <input type="text" id="input-sala" placeholder="CÓDIGO DA SALA" autocomplete="off" maxlength="4">
         <button onclick="entrarSala()" style="background: transparent; border: 2px solid var(--border-color); color: var(--text-color);">ENTRAR NA SALA</button>
     </div>
 
@@ -190,7 +189,7 @@
     </div>
 
     <script>
-        // --- GERENCIAMENTO DE TEMA (Agora alternando SVG) ---
+        // --- GERENCIAMENTO DE TEMA ---
         function toggleTheme() {
             const body = document.body;
             const iconMoon = document.getElementById('icon-moon');
@@ -209,7 +208,6 @@
             }
         }
 
-        // Aplica o tema salvo no carregamento
         window.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('ito_theme');
             const iconMoon = document.getElementById('icon-moon');
@@ -220,7 +218,23 @@
                 iconMoon.style.display = 'none';
                 iconSun.style.display = 'block';
             }
+
+            // Recupera o nome salvo
+            const savedName = localStorage.getItem('ito_player_name');
+            if (savedName) {
+                document.getElementById('input-nome').value = savedName;
+            }
         });
+
+        // --- LÓGICA DO NOME ---
+        function getPlayerName() {
+            let inputVal = document.getElementById('input-nome').value.trim();
+            if (!inputVal) {
+                inputVal = "Jogador " + Math.floor(Math.random() * 1000);
+            }
+            localStorage.setItem('ito_player_name', inputVal);
+            return inputVal.toUpperCase();
+        }
 
         // --- CONFIGURAÇÃO SUPABASE ---
         const SUPABASE_URL = 'https://zatuzblawpfumwxzkfpu.supabase.co'; 
@@ -233,13 +247,10 @@
         let souHost = false;
         let globalStatus = 'esperando';
 
-        // --- LÓGICA DE INTERAÇÃO DA CARTA ---
         function interactStart(e) {
             if(e && e.type !== 'mousedown') e.preventDefault(); 
             if(globalStatus === 'revelado') return; 
-            
             if (navigator.vibrate) navigator.vibrate(50); 
-            
             document.getElementById('interrogacao').style.display = 'none';
             document.getElementById('meu-numero').style.display = 'block';
             document.getElementById('card-principal').classList.add('active');
@@ -248,18 +259,18 @@
         function interactEnd(e) {
             if(e && e.type !== 'mouseup' && e.type !== 'mouseleave') e.preventDefault();
             if(globalStatus === 'revelado') return; 
-            
             document.getElementById('interrogacao').style.display = 'block';
             document.getElementById('meu-numero').style.display = 'none';
             document.getElementById('card-principal').classList.remove('active');
         }
 
-        // --- FUNÇÕES DE REDE ---
         async function criarSala() {
             try {
                 const id = Math.random().toString(36).substring(4, 8).toUpperCase();
+                const nomeJogador = getPlayerName();
+                
                 const { error } = await sbClient.from('salas').insert([{ 
-                    id_sala: id, status: 'esperando', jogadores: [{id: meuID, numero: null}] 
+                    id_sala: id, status: 'esperando', jogadores: [{id: meuID, nome: nomeJogador, numero: null}] 
                 }]);
                 if(error) throw error;
                 
@@ -270,7 +281,7 @@
                 document.getElementById("qrcode").innerHTML = ""; 
                 new QRCode(document.getElementById("qrcode"), { text: urlSala, width: 140, height: 140, colorDark: "#000000", colorLight: "#ffffff" });
                 document.getElementById('qrcode-container').style.display = 'block';
-            } catch (err) { alert("Erro ao criar sala. Verifique a tabela no banco de dados."); }
+            } catch (err) { alert("Erro ao criar sala. Verifique a conexão."); }
         }
 
         async function entrarSala() {
@@ -278,14 +289,20 @@
                 const id = document.getElementById('input-sala').value.toUpperCase() || new URLSearchParams(window.location.search).get('sala');
                 if(!id) return;
                 
+                const nomeJogador = getPlayerName();
                 const { data, error } = await sbClient.from('salas').select('*').eq('id_sala', id).single();
                 if (error || !data) throw new Error("Sala não encontrada!");
                 
                 let lista = data.jogadores || [];
-                if (!lista.find(j => j.id === meuID)) {
-                    lista.push({ id: meuID, numero: null });
-                    await sbClient.from('salas').update({ jogadores: lista }).eq('id_sala', id);
+                // Se o jogador já está na lista, atualiza o nome. Se não, adiciona.
+                let indexJogador = lista.findIndex(j => j.id === meuID);
+                if (indexJogador === -1) {
+                    lista.push({ id: meuID, nome: nomeJogador, numero: null });
+                } else {
+                    lista[indexJogador].nome = nomeJogador;
                 }
+                
+                await sbClient.from('salas').update({ jogadores: lista }).eq('id_sala', id);
                 
                 const isHost = localStorage.getItem(`host_${id}`) === 'true';
                 abrirSala(id, isHost);
@@ -312,7 +329,8 @@
             const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
             if (!data) return;
             let n = shuffleArray(Array.from({length: 100}, (_, i) => i + 1));
-            let novosJogadores = data.jogadores.map((j, i) => ({ id: j.id, numero: n[i] }));
+            // Mantém os nomes intactos ao sortear
+            let novosJogadores = data.jogadores.map((j, i) => ({ id: j.id, nome: j.nome, numero: n[i] }));
             await sbClient.from('salas').update({ jogadores: novosJogadores, status: 'sorteado' }).eq('id_sala', salaAtual);
         }
 
@@ -322,7 +340,7 @@
 
         async function voltarLobby() {
             const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
-            let listaReset = data.jogadores.map(j => ({ id: j.id, numero: null }));
+            let listaReset = data.jogadores.map(j => ({ id: j.id, nome: j.nome, numero: null }));
             await sbClient.from('salas').update({ status: 'esperando', jogadores: listaReset }).eq('id_sala', salaAtual);
         }
 
@@ -361,7 +379,10 @@
             d.jogadores.forEach((j, index) => {
                 const li = document.createElement('li');
                 li.className = 'jogador-item';
-                li.innerHTML = `<span>JOGADOR ${index + 1} <span style="opacity:0.5; font-size:0.8rem;">${j.id === meuID ? '(VOCÊ)' : ''}</span></span>`;
+                // Usa o nome salvo no banco, ou fallback para "JOGADOR X"
+                const nomeDisplay = j.nome || `JOGADOR ${index + 1}`;
+                li.innerHTML = `<span>${nomeDisplay} <span style="opacity:0.5; font-size:0.8rem;">${j.id === meuID ? '(VOCÊ)' : ''}</span></span>`;
+                
                 if (souHost && j.id !== meuID) {
                     const btn = document.createElement('button');
                     btn.innerText = "Remover"; btn.className = "btn-kick";
