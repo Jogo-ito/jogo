@@ -14,7 +14,7 @@
             --bg-color: #F7F7F2;
             --text-color: #1A1A1A;
             --muted-text: #888888;
-            --accent-color: #DDA74A; /* Amarelo da linha */
+            --accent-color: #DDA74A; 
             --border-color: #E0E0E0;
             --btn-bg: #1A1A1A;
             --btn-text: #FFFFFF;
@@ -24,24 +24,30 @@
             --bg-color: #0A0A0A;
             --text-color: #FFFFFF;
             --muted-text: #666666;
-            --accent-color: #FF0055; /* Rosa Neon */
+            --accent-color: #FF0055; 
             --border-color: #333333;
             --btn-bg: #FFFFFF;
             --btn-text: #0A0A0A;
         }
 
-        /* RESET E BASE */
+        /* RESET E BASE (Corrigido para preencher 100% da tela) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { 
-            width: 100%; min-height: 100%; font-family: 'Jost', sans-serif; 
+            width: 100%; min-height: 100vh; font-family: 'Jost', sans-serif; 
             background-color: var(--bg-color); color: var(--text-color);
             transition: background-color 0.4s, color 0.4s; overflow-x: hidden;
             -webkit-user-select: none; user-select: none;
         }
 
-        /* HEADER E TEMAS */
+        /* HEADER E TEMAS (Ícones SVG) */
         .top-bar { position: absolute; top: 20px; right: 20px; z-index: 1000; }
-        .theme-toggle { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-color); }
+        .theme-toggle { 
+            background: transparent; border: none; cursor: pointer; 
+            color: var(--text-color); display: flex; align-items: center; justify-content: center;
+            padding: 5px; opacity: 0.7; transition: 0.3s;
+        }
+        .theme-toggle:hover { opacity: 1; }
+        .theme-toggle svg { width: 24px; height: 24px; stroke-width: 2; }
 
         h1 { font-size: 3.5rem; font-weight: 700; letter-spacing: 8px; margin-top: 50px; margin-bottom: 30px; text-align: center; }
 
@@ -119,7 +125,22 @@
 <body>
 
     <div class="top-bar">
-        <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">🌙</button>
+        <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">
+            <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+        </button>
     </div>
 
     <div id="setup-section" class="container">
@@ -163,32 +184,43 @@
         </div>
 
         <div class="host-overlay" id="host-controls">
-            <button class="btn-revelar" id="btn-revelar" style="display:none;" onclick="revelarTodos()">REVELAR TUDO (CLÍMAX)</button>
+            <button class="btn-revelar" id="btn-revelar" style="display:none;" onclick="revelarTodos()">REVELAR TUDO</button>
             <button class="btn-reset" id="btn-reset" style="display:none; background: var(--text-color); color: var(--bg-color);" onclick="voltarLobby()">PRÓXIMA RODADA (LOBBY)</button>
         </div>
     </div>
 
     <script>
-        // --- GERENCIAMENTO DE TEMA ---
+        // --- GERENCIAMENTO DE TEMA (Agora alternando SVG) ---
         function toggleTheme() {
             const body = document.body;
-            const btn = document.getElementById('theme-btn');
+            const iconMoon = document.getElementById('icon-moon');
+            const iconSun = document.getElementById('icon-sun');
+            
             if (body.classList.contains('dark-theme')) {
                 body.classList.remove('dark-theme');
                 localStorage.setItem('ito_theme', 'light');
-                btn.innerText = '🌙';
+                iconMoon.style.display = 'block';
+                iconSun.style.display = 'none';
             } else {
                 body.classList.add('dark-theme');
                 localStorage.setItem('ito_theme', 'dark');
-                btn.innerText = '☀️';
+                iconMoon.style.display = 'none';
+                iconSun.style.display = 'block';
             }
         }
 
-        const savedTheme = localStorage.getItem('ito_theme');
-        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.body.classList.add('dark-theme');
-            document.getElementById('theme-btn').innerText = '☀️';
-        }
+        // Aplica o tema salvo no carregamento
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('ito_theme');
+            const iconMoon = document.getElementById('icon-moon');
+            const iconSun = document.getElementById('icon-sun');
+            
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.body.classList.add('dark-theme');
+                iconMoon.style.display = 'none';
+                iconSun.style.display = 'block';
+            }
+        });
 
         // --- CONFIGURAÇÃO SUPABASE ---
         const SUPABASE_URL = 'https://zatuzblawpfumwxzkfpu.supabase.co'; 
@@ -204,9 +236,9 @@
         // --- LÓGICA DE INTERAÇÃO DA CARTA ---
         function interactStart(e) {
             if(e && e.type !== 'mousedown') e.preventDefault(); 
-            if(globalStatus === 'revelado') return; // Se já revelou, fica estático
+            if(globalStatus === 'revelado') return; 
             
-            if (navigator.vibrate) navigator.vibrate(50); // Feedback Tátil
+            if (navigator.vibrate) navigator.vibrate(50); 
             
             document.getElementById('interrogacao').style.display = 'none';
             document.getElementById('meu-numero').style.display = 'block';
@@ -324,7 +356,6 @@
 
             globalStatus = d.status;
 
-            // Atualiza Lobby
             const listaUl = document.getElementById('lista-jogadores');
             listaUl.innerHTML = "";
             d.jogadores.forEach((j, index) => {
@@ -343,7 +374,6 @@
             const eu = d.jogadores.find(j => j.id === meuID);
             document.getElementById('meu-numero').innerText = eu.numero || "?";
 
-            // Troca de Telas Baseada no Status
             if (globalStatus === 'esperando') {
                 document.getElementById('lobby-area').style.display = 'flex';
                 document.getElementById('game-section').style.display = 'none';
