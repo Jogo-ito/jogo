@@ -8,18 +8,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #121212; color: white; padding: 20px; margin: 0; }
-        .card { background: #1e1e1e; border: 2px solid #333; border-radius: 20px; padding: 30px; margin: 20px auto; max-width: 280px; }
-        .hidden-number { font-size: 5rem; font-weight: bold; filter: blur(25px); transition: 0.3s; cursor: pointer; user-select: none; }
+        .card { background: #1e1e1e; border: 2px solid #333; border-radius: 20px; padding: 30px; margin: 20px auto; max-width: 280px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .hidden-number { font-size: 5rem; font-weight: bold; filter: blur(25px); transition: 0.3s; cursor: pointer; user-select: none; -webkit-touch-callout: none; }
         .hidden-number:active { filter: blur(0); }
-        .revealed { filter: blur(0) !important; color: #00ff88; }
-        button { background: #6200ee; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; margin: 8px 0; }
+        .revealed { filter: blur(0) !important; color: #00ff88; transition: 0.5s; }
+        button { background: #6200ee; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; margin: 8px 0; transition: 0.2s; }
+        button:active { transform: scale(0.98); }
         .btn-revelar { background: #cf6679; }
         .btn-reset { background: #03dac6; color: black; }
         .btn-kick { background: #ff4444; padding: 5px 10px; width: auto; font-size: 0.7rem; margin-left: 10px; border-radius: 5px; }
+        .btn-copy { background: #333; font-size: 0.8rem; padding: 10px; margin-top: 5px; }
         #lista-jogadores { list-style: none; padding: 0; text-align: left; max-width: 250px; margin: 20px auto; }
         .jogador-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #333; }
-        #qrcode { background: white; padding: 10px; display: inline-block; margin: 15px; border-radius: 10px; }
-        input { padding: 15px; width: 80%; border-radius: 12px; border: 2px solid #333; background: #1e1e1e; color: white; margin-bottom: 15px; text-align: center; }
+        #qrcode { background: white; padding: 10px; display: inline-block; margin: 15px 15px 5px 15px; border-radius: 10px; }
+        input { padding: 15px; width: 80%; border-radius: 12px; border: 2px solid #333; background: #1e1e1e; color: white; margin-bottom: 15px; text-align: center; font-size: 1.1rem; }
+        .status-badge { background: #333; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -34,12 +37,12 @@
     </div>
 
     <div id="game-section" style="display:none;">
-        <p>SALA: <strong id="display-id-sala"></strong></p>
+        <p><span class="status-badge">SALA: <strong id="display-id-sala"></strong></span></p>
         
         <div id="lobby-area">
             <div id="qrcode-container" style="display:none;">
                 <div id="qrcode"></div>
-                <p style="font-size: 0.8rem; color: #888;">Amigos escaneiam para entrar</p>
+                <button class="btn-copy" onclick="copiarLink()">Copiar Link da Sala</button>
             </div>
             <h3>Jogadores:</h3>
             <ul id="lista-jogadores"></ul>
@@ -48,12 +51,13 @@
         <div class="card" id="card-principal" style="display:none;">
             <p style="color: #888; margin: 0;">Seu número:</p>
             <div id="meu-numero" class="hidden-number">?</div>
+            <p style="font-size: 0.75rem; color: #666; margin-top: 15px;">SEGURE PARA VER<br>SOLTE PARA ESCONDER</p>
         </div>
         
         <div id="host-controls" style="display:none;">
             <button id="btn-sortear" onclick="sortearNumeros()">SORTEAR E COMEÇAR</button>
             <button class="btn-revelar" id="btn-revelar" style="display:none;" onclick="revelarTodos()">REVELAR TUDO</button>
-            <button class="btn-reset" id="btn-reset" style="display:none;" onclick="voltarLobby()">PRÓXIMA RODADA</button>
+            <button class="btn-reset" id="btn-reset" style="display:none;" onclick="voltarLobby()">PRÓXIMA RODADA (LOBBY)</button>
         </div>
         
         <div id="wait-message" style="margin-top:20px; color: orange;">Aguardando Host...</div>
@@ -61,4 +65,167 @@
 
     <script>
         // --- CONFIGURAÇÃO ---
-        const SUPABASE_URL = 'SUA_URL_
+        const SUPABASE_URL = 'https://zatuzblawpfumwxzkfpu.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_FmblL1EuUfu79E-wE3eJOw_BJxgMd_K';
+        const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let salaAtual = "";
+        let meuID = localStorage.getItem('ito_player_id') || Math.random().toString(36).substring(7);
+        localStorage.setItem('ito_player_id', meuID);
+        let souHost = false;
+
+        // --- FUNÇÕES DE LÓGICA ---
+        async function criarSala() {
+            try {
+                const id = Math.random().toString(36).substring(4, 8).toUpperCase();
+                const { error } = await sbClient.from('salas').insert([{ 
+                    id_sala: id, 
+                    status: 'esperando', 
+                    jogadores: [{id: meuID, numero: null}] 
+                }]);
+                
+                if(error) throw error;
+                
+                localStorage.setItem(`host_${id}`, 'true'); // Persiste a coroa de Host
+                abrirSala(id, true);
+                
+                const urlSala = window.location.origin + window.location.pathname + "?sala=" + id;
+                document.getElementById("qrcode").innerHTML = ""; 
+                new QRCode(document.getElementById("qrcode"), { text: urlSala, width: 140, height: 140 });
+                document.getElementById('qrcode-container').style.display = 'block';
+            } catch (err) {
+                alert("Erro ao criar sala. Verifique a tabela no banco de dados.");
+                console.error(err);
+            }
+        }
+
+        async function entrarSala() {
+            try {
+                const id = document.getElementById('input-sala').value.toUpperCase() || new URLSearchParams(window.location.search).get('sala');
+                if(!id) return;
+                
+                const { data, error } = await sbClient.from('salas').select('*').eq('id_sala', id).single();
+                if (error || !data) throw new Error("Sala não encontrada!");
+                
+                let lista = data.jogadores || [];
+                if (!lista.find(j => j.id === meuID)) {
+                    lista.push({ id: meuID, numero: null });
+                    await sbClient.from('salas').update({ jogadores: lista }).eq('id_sala', id);
+                }
+                
+                // Recupera a coroa de Host se o usuário deu F5
+                const isHost = localStorage.getItem(`host_${id}`) === 'true';
+                abrirSala(id, isHost);
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        function abrirSala(id, isHost) {
+            salaAtual = id; 
+            souHost = isHost;
+            document.getElementById('setup-section').style.display = 'none';
+            document.getElementById('game-section').style.display = 'block';
+            document.getElementById('display-id-sala').innerText = id;
+            if (isHost) document.getElementById('host-controls').style.display = 'block';
+            inscreverNoJogo();
+        }
+
+        // Algoritmo Fisher-Yates para embaralhamento perfeito
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        async function sortearNumeros() {
+            const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
+            if (!data) return;
+
+            let n = shuffleArray(Array.from({length: 100}, (_, i) => i + 1));
+            let novosJogadores = data.jogadores.map((j, i) => ({ id: j.id, numero: n[i] }));
+            
+            await sbClient.from('salas').update({ jogadores: novosJogadores, status: 'sorteado' }).eq('id_sala', salaAtual);
+        }
+
+        async function revelarTodos() {
+            await sbClient.from('salas').update({ status: 'revelado' }).eq('id_sala', salaAtual);
+        }
+
+        async function voltarLobby() {
+            const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
+            let listaReset = data.jogadores.map(j => ({ id: j.id, numero: null }));
+            await sbClient.from('salas').update({ status: 'esperando', jogadores: listaReset }).eq('id_sala', salaAtual);
+        }
+
+        async function kick(id) {
+            const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
+            let novaLista = data.jogadores.filter(j => j.id !== id);
+            await sbClient.from('salas').update({ jogadores: novaLista }).eq('id_sala', salaAtual);
+        }
+
+        function copiarLink() {
+            const urlSala = window.location.origin + window.location.pathname + "?sala=" + salaAtual;
+            navigator.clipboard.writeText(urlSala);
+            alert("Link copiado!");
+        }
+
+        function inscreverNoJogo() {
+            sbClient.channel('ito_' + salaAtual)
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'salas', filter: `id_sala=eq.${salaAtual}` }, payload => {
+                atualizarInterface(payload.new);
+            }).subscribe();
+            
+            // Força a primeira atualização ao entrar
+            sbClient.from('salas').select('*').eq('id_sala', salaAtual).single().then(({data}) => { 
+                if(data) atualizarInterface(data); 
+            });
+        }
+
+        function atualizarInterface(d) {
+            if (!d || !d.jogadores) return;
+            
+            // Se o jogador atual não está mais na lista (foi kickado), reseta a página
+            if (!d.jogadores.find(j => j.id === meuID)) { 
+                localStorage.removeItem(`host_${salaAtual}`);
+                window.location.href = window.location.origin + window.location.pathname; 
+                return; 
+            }
+
+            // Atualiza Lista de Jogadores
+            const listaUl = document.getElementById('lista-jogadores');
+            listaUl.innerHTML = "";
+            d.jogadores.forEach((j, index) => {
+                const li = document.createElement('li');
+                li.className = 'jogador-item';
+                li.innerHTML = `<span>Jogador ${index + 1} ${j.id === meuID ? '<strong>(Você)</strong>' : ''}</span>`;
+                if (souHost && j.id !== meuID) {
+                    const btn = document.createElement('button');
+                    btn.innerText = "Remover"; 
+                    btn.className = "btn-kick";
+                    btn.onclick = () => kick(j.id);
+                    li.appendChild(btn);
+                }
+                listaUl.appendChild(li);
+            });
+
+            const eu = d.jogadores.find(j => j.id === meuID);
+            const numDiv = document.getElementById('meu-numero');
+            
+            // Máquina de Estados da UI
+            if (d.status === 'esperando') {
+                document.getElementById('lobby-area').style.display = 'block';
+                document.getElementById('card-principal').style.display = 'none';
+                document.getElementById('wait-message').innerText = "No Lobby - Aguardando Host iniciar...";
+                if(souHost) {
+                    document.getElementById('btn-sortear').style.display = 'block';
+                    document.getElementById('btn-revelar').style.display = 'none';
+                    document.getElementById('btn-reset').style.display = 'none';
+                }
+            } else {
+                document.getElementById('lobby-area').style.display = (d.status === 'revelado' && souHost) ? 'block' : 'none';
+                document.getElementById('card-principal').style.display = 'block';
+                numDiv.innerText = eu.numero || "?";
+                document.getElementById('wait-message').innerText
