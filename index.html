@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITO Digital - V1</title>
+    <title>ITO Digital - V1.1</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #121212; color: white; padding: 20px; margin: 0; }
-        h1 { color: #6200ee; margin-bottom: 30px; }
-        .card { background: #1e1e1e; border: 2px solid #333; border-radius: 20px; padding: 40px; margin: 20px auto; max-width: 280px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        .hidden-number { font-size: 5rem; font-weight: bold; filter: blur(25px); transition: filter 0.3s ease; cursor: pointer; user-select: none; -webkit-touch-callout: none; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #121212; color: white; padding: 20px; margin: 0; }
+        .card { background: #1e1e1e; border: 2px solid #333; border-radius: 20px; padding: 30px; margin: 20px auto; max-width: 280px; }
+        .hidden-number { font-size: 5rem; font-weight: bold; filter: blur(25px); transition: 0.3s; cursor: pointer; user-select: none; }
         .hidden-number:active { filter: blur(0); }
-        .revealed { filter: blur(0) !important; color: #00ff88; transition: 0.5s; }
-        button { background: #6200ee; color: white; border: none; padding: 16px; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; margin: 10px 0; transition: 0.2s; }
-        button:active { transform: scale(0.98); background: #3700b3; }
-        .btn-revelar { background: #cf6679; margin-top: 40px; }
-        #qrcode { background: white; padding: 15px; display: inline-block; margin: 20px auto; border-radius: 10px; }
-        input { padding: 15px; width: 85%; border-radius: 12px; border: 2px solid #333; background: #1e1e1e; color: white; margin-bottom: 15px; text-align: center; font-size: 1.2rem; }
-        #wait-message { margin-top: 20px; color: #888; font-style: italic; }
-        .status-badge { background: #333; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; }
+        .revealed { filter: blur(0) !important; color: #00ff88; }
+        button { background: #6200ee; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; margin: 8px 0; }
+        .btn-revelar { background: #cf6679; }
+        .btn-reset { background: #03dac6; color: black; }
+        .btn-kick { background: #ff4444; padding: 5px 10px; width: auto; font-size: 0.7rem; margin-left: 10px; }
+        #lista-jogadores { list-style: none; padding: 0; text-align: left; max-width: 250px; margin: 20px auto; }
+        .jogador-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #333; }
+        #qrcode { background: white; padding: 10px; display: inline-block; margin: 15px; border-radius: 10px; }
+        input { padding: 15px; width: 80%; border-radius: 12px; border: 2px solid #333; background: #1e1e1e; color: white; margin-bottom: 15px; text-align: center; }
     </style>
 </head>
 <body>
@@ -28,7 +28,165 @@
     
     <div id="setup-section">
         <button onclick="criarSala()">CRIAR NOVA SALA (HOST)</button>
-        <div style="margin: 20px 0; color: #555;">OU</div>
+        <div style="margin: 15px 0; color: #555;">OU</div>
         <input type="text" id="input-sala" placeholder="CÓDIGO DA SALA">
         <button onclick="entrarSala()">ENTRAR NA SALA</button>
     </div>
+
+    <div id="game-section" style="display:none;">
+        <p>SALA: <strong id="display-id-sala"></strong></p>
+        
+        <div id="lobby-area">
+            <div id="qrcode-container" style="display:none;">
+                <div id="qrcode"></div>
+                <p style="font-size: 0.8rem; color: #888;">Escaneie para entrar</p>
+            </div>
+            <h3>Jogadores no Lobby:</h3>
+            <ul id="lista-jogadores"></ul>
+        </div>
+
+        <div class="card" id="card-principal" style="display:none;">
+            <p style="color: #888; margin: 0;">Seu número:</p>
+            <div id="meu-numero" class="hidden-number">?</div>
+        </div>
+        
+        <div id="host-controls" style="display:none;">
+            <button id="btn-sortear" onclick="sortearNumeros()">SORTEAR E COMEÇAR</button>
+            <button class="btn-revelar" id="btn-revelar" style="display:none;" onclick="revelarTodos()">REVELAR TUDO</button>
+            <button class="btn-reset" id="btn-reset" style="display:none;" onclick="voltarLobby()">NOVA RODADA (LOBBY)</button>
+        </div>
+        
+        <div id="wait-message" style="margin-top:20px; color: orange;">Aguardando Host...</div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'SUA_URL_AQUI'; 
+        const SUPABASE_KEY = 'sb_publishable_FmblL1EuUfu79E-wE3eJOw_BJxgMd_K';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let salaAtual = "";
+        let meuID = localStorage.getItem('ito_player_id') || Math.random().toString(36).substring(7);
+        localStorage.setItem('ito_player_id', meuID);
+        let souHost = false;
+
+        async function criarSala() {
+            const id = Math.random().toString(36).substring(4, 8).toUpperCase();
+            await supabase.from('salas').insert([{ id_sala: id, status: 'esperando', jogadores: [{id: meuID, numero: null}] }]);
+            abrirSala(id, true);
+            const urlSala = window.location.origin + window.location.pathname + "?sala=" + id;
+            new QRCode(document.getElementById("qrcode"), { text: urlSala, width: 120, height: 120 });
+            document.getElementById('qrcode-container').style.display = 'block';
+        }
+
+        async function entrarSala() {
+            const id = document.getElementById('input-sala').value.toUpperCase() || new URLSearchParams(window.location.search).get('sala');
+            if(!id) return;
+            const { data } = await supabase.from('salas').select('*').eq('id_sala', id).single();
+            if (data) {
+                let lista = data.jogadores || [];
+                if (!lista.find(j => j.id === meuID)) {
+                    lista.push({ id: meuID, numero: null });
+                    await supabase.from('salas').update({ jogadores: lista }).eq('id_sala', id);
+                }
+                abrirSala(id, false);
+            } else { alert("Sala não encontrada!"); }
+        }
+
+        function abrirSala(id, isHost) {
+            salaAtual = id; souHost = isHost;
+            document.getElementById('setup-section').style.display = 'none';
+            document.getElementById('game-section').style.display = 'block';
+            document.getElementById('display-id-sala').innerText = id;
+            if (isHost) document.getElementById('host-controls').style.display = 'block';
+            inscreverNoJogo();
+        }
+
+        async function sortearNumeros() {
+            const { data } = await supabase.from('salas').select('*').eq('id_sala', salaAtual).single();
+            let n = Array.from({length: 100}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            let novosJogadores = data.jogadores.map((j, i) => ({ id: j.id, numero: n[i] }));
+            await supabase.from('salas').update({ jogadores: novosJogadores, status: 'sorteado' }).eq('id_sala', salaAtual);
+        }
+
+        async function revelarTodos() {
+            await supabase.from('salas').update({ status: 'revelado' }).eq('id_sala', salaAtual);
+        }
+
+        async function voltarLobby() {
+            const { data } = await supabase.from('salas').select('*').eq('id_sala', salaAtual).single();
+            let listaReset = data.jogadores.map(j => ({ id: j.id, numero: null }));
+            await supabase.from('salas').update({ status: 'esperando', jogadores: listaReset }).eq('id_sala', salaAtual);
+        }
+
+        async function kick(id) {
+            const { data } = await supabase.from('salas').select('*').eq('id_sala', salaAtual).single();
+            let novaLista = data.jogadores.filter(j => j.id !== id);
+            await supabase.from('salas').update({ jogadores: novaLista }).eq('id_sala', salaAtual);
+        }
+
+        function inscreverNoJogo() {
+            supabase.channel('ito_' + salaAtual)
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'salas', filter: `id_sala=eq.${salaAtual}` }, payload => {
+                const d = payload.new;
+                atualizarInterface(d);
+            }).subscribe();
+            
+            // Forçar primeira atualização
+            supabase.from('salas').select('*').eq('id_sala', salaAtual).single().then(({data}) => atualizarInterface(data));
+        }
+
+        function atualizarInterface(d) {
+            // Se eu fui expulso
+            if (!d.jogadores.find(j => j.id === meuID)) { window.location.reload(); return; }
+
+            // Lista de jogadores no Lobby
+            const listaUl = document.getElementById('lista-jogadores');
+            listaUl.innerHTML = "";
+            d.jogadores.forEach((j, index) => {
+                const li = document.createElement('li');
+                li.className = 'jogador-item';
+                li.innerHTML = `Jogador ${index + 1} ${j.id === meuID ? '(Você)' : ''}`;
+                if (souHost && j.id !== meuID) {
+                    const btn = document.createElement('button');
+                    btn.innerText = "Remover"; btn.className = "btn-kick";
+                    btn.onclick = () => kick(j.id);
+                    li.appendChild(btn);
+                }
+                listaUl.appendChild(li);
+            });
+
+            const eu = d.jogadores.find(j => j.id === meuID);
+            
+            if (d.status === 'esperando') {
+                document.getElementById('lobby-area').style.display = 'block';
+                document.getElementById('card-principal').style.display = 'none';
+                document.getElementById('wait-message').innerText = "No Lobby - Aguardando Host...";
+                if(souHost) {
+                    document.getElementById('btn-sortear').style.display = 'block';
+                    document.getElementById('btn-revelar').style.display = 'none';
+                    document.getElementById('btn-reset').style.display = 'none';
+                }
+            } else {
+                document.getElementById('lobby-area').style.display = (d.status === 'revelado' && souHost) ? 'block' : 'none';
+                document.getElementById('card-principal').style.display = 'block';
+                document.getElementById('meu-numero').innerText = eu.numero || "?";
+                document.getElementById('wait-message').innerText = d.status === 'sorteado' ? "Jogo em andamento!" : "REVELADO!";
+                
+                if (souHost) {
+                    document.getElementById('btn-sortear').style.display = 'none';
+                    document.getElementById('btn-revelar').style.display = d.status === 'sorteado' ? 'block' : 'none';
+                    document.getElementById('btn-reset').style.display = d.status === 'revelado' ? 'block' : 'none';
+                }
+            }
+            
+            const numDiv = document.getElementById('meu-numero');
+            if (d.status === 'revelado') numDiv.classList.add('revealed');
+            else numDiv.classList.remove('revealed');
+        }
+
+        window.onload = () => {
+            if(new URLSearchParams(window.location.search).get('sala')) entrarSala();
+        };
+    </script>
+</body>
+</html>
