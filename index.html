@@ -1,0 +1,84 @@
+// Configurações do Supabase (Coloque suas chaves aqui)
+const SUPABASE_URL = 'SUA_URL_AQUI';
+const SUPABASE_KEY = 'SUA_KEY_AQUI';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let salaAtual = "";
+let meuID = localStorage.getItem('ito_player_id') || Math.random().toString(36).substring(7);
+localStorage.setItem('ito_player_id', meuID);
+let souHost = false;
+
+async function criarSala() {
+    const id = Math.random().toString(36).substring(4, 8).toUpperCase();
+    const { error } = await supabase.from('salas').insert([{ id_sala: id, status: 'esperando', jogadores: [] }]);
+    if (error) { alert("Erro ao criar sala. Tente de novo."); return; }
+    abrirSala(id, true);
+}
+
+async function entrarSala() {
+    const id = document.getElementById('input-sala').value.toUpperCase();
+    const { data } = await supabase.from('salas').select('*').eq('id_sala', id).single();
+    
+    if (data) {
+        // Registrar presença se não estiver na lista
+        let listaAtualizada = data.jogadores || [];
+        if (!listaAtualizada.find(j => j.id === meuID)) {
+            listaAtualizada.push({ id: meuID, numero: null });
+            await supabase.from('salas').update({ jogadores: listaAtualizada }).eq('id_sala', id);
+        }
+        abrirSala(id, false);
+    } else {
+        alert("Sala não encontrada!");
+    }
+}
+
+function abrirSala(id, isHost) {
+    salaAtual = id;
+    souHost = isHost;
+    document.getElementById('setup-section').style.display = 'none';
+    document.getElementById('game-section').style.display = 'block';
+    document.getElementById('display-id-sala').innerText = id;
+    if (isHost) document.getElementById('host-controls').style.display = 'block';
+    
+    inscreverNoJogo();
+}
+
+async function sortearNumeros() {
+    const { data } = await supabase.from('salas').select('*').eq('id_sala', salaAtual).single();
+    if (!data) return;
+
+    let numeros = Array.from({length: 100}, (_, i) => i + 1);
+    numeros.sort(() => Math.random() - 0.5); // Embaralha
+
+    let jogadoresSorteados = data.jogadores.map((j, index) => {
+        return { id: j.id, numero: numeros[index] };
+    });
+
+    await supabase.from('salas').update({ 
+        jogadores: jogadoresSorteados, 
+        status: 'sorteado' 
+    }).eq('id_sala', salaAtual);
+}
+
+async function revelarTodos() {
+    await supabase.from('salas').update({ status: 'revelado' }).eq('id_sala', salaAtual);
+}
+
+function inscreverNoJogo() {
+    supabase.channel('sala_' + salaAtual)
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'salas', filter: `id_sala=eq.${salaAtual}` }, payload => {
+        const data = payload.new;
+        
+        // Achar meu número na lista
+        const eu = data.jogadores.find(j => j.id === meuID);
+        if (eu && eu.numero) {
+            document.getElementById('meu-numero').innerText = eu.numero;
+        }
+
+        if (data.status === 'revelado') {
+            document.getElementById('meu-numero').classList.add('revealed');
+        } else if (data.status === 'sorteado') {
+            document.getElementById('meu-numero').classList.remove('revealed');
+        }
+    }).subscribe();
+}
