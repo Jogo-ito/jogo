@@ -86,7 +86,7 @@
                 
                 if(error) throw error;
                 
-                localStorage.setItem(`host_${id}`, 'true'); // Persiste a coroa de Host
+                localStorage.setItem(`host_${id}`, 'true'); 
                 abrirSala(id, true);
                 
                 const urlSala = window.location.origin + window.location.pathname + "?sala=" + id;
@@ -113,7 +113,6 @@
                     await sbClient.from('salas').update({ jogadores: lista }).eq('id_sala', id);
                 }
                 
-                // Recupera a coroa de Host se o usuário deu F5
                 const isHost = localStorage.getItem(`host_${id}`) === 'true';
                 abrirSala(id, isHost);
             } catch (err) {
@@ -131,7 +130,6 @@
             inscreverNoJogo();
         }
 
-        // Algoritmo Fisher-Yates para embaralhamento perfeito
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -178,7 +176,6 @@
                 atualizarInterface(payload.new);
             }).subscribe();
             
-            // Força a primeira atualização ao entrar
             sbClient.from('salas').select('*').eq('id_sala', salaAtual).single().then(({data}) => { 
                 if(data) atualizarInterface(data); 
             });
@@ -187,14 +184,12 @@
         function atualizarInterface(d) {
             if (!d || !d.jogadores) return;
             
-            // Se o jogador atual não está mais na lista (foi kickado), reseta a página
             if (!d.jogadores.find(j => j.id === meuID)) { 
                 localStorage.removeItem(`host_${salaAtual}`);
                 window.location.href = window.location.origin + window.location.pathname; 
                 return; 
             }
 
-            // Atualiza Lista de Jogadores
             const listaUl = document.getElementById('lista-jogadores');
             listaUl.innerHTML = "";
             d.jogadores.forEach((j, index) => {
@@ -214,7 +209,6 @@
             const eu = d.jogadores.find(j => j.id === meuID);
             const numDiv = document.getElementById('meu-numero');
             
-            // Máquina de Estados da UI
             if (d.status === 'esperando') {
                 document.getElementById('lobby-area').style.display = 'block';
                 document.getElementById('card-principal').style.display = 'none';
@@ -228,4 +222,26 @@
                 document.getElementById('lobby-area').style.display = (d.status === 'revelado' && souHost) ? 'block' : 'none';
                 document.getElementById('card-principal').style.display = 'block';
                 numDiv.innerText = eu.numero || "?";
-                document.getElementById('wait-message').innerText
+                document.getElementById('wait-message').innerText = d.status === 'sorteado' ? "Número recebido!" : "REVELADO!";
+                
+                if (souHost) {
+                    document.getElementById('btn-sortear').style.display = 'none';
+                    document.getElementById('btn-revelar').style.display = d.status === 'sorteado' ? 'block' : 'none';
+                    document.getElementById('btn-reset').style.display = d.status === 'revelado' ? 'block' : 'none';
+                }
+            }
+            
+            if (d.status === 'revelado') numDiv.classList.add('revealed');
+            else numDiv.classList.remove('revealed');
+        }
+
+        window.onload = () => {
+            const s = new URLSearchParams(window.location.search).get('sala');
+            if(s) { 
+                document.getElementById('input-sala').value = s; 
+                entrarSala(); 
+            }
+        };
+    </script>
+</body>
+</html>
