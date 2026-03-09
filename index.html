@@ -134,15 +134,14 @@
 
         body.dark-theme .pulso { box-shadow: 0 0 15px var(--accent-color), inset 0 0 15px var(--accent-color); }
 
-        /* V1.5: SVG Ocupa 100%, mas a onda é contida no CSS e na Matemática */
+        /* ONDA CLÁSSICA (Retornada ao terço inferior, sem blur na base) */
         #linha-fisica {
-            position: absolute; top: 0; bottom: 0; left: 0; width: 100%; height: 100%; 
+            position: absolute; bottom: 20vh; left: 0; width: 100%; height: 160px; 
             overflow: visible; z-index: 5; pointer-events: none;
         }
         #fio-caotico { fill: none; stroke: var(--accent-color); stroke-width: 4; stroke-linecap: round; transition: stroke 0.4s; }
-        body.dark-theme #fio-caotico { filter: none; } /* Blur removido do dark theme */
+        body.dark-theme #fio-caotico { filter: drop-shadow(0 0 8px var(--accent-color)); }
 
-        /* V1.5: Removido o linear-gradient que causava o sumiço da linha na base */
         .host-overlay { 
             position: fixed; bottom: 30px; left: 0; width: 100%; padding: 0 20px; 
             z-index: 100; text-align: center; pointer-events: none; 
@@ -308,24 +307,20 @@
             if (savedName) document.getElementById('input-nome').value = savedName;
         });
 
-        // V1.5 ONDA: Respiração Fluida e Contida no Centro (60FPS+)
+        // ONDA FÍSICA CLÁSSICA (V1.4 Restaurada)
         let isHolding = false;
         let amplitude = 0; 
         
         function animateWave(time) {
             if (!fioElement) return;
 
-            amplitude += (isHolding ? 1 : 0 - amplitude) * (isHolding ? 0.05 : 0.08);
+            if (isHolding) { amplitude += (1 - amplitude) * 0.05; } 
+            else { amplitude += (0 - amplitude) * 0.08; }
 
             if (amplitude > 0.01) {
-                // timeFactor reduzido pela metade = onda mais lenta e calma
-                const timeFactor = time * 0.001; 
-                
-                // Multiplicadores drasticamente reduzidos para que a linha não toque no teto ou rodapé.
-                // A onda agora varia no máximo +-25 a partir do centro (50), mantendo-se na "cintura" da tela.
-                const y1 = 50 + (Math.sin(timeFactor * 1.2) * 15 + Math.sin(timeFactor * 0.7 + 2) * 10) * amplitude;
-                const y2 = 50 + (Math.sin(timeFactor * 0.9) * 15 + Math.sin(timeFactor * 1.4 + 4) * 10) * amplitude;
-                
+                const timeFactor = time * 0.002;
+                const y1 = 50 + (Math.sin(timeFactor * 1.5) * 35 + Math.sin(timeFactor * 0.8 + 2) * 20) * amplitude;
+                const y2 = 50 + (Math.sin(timeFactor * 1.2) * 35 + Math.sin(timeFactor * 1.9 + 4) * 20) * amplitude;
                 fioElement.setAttribute('d', `M 0 50 C 33 ${y1}, 66 ${y2}, 100 50`);
             } else if (!isHolding && amplitude <= 0.01) {
                 fioElement.setAttribute('d', `M 0 50 C 33 50, 66 50, 100 50`);
@@ -530,7 +525,7 @@
             document.getElementById('game-section').classList.toggle('escondido', isEsperando);
             document.getElementById('card-principal').classList.toggle('active', globalStatus === 'revelado');
             
-            // O botão de Ajuda agora só aparece se o status for "esperando" (Home ou Lobby)
+            // Ocultar FAB de Ajuda na partida
             document.getElementById('btn-ajuda').classList.toggle('escondido', !isEsperando);
             
             if (globalStatus === 'revelado') isHolding = false;
