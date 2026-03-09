@@ -134,7 +134,7 @@
 
         body.dark-theme .pulso { box-shadow: 0 0 15px var(--accent-color), inset 0 0 15px var(--accent-color); }
 
-        /* ONDA CLÁSSICA (Retornada ao terço inferior, sem blur na base) */
+        /* ONDA CLÁSSICA 1.3 EXATAMENTE COMO VOCÊ MANDOU (Restaurada) */
         #linha-fisica {
             position: absolute; bottom: 20vh; left: 0; width: 100%; height: 160px; 
             overflow: visible; z-index: 5; pointer-events: none;
@@ -142,6 +142,7 @@
         #fio-caotico { fill: none; stroke: var(--accent-color); stroke-width: 4; stroke-linecap: round; transition: stroke 0.4s; }
         body.dark-theme #fio-caotico { filter: drop-shadow(0 0 8px var(--accent-color)); }
 
+        /* REMOVIDO O BLUR: O background gradient não existe mais aqui */
         .host-overlay { 
             position: fixed; bottom: 30px; left: 0; width: 100%; padding: 0 20px; 
             z-index: 100; text-align: center; pointer-events: none; 
@@ -282,7 +283,6 @@
     <button id="btn-ajuda" onclick="abrirTutorial()">?</button>
 
     <script>
-        const fioElement = document.getElementById('fio-caotico');
         const iconMoon = document.getElementById('icon-moon');
         const iconSun = document.getElementById('icon-sun');
         const body = document.body;
@@ -307,12 +307,13 @@
             if (savedName) document.getElementById('input-nome').value = savedName;
         });
 
-        // ONDA FÍSICA CLÁSSICA (V1.4 Restaurada)
+        // ONDA FÍSICA CLÁSSICA (V1.3 EXATA RESTAURADA)
         let isHolding = false;
         let amplitude = 0; 
         
         function animateWave(time) {
-            if (!fioElement) return;
+            const fioPath = document.getElementById('fio-caotico');
+            if (!fioPath) return requestAnimationFrame(animateWave);
 
             if (isHolding) { amplitude += (1 - amplitude) * 0.05; } 
             else { amplitude += (0 - amplitude) * 0.08; }
@@ -321,9 +322,9 @@
                 const timeFactor = time * 0.002;
                 const y1 = 50 + (Math.sin(timeFactor * 1.5) * 35 + Math.sin(timeFactor * 0.8 + 2) * 20) * amplitude;
                 const y2 = 50 + (Math.sin(timeFactor * 1.2) * 35 + Math.sin(timeFactor * 1.9 + 4) * 20) * amplitude;
-                fioElement.setAttribute('d', `M 0 50 C 33 ${y1}, 66 ${y2}, 100 50`);
+                fioPath.setAttribute('d', `M 0 50 C 33 ${y1}, 66 ${y2}, 100 50`);
             } else if (!isHolding && amplitude <= 0.01) {
-                fioElement.setAttribute('d', `M 0 50 C 33 50, 66 50, 100 50`);
+                fioPath.setAttribute('d', `M 0 50 C 33 50, 66 50, 100 50`);
             }
             requestAnimationFrame(animateWave);
         }
