@@ -20,7 +20,7 @@
 
         /* VARIÁVEIS DE TEMA */
         :root {
-            --bg-color: #F4F1EA;      
+            --bg-color: #F4F1EA;
             --text-color: #1A1A1A;     
             --accent-color: #C19A6B;  
             --border-color: rgba(26, 26, 26, 0.2);
@@ -30,7 +30,7 @@
         }
 
         body.dark-theme {
-            --bg-color: #0A0A0A;      
+            --bg-color: #0A0A0A;
             --text-color: #FFFFFF;     
             --accent-color: #7c0229;  
             --border-color: rgba(255, 255, 255, 0.15);
@@ -62,7 +62,7 @@
         /* GERAL (HOME/LOBBY) */
         .container { 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            padding: 20px; width: 100%; max-width: 400px; margin: 0 auto; min-height: 100vh; 
+            padding: 20px; width: 100%; max-width: 400px; margin: 0 auto; min-height: 100vh;
         }
         
         h1.logo { font-size: 4rem; font-weight: 900; letter-spacing: 12px; margin-bottom: 40px; text-align: center; }
@@ -80,8 +80,7 @@
         button.btn-primary { 
             width: 100%; padding: 18px; font-size: 1rem; font-weight: 900; letter-spacing: 2px;
             background: var(--accent-color); color: var(--btn-txt); border: none; border-radius: 12px;
-            cursor: pointer; transition: 0.2s; text-transform: uppercase;
-            box-shadow: var(--glow-primary);
+            cursor: pointer; transition: 0.2s; text-transform: uppercase; box-shadow: var(--glow-primary);
         }
         button.btn-primary:active { transform: scale(0.97); }
         
@@ -107,7 +106,7 @@
         .btn-kick { background: transparent; color: #ff4444; border: 1px solid #ff4444; padding: 6px 12px; font-size: 0.7rem; border-radius: 6px; cursor: pointer; font-weight: 700; }
 
         /* CARTA (JOGO) */
-        #game-section { position: absolute; inset: 0; width: 100vw; height: 100vh; display: none; overflow: hidden; }
+        #game-section { position: absolute; inset: 0; width: 100vw; height: 100vh; overflow: hidden; }
         
         #card-principal {
             position: absolute; inset: 0; width: 100%; height: 100%;
@@ -116,26 +115,17 @@
         }
 
         .numero-secreto { 
-            font-size: 35vh; font-weight: 700; line-height: 1;
-            position: absolute; top: 50%; left: 50%; 
-            color: var(--text-color);
-            transform: translate(-50%, -50%) translateY(-8vh) scale(0.8); 
-            opacity: 0; pointer-events: none;
-            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 35vh; font-weight: 700; line-height: 1; position: absolute; top: 50%; left: 50%; 
+            color: var(--text-color); transform: translate(-50%, -50%) translateY(-8vh) scale(0.8); 
+            opacity: 0; pointer-events: none; transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .alvo-interativo {
-            position: absolute; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%) translateY(-8vh);
-            width: 100px; height: 100px; 
-            border-radius: 50%; z-index: 10; transition: all 0.3s ease;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) translateY(-8vh);
+            width: 100px; height: 100px; border-radius: 50%; z-index: 10; transition: all 0.3s ease;
         }
 
-        .pulso {
-            position: absolute; inset: 0;
-            border: solid var(--accent-color); border-radius: 50%;
-            animation: respirar-amplo 3s infinite ease-out; 
-        }
+        .pulso { position: absolute; inset: 0; border: solid var(--accent-color); border-radius: 50%; animation: respirar-amplo 3s infinite ease-out; }
         
         @keyframes respirar-amplo {
             0% { transform: scale(0.5); opacity: 0.9; border-width: 6px; }
@@ -145,21 +135,16 @@
         body.dark-theme .pulso { box-shadow: 0 0 15px var(--accent-color), inset 0 0 15px var(--accent-color); }
 
         #linha-fisica {
-            position: absolute; bottom: 20vh; left: 0;
-            width: 100%; height: 160px; 
+            position: absolute; bottom: 20vh; left: 0; width: 100%; height: 160px; 
             overflow: visible; z-index: 5; pointer-events: none;
         }
-        #fio-caotico {
-            fill: none; stroke: var(--accent-color); stroke-width: 4; stroke-linecap: round;
-            transition: stroke 0.4s;
-        }
+        #fio-caotico { fill: none; stroke: var(--accent-color); stroke-width: 4; stroke-linecap: round; transition: stroke 0.4s; }
         body.dark-theme #fio-caotico { filter: drop-shadow(0 0 8px var(--accent-color)); }
 
         .host-overlay { 
-            position: fixed; bottom: 0; left: 0; width: 100%; 
-            padding: 30px 20px 40px 20px; 
-            background: linear-gradient(to top, var(--bg-color) 70%, transparent);
-            z-index: 100; display: none; text-align: center; pointer-events: none; 
+            position: fixed; bottom: 0; left: 0; width: 100%; padding: 30px 20px 40px 20px; 
+            background: linear-gradient(to top, var(--bg-color) 70%, transparent); z-index: 100;
+            text-align: center; pointer-events: none; 
         }
         .host-overlay button { pointer-events: auto; margin: 0 auto; max-width: 400px; }
 
@@ -167,31 +152,44 @@
         #card-principal.active .alvo-interativo { opacity: 0; transform: translate(-50%, -50%) translateY(-8vh) scale(0.2); }
         #card-principal.active .numero-secreto { opacity: 1; transform: translate(-50%, -50%) translateY(-8vh) scale(1); }
 
-        /* MODAIS */
+        /* MODAIS E FAB */
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-            display: none; align-items: center; justify-content: center; z-index: 2000;
-            backdrop-filter: blur(8px);
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
+            align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px);
+            display: flex; /* Flex is base, visibility is controlled by .escondido */
         }
         .modal-content {
             width: 85%; max-width: 350px; padding: 30px; border-radius: 20px;
-            background: var(--bg-color); color: var(--text-color);
-            text-align: center; border: 1px solid var(--border-color); box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            background: var(--bg-color); color: var(--text-color); text-align: center; 
+            border: 1px solid var(--border-color); box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         }
         .btn-group { display: flex; gap: 10px; margin-top: 25px; }
         .btn-confirm { flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; background: var(--text-color); color: var(--bg-color); }
         .btn-cancel { flex: 1; padding: 15px; border-radius: 10px; border: 2px solid var(--border-color); background: transparent; color: var(--text-color); font-weight: 700; cursor: pointer; }
 
+        /* FAB TUTORIAL */
+        #btn-ajuda {
+            position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%;
+            background: var(--accent-color); color: var(--btn-txt); font-size: 1.5rem; font-weight: 900; border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 1000; display: flex;
+            align-items: center; justify-content: center; transition: 0.2s;
+        }
+        #btn-ajuda:active { transform: scale(0.9); }
+        .tutorial-controles { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; font-weight: 900; }
+        .tutorial-controles button { background: transparent; border: none; font-size: 1.5rem; color: var(--accent-color); cursor: pointer; padding: 10px; }
+        #tutorial-texto { min-height: 80px; margin-top: 15px; font-size: 1.1rem; color: var(--muted-text); font-weight: 600; }
+        
+        .escondido { display: none !important; }
     </style>
 </head>
 <body>
 
     <div class="top-bar-right">
         <button class="icon-btn" onclick="toggleTheme()" title="Trocar Tema">
-            <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+            <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="escondido">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
-            <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="escondido">
                 <circle cx="12" cy="12" r="5"></circle>
                 <line x1="12" y1="1" x2="12" y2="3"></line>
                 <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -214,26 +212,26 @@
         <button class="btn-secondary" onclick="entrarSala()">ENTRAR</button>
     </div>
 
-    <div id="lobby-area" class="container" style="display:none;">
+    <div id="lobby-area" class="container escondido">
         <div class="sala-header">SALA: <strong id="display-id-sala"></strong></div>
-        <input type="text" id="lobby-nome-input" class="input-lobby-name" placeholder="EDITAR NOME" maxlength="15" onchange="atualizarNomeLobby(this.value)">
+        <input type="text" id="lobby-nome-input" class="input-lobby-name" placeholder="EDITAR NOME" maxlength="15" oninput="atualizarNomeLobby(this.value)">
 
-        <div id="qrcode-container" style="display:none; text-align: center;">
+        <div id="qrcode-container" class="escondido" style="text-align: center;">
             <div id="qrcode"></div>
             <button class="btn-secondary" onclick="copiarLink()" style="font-size: 0.8rem; padding: 12px; margin-top: 10px;">COPIAR LINK DA SALA</button>
         </div>
 
         <ul class="lista-jogadores" id="lista-jogadores"></ul>
         
-        <div id="lobby-host-controls" style="width: 100%; margin-top: 30px; display: none;">
+        <div id="lobby-host-controls" class="escondido" style="width: 100%; margin-top: 30px;">
             <button id="btn-sortear" class="btn-primary" onclick="sortearNumeros()">SORTEAR CARTAS</button>
         </div>
-        <p id="wait-message-lobby" style="margin-top:30px; color: var(--accent-color); font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">Aguardando Host...</p>
+        <p id="wait-message-lobby" class="escondido" style="margin-top:30px; color: var(--accent-color); font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">Aguardando Host...</p>
 
         <button onclick="confirmExit('home')" style="background:transparent; border:none; color:var(--muted-text); margin-top:40px; text-decoration:underline; font-size:0.9rem; font-weight: 700; cursor: pointer;">Sair do Grupo</button>
     </div>
 
-    <div id="game-section">
+    <div id="game-section" class="escondido">
         <div class="top-bar-left">
             <button class="icon-btn" onclick="confirmExit('lobby')" title="Sair da Partida">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -242,130 +240,97 @@
             </button>
         </div>
 
-        <div id="card-principal"
-             onmousedown="interactStart(event)" onmouseup="interactEnd(event)" onmouseleave="interactEnd(event)"
-             ontouchstart="interactStart(event)" ontouchend="interactEnd(event)">
-            
+        <div id="card-principal" onmousedown="interactStart(event)" onmouseup="interactEnd(event)" onmouseleave="interactEnd(event)" ontouchstart="interactStart(event)" ontouchend="interactEnd(event)">
             <svg id="linha-fisica" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <path id="fio-caotico" d="M 0 50 C 33 50, 66 50, 100 50" />
             </svg>
-
             <div class="alvo-interativo"><div class="pulso"></div></div>
             <div class="numero-secreto" id="meu-numero"></div>
         </div>
 
         <div class="host-overlay" id="host-controls">
-            <button class="btn-primary" id="btn-revelar" style="display:none;" onclick="revelarTodos()">REVELAR MESA</button>
-            <button class="btn-secondary" id="btn-reset" style="display:none; background: var(--text-color); color: var(--bg-color); border: none;" onclick="voltarLobby()">NOVA RODADA</button>
+            <button class="btn-primary escondido" id="btn-revelar" onclick="acionarRevelarMesa()">REVELAR MESA</button>
+            <button class="btn-secondary escondido" id="btn-reset" style="background: var(--text-color); color: var(--bg-color); border: none;" onclick="voltarLobby()">NOVA RODADA</button>
         </div>
     </div>
 
-    <div id="confirm-modal" class="modal-overlay">
+    <div id="confirm-modal" class="modal-overlay escondido">
         <div class="modal-content">
-            <h3 id="modal-title" style="font-weight: 900; letter-spacing: 2px; margin-bottom: 15px;">ATENÇÃO</h3>
+            <h3 id="modal-title" style="font-weight: 900; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase;">ATENÇÃO</h3>
             <p id="modal-msg" style="margin: 15px 0; color: var(--muted-text); font-weight: 600;"></p>
             <div class="btn-group">
-                <button class="btn-cancel" onclick="closeModal()">VOLTAR</button>
-                <button id="modal-confirm-btn" class="btn-confirm">SAIR</button>
+                <button class="btn-cancel" onclick="fecharModal()">VOLTAR</button>
+                <button id="modal-confirm-btn" class="btn-confirm">CONFIRMAR</button>
             </div>
         </div>
     </div>
 
+    <div id="modal-tutorial" class="modal-overlay escondido">
+        <div class="modal-content">
+            <h3 style="font-weight: 900; letter-spacing: 2px;">COMO JOGAR</h3>
+            <p id="tutorial-texto"></p>
+            <div class="tutorial-controles">
+                <button onclick="mudarPassoTutorial(-1)">&lt;</button>
+                <span id="tutorial-passo" style="color: var(--muted-text); font-size: 0.9rem;"></span>
+                <button onclick="mudarPassoTutorial(1)">&gt;</button>
+            </div>
+            <button class="btn-primary" onclick="fecharTutorial()" style="margin-top: 20px;">ENTENDI</button>
+        </div>
+    </div>
+
+    <button id="btn-ajuda" onclick="abrirTutorial()">?</button>
+
     <script>
+        // OTIMIZAÇÃO: Cache de elementos do DOM cruciais
+        const fioElement = document.getElementById('fio-caotico');
+        const iconMoon = document.getElementById('icon-moon');
+        const iconSun = document.getElementById('icon-sun');
+        const body = document.body;
+
+        // TEMA E UI INICIAL
         function toggleTheme() {
-            const body = document.body;
-            const iconMoon = document.getElementById('icon-moon');
-            const iconSun = document.getElementById('icon-sun');
-            
-            if (body.classList.contains('dark-theme')) {
-                body.classList.remove('dark-theme');
-                localStorage.setItem('ito_theme', 'light');
-                iconMoon.style.display = 'block';
-                iconSun.style.display = 'none';
-            } else {
-                body.classList.add('dark-theme');
-                localStorage.setItem('ito_theme', 'dark');
-                iconMoon.style.display = 'none';
-                iconSun.style.display = 'block';
-            }
+            const isDark = body.classList.toggle('dark-theme');
+            localStorage.setItem('ito_theme', isDark ? 'dark' : 'light');
+            iconMoon.classList.toggle('escondido', isDark);
+            iconSun.classList.toggle('escondido', !isDark);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('ito_theme');
-            const iconMoon = document.getElementById('icon-moon');
-            const iconSun = document.getElementById('icon-sun');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
             
-            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.body.classList.add('dark-theme');
-                iconMoon.style.display = 'none';
-                iconSun.style.display = 'block';
-            }
+            body.classList.toggle('dark-theme', isDark);
+            iconMoon.classList.toggle('escondido', isDark);
+            iconSun.classList.toggle('escondido', !isDark);
 
             const savedName = localStorage.getItem('ito_player_name');
             if (savedName) document.getElementById('input-nome').value = savedName;
         });
 
-        function getPlayerName() {
-            let inputVal = document.getElementById('input-nome').value.trim();
-            if (!inputVal) inputVal = "Jogador " + Math.floor(Math.random() * 1000);
-            localStorage.setItem('ito_player_name', inputVal);
-            return inputVal.toUpperCase();
-        }
-
-        async function atualizarNomeLobby(novoNome) {
-            let val = novoNome.trim().toUpperCase();
-            if(!val) return;
-            localStorage.setItem('ito_player_name', val);
-            const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
-            if (!data) return;
-            let lista = data.jogadores;
-            let indexJogador = lista.findIndex(j => j.id === meuID);
-            if (indexJogador !== -1) {
-                lista[indexJogador].nome = val;
-                await sbClient.from('salas').update({ jogadores: lista }).eq('id_sala', salaAtual);
-            }
-        }
-
-        function confirmExit(target) {
-            const modal = document.getElementById('confirm-modal');
-            const msg = document.getElementById('modal-msg');
-            const btn = document.getElementById('modal-confirm-btn');
-            modal.style.display = 'flex';
-            if(target === 'home') {
-                msg.innerText = souHost ? "Você é o host. Sair agora desfará a mesa. Confirmar?" : "Você abandonará o grupo. Confirmar?";
-                btn.onclick = () => window.location.href = window.location.pathname;
-            } else if (target === 'lobby') {
-                msg.innerText = "Partida em andamento. Deseja abandonar e voltar ao menu inicial?";
-                btn.onclick = () => window.location.href = window.location.pathname;
-            }
-        }
-        function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
-
-        // MOTOR DA ONDA 60FPS
+        // ONDA FISICA (Otimizada para não re-renderizar o DOM internamente)
         let isHolding = false;
         let amplitude = 0; 
         
         function animateWave(time) {
-            const fioPath = document.getElementById('fio-caotico');
-            if (!fioPath) return requestAnimationFrame(animateWave);
+            if (!fioElement) return;
 
-            if (isHolding) { amplitude += (1 - amplitude) * 0.05; } 
-            else { amplitude += (0 - amplitude) * 0.08; }
+            amplitude += (isHolding ? 1 : 0 - amplitude) * (isHolding ? 0.05 : 0.08);
 
             if (amplitude > 0.01) {
                 const timeFactor = time * 0.002;
                 const y1 = 50 + (Math.sin(timeFactor * 1.5) * 35 + Math.sin(timeFactor * 0.8 + 2) * 20) * amplitude;
                 const y2 = 50 + (Math.sin(timeFactor * 1.2) * 35 + Math.sin(timeFactor * 1.9 + 4) * 20) * amplitude;
-                fioPath.setAttribute('d', `M 0 50 C 33 ${y1}, 66 ${y2}, 100 50`);
+                fioElement.setAttribute('d', `M 0 50 C 33 ${y1}, 66 ${y2}, 100 50`);
             } else if (!isHolding && amplitude <= 0.01) {
-                fioPath.setAttribute('d', `M 0 50 C 33 50, 66 50, 100 50`);
+                fioElement.setAttribute('d', `M 0 50 C 33 50, 66 50, 100 50`);
             }
             requestAnimationFrame(animateWave);
         }
         requestAnimationFrame(animateWave);
 
         function interactStart(e) {
-            if(e && e.type !== 'mousedown') e.preventDefault(); 
+            if(e && e.type !== 'mousedown') e.preventDefault();
             if(globalStatus === 'revelado') return;
             if (navigator.vibrate) navigator.vibrate(50); 
             document.getElementById('card-principal').classList.add('active');
@@ -379,31 +344,49 @@
             isHolding = false;
         }
 
-        // SUPABASE
-        const SUPABASE_URL = 'https://zatuzblawpfumwxzkfpu.supabase.co'; 
+        // SUPABASE E ESTADO GLOBAL
+        const SUPABASE_URL = 'https://zatuzblawpfumwxzkfpu.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_FmblL1EuUfu79E-wE3eJOw_BJxgMd_K';
         const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let salaAtual = "";
-        let meuID = localStorage.getItem('ito_player_id') || Math.random().toString(36).substring(7);
-        localStorage.setItem('ito_player_id', meuID);
+        let meuIdBD = null; 
         let souHost = false;
         let globalStatus = 'esperando';
+        let debounceTimer;
+
+        function getPlayerName() {
+            let inputVal = document.getElementById('input-nome').value.trim();
+            if (!inputVal) inputVal = "Jogador " + Math.floor(Math.random() * 1000);
+            localStorage.setItem('ito_player_name', inputVal);
+            return inputVal.toUpperCase();
+        }
 
         async function criarSala() {
             try {
                 const id = Math.random().toString(36).substring(4, 8).toUpperCase();
                 const nomeJogador = getPlayerName();
-                const { error } = await sbClient.from('salas').insert([{ 
-                    id_sala: id, status: 'esperando', jogadores: [{id: meuID, nome: nomeJogador, numero: null}] 
-                }]);
-                if(error) throw error;
+                
+                const { error: errSala } = await sbClient.from('salas').insert([{ id: id, status: 'esperando' }]);
+                if(errSala) throw errSala;
+                
+                const { data: hostData, error: errHost } = await sbClient.from('jogadores').insert([{
+                    sala_id: id, nome: nomeJogador, is_host: true
+                }]).select().single();
+                if(errHost) throw errHost;
+
+                meuIdBD = hostData.id;
+                localStorage.setItem(`ito_uuid_${id}`, meuIdBD);
                 localStorage.setItem(`host_${id}`, 'true'); 
-                abrirSala(id, true);
+                
+                salaAtual = id;
+                souHost = true;
+                abrirSala();
+                
                 const urlSala = window.location.origin + window.location.pathname + "?sala=" + id;
-                document.getElementById("qrcode").innerHTML = ""; 
+                document.getElementById("qrcode").innerHTML = "";
                 new QRCode(document.getElementById("qrcode"), { text: urlSala, width: 140, height: 140, colorDark: "#000000", colorLight: "#ffffff" });
-                document.getElementById('qrcode-container').style.display = 'block';
+                document.getElementById('qrcode-container').classList.remove('escondido');
             } catch (err) { alert("Erro ao criar sala. Verifique a conexão."); }
         }
 
@@ -411,59 +394,82 @@
             try {
                 const id = document.getElementById('input-sala').value.toUpperCase() || new URLSearchParams(window.location.search).get('sala');
                 if(!id) return;
+                
                 const nomeJogador = getPlayerName();
-                const { data, error } = await sbClient.from('salas').select('*').eq('id_sala', id).single();
-                if (error || !data) throw new Error("Sala não encontrada!");
+                const { data: salaData, error } = await sbClient.from('salas').select('*').eq('id', id).single();
+                if (error || !salaData) throw new Error("Sala não encontrada!");
                 
-                let lista = data.jogadores || [];
-                let indexJogador = lista.findIndex(j => j.id === meuID);
-                if (indexJogador === -1) lista.push({ id: meuID, nome: nomeJogador, numero: null });
-                else lista[indexJogador].nome = nomeJogador;
+                const { count } = await sbClient.from('jogadores').select('*', { count: 'exact', head: true }).eq('sala_id', id);
+                if(count >= 50) throw new Error("Esta sala já atingiu o limite máximo de 50 jogadores.");
+
+                let storedId = localStorage.getItem(`ito_uuid_${id}`);
+                if (storedId) {
+                    const { data: exData } = await sbClient.from('jogadores').select('id').eq('id', storedId).single();
+                    if(exData) meuIdBD = storedId;
+                }
                 
-                await sbClient.from('salas').update({ jogadores: lista }).eq('id_sala', id);
-                const isHost = localStorage.getItem(`host_${id}`) === 'true';
-                abrirSala(id, isHost);
+                if(!meuIdBD) {
+                    const { data: novoJogador, error: errJog } = await sbClient.from('jogadores').insert([{
+                        sala_id: id, nome: nomeJogador, is_host: false
+                    }]).select().single();
+                    if(errJog) throw errJog;
+                    
+                    meuIdBD = novoJogador.id;
+                    localStorage.setItem(`ito_uuid_${id}`, meuIdBD);
+                }
+
+                salaAtual = id;
+                souHost = localStorage.getItem(`host_${id}`) === 'true';
+                abrirSala();
             } catch (err) { alert(err.message); }
         }
 
-        function abrirSala(id, isHost) {
-            salaAtual = id; souHost = isHost;
-            document.getElementById('setup-section').style.display = 'none';
-            document.getElementById('display-id-sala').innerText = id;
+        function abrirSala() {
+            document.getElementById('setup-section').classList.add('escondido');
+            document.getElementById('display-id-sala').innerText = salaAtual;
             document.getElementById('lobby-nome-input').value = localStorage.getItem('ito_player_name') || "";
             inscreverNoJogo();
         }
 
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
+        function atualizarNomeLobby(novoNome) {
+            let val = novoNome.trim().toUpperCase();
+            if(!val) return;
+            localStorage.setItem('ito_player_name', val);
+            
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(async () => {
+                if(meuIdBD) await sbClient.from('jogadores').update({ nome: val }).eq('id', meuIdBD);
+            }, 500);
         }
 
         async function sortearNumeros() {
-            const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
-            if (!data) return;
-            let n = shuffleArray(Array.from({length: 100}, (_, i) => i + 1));
-            let novosJogadores = data.jogadores.map((j, i) => ({ id: j.id, nome: j.nome, numero: n[i] }));
-            await sbClient.from('salas').update({ jogadores: novosJogadores, status: 'sorteado' }).eq('id_sala', salaAtual);
+            if (!souHost) return;
+            const { data: jogadoresDB } = await sbClient.from('jogadores').select('id').eq('sala_id', salaAtual).order('created_at', { ascending: true });
+            
+            let baralho = Array.from({ length: 100 }, (_, i) => i + 1);
+            for (let i = baralho.length - 1; i > 0; i--) {
+                const arrayRandom = new Uint32Array(1);
+                window.crypto.getRandomValues(arrayRandom);
+                const j = Math.floor((arrayRandom[0] / (0xffffffff + 1)) * (i + 1));
+                [baralho[i], baralho[j]] = [baralho[j], baralho[i]];
+            }
+
+            const promises = jogadoresDB.map((j, index) => 
+                sbClient.from('jogadores').update({ numero: baralho[index] }).eq('id', j.id)
+            );
+            await Promise.all(promises);
+            await sbClient.from('salas').update({ status: 'sorteado' }).eq('id', salaAtual);
         }
 
-        async function revelarTodos() {
-            await sbClient.from('salas').update({ status: 'revelado' }).eq('id_sala', salaAtual);
-        }
-
+        // OTIMIZAÇÃO: Bulk Update em vez de Promise.all iterativo
         async function voltarLobby() {
-            const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
-            let listaReset = data.jogadores.map(j => ({ id: j.id, nome: j.nome, numero: null }));
-            await sbClient.from('salas').update({ status: 'esperando', jogadores: listaReset }).eq('id_sala', salaAtual);
+            if (!souHost) return;
+            await sbClient.from('salas').update({ status: 'esperando' }).eq('id', salaAtual);
+            await sbClient.from('jogadores').update({ numero: null }).eq('sala_id', salaAtual);
         }
 
         async function kick(id) {
-            const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
-            let novaLista = data.jogadores.filter(j => j.id !== id);
-            await sbClient.from('salas').update({ jogadores: novaLista }).eq('id_sala', salaAtual);
+            await sbClient.from('jogadores').delete().eq('id', id);
         }
 
         function copiarLink() {
@@ -473,75 +479,127 @@
         }
 
         function inscreverNoJogo() {
-            sbClient.channel('ito_' + salaAtual)
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'salas', filter: `id_sala=eq.${salaAtual}` }, payload => {
-                atualizarInterface(payload.new);
-            }).subscribe();
-            sbClient.from('salas').select('*').eq('id_sala', salaAtual).single().then(({data}) => { if(data) atualizarInterface(data); });
+            const channel = sbClient.channel('ito_' + salaAtual);
+            channel.on('postgres_changes', { event: '*', schema: 'public', table: 'salas', filter: `id=eq.${salaAtual}` }, () => carregarEstadoSala());
+            channel.on('postgres_changes', { event: '*', schema: 'public', table: 'jogadores', filter: `sala_id=eq.${salaAtual}` }, () => carregarEstadoSala());
+            channel.subscribe();
+            carregarEstadoSala();
         }
 
-        function atualizarInterface(d) {
-            if (!d || !d.jogadores) return;
-            if (!d.jogadores.find(j => j.id === meuID)) { 
+        async function carregarEstadoSala() {
+            const { data: salaData } = await sbClient.from('salas').select('*').eq('id', salaAtual).single();
+            const { data: jogadoresData } = await sbClient.from('jogadores').select('*').eq('sala_id', salaAtual).order('created_at', { ascending: true });
+            if(salaData && jogadoresData) atualizarInterface(salaData, jogadoresData);
+        }
+
+        function atualizarInterface(salaData, jogadoresData) {
+            if (!jogadoresData.find(j => j.id === meuIdBD)) { 
                 localStorage.removeItem(`host_${salaAtual}`);
                 window.location.href = window.location.pathname; return; 
             }
 
-            globalStatus = d.status;
+            globalStatus = salaData.status;
             const listaUl = document.getElementById('lista-jogadores');
-            listaUl.innerHTML = "";
-            d.jogadores.forEach((j, index) => {
-                const li = document.createElement('li');
-                li.className = 'jogador-item';
-                const nomeDisplay = j.nome || `JOGADOR ${index + 1}`;
-                li.innerHTML = `<span>${nomeDisplay} ${j.id === meuID ? '<span class="voce">(VOCÊ)</span>' : ''}</span>`;
-                if (souHost && j.id !== meuID) {
-                    const btn = document.createElement('button');
-                    btn.innerText = "Remover"; btn.className = "btn-kick";
-                    btn.onclick = () => kick(j.id);
-                    li.appendChild(btn);
+            const newIds = jogadoresData.map(j => j.id);
+            
+            Array.from(listaUl.children).forEach(li => { if(!newIds.includes(li.dataset.id)) li.remove(); });
+            
+            jogadoresData.forEach((j, index) => {
+                let li = listaUl.querySelector(`li[data-id="${j.id}"]`);
+                const isMe = j.id === meuIdBD;
+                if(!li) {
+                    li = document.createElement('li');
+                    li.className = 'jogador-item';
+                    li.dataset.id = j.id;
+                    listaUl.appendChild(li);
                 }
-                listaUl.appendChild(li);
+                let content = `<span>${j.nome || `JOGADOR ${index + 1}`} ${isMe ? '<span class="voce">(VOCÊ)</span>' : ''}</span>`;
+                if (souHost && !isMe) content += `<button class="btn-kick" onclick="kick('${j.id}')">Remover</button>`;
+                li.innerHTML = content;
             });
 
-            const eu = d.jogadores.find(j => j.id === meuID);
+            const eu = jogadoresData.find(j => j.id === meuIdBD);
             document.getElementById('meu-numero').innerText = eu.numero || "";
 
-            if (globalStatus === 'esperando') {
-                document.getElementById('lobby-area').style.display = 'flex';
-                document.getElementById('game-section').style.display = 'none';
-                document.getElementById('card-principal').classList.remove('active');
-                
-                if(souHost) {
-                    document.getElementById('lobby-host-controls').style.display = 'block';
-                    document.getElementById('wait-message-lobby').style.display = 'none';
-                } else {
-                    document.getElementById('lobby-host-controls').style.display = 'none';
-                    document.getElementById('wait-message-lobby').style.display = 'block';
-                }
-            } else {
-                document.getElementById('lobby-area').style.display = 'none';
-                document.getElementById('game-section').style.display = 'block';
-                
-                if (souHost) {
-                    document.getElementById('host-controls').style.display = 'block';
-                    document.getElementById('btn-revelar').style.display = globalStatus === 'sorteado' ? 'block' : 'none';
-                    document.getElementById('btn-reset').style.display = globalStatus === 'revelado' ? 'block' : 'none';
-                }
-
-                if (globalStatus === 'revelado') {
-                    document.getElementById('card-principal').classList.add('active');
-                    isHolding = false;
-                } else {
-                    document.getElementById('card-principal').classList.remove('active');
-                }
+            const isEsperando = globalStatus === 'esperando';
+            
+            document.getElementById('lobby-area').classList.toggle('escondido', !isEsperando);
+            document.getElementById('game-section').classList.toggle('escondido', isEsperando);
+            document.getElementById('card-principal').classList.toggle('active', globalStatus === 'revelado');
+            if (globalStatus === 'revelado') isHolding = false;
+            
+            if (isEsperando) {
+                document.getElementById('lobby-host-controls').classList.toggle('escondido', !souHost);
+                document.getElementById('wait-message-lobby').classList.toggle('escondido', souHost);
+            } else if (souHost) {
+                document.getElementById('btn-revelar').classList.toggle('escondido', globalStatus !== 'sorteado');
+                document.getElementById('btn-reset').classList.toggle('escondido', globalStatus !== 'revelado');
             }
+        }
+
+        // UX: MODAIS OTIMIZADOS
+        function abrirModalConfirmacao(titulo, texto, acaoConfirmar) {
+            document.getElementById('modal-title').innerText = titulo;
+            document.getElementById('modal-msg').innerText = texto;
+            document.getElementById('modal-confirm-btn').onclick = acaoConfirmar; // Sobrescreve direto em vez de clonar
+            document.getElementById('confirm-modal').classList.remove('escondido');
+        }
+
+        function fecharModal() { document.getElementById('confirm-modal').classList.add('escondido'); }
+
+        function confirmExit(target) {
+            if(target === 'home') {
+                abrirModalConfirmacao("SAIR DO GRUPO", souHost ? "Você é o host. Sair agora desfará a mesa. Confirmar?" : "Você abandonará o grupo. Confirmar?", () => window.location.href = window.location.pathname);
+            } else if (target === 'lobby') {
+                abrirModalConfirmacao("SAIR DA PARTIDA", "Partida em andamento. Deseja abandonar e voltar ao menu inicial?", () => window.location.href = window.location.pathname);
+            }
+        }
+
+        function acionarRevelarMesa() {
+            abrirModalConfirmacao("REVELAR CARTAS?", "Todos os números da mesa ficarão visíveis. Essa ação não pode ser desfeita.", async () => {
+                await sbClient.from('salas').update({ status: 'revelado' }).eq('id', salaAtual);
+                fecharModal();
+            });
+        }
+
+        const passosTutorial = [
+            "O objetivo do jogo é colocar todas as cartas da mesa em ordem crescente.",
+            "Porém vocês NÃO podem falar os números que tiraram!",
+            "O Host define um TEMA (Ex: Coisas úteis em um apocalipse zumbi).",
+            "Dê um palpite baseado no seu número. Se tirou 1, diga algo inútil. Se tirou 99, diga a melhor coisa possível. Deduzam a ordem juntos!"
+        ];
+        let passoAtual = 0;
+
+        function abrirTutorial() {
+            passoAtual = 0;
+            atualizarTelaTutorial();
+            document.getElementById('modal-tutorial').classList.remove('escondido');
+        }
+
+        function fecharTutorial() { document.getElementById('modal-tutorial').classList.add('escondido'); }
+
+        function mudarPassoTutorial(direcao) {
+            passoAtual = Math.max(0, Math.min(passosTutorial.length - 1, passoAtual + direcao));
+            atualizarTelaTutorial();
+        }
+
+        function atualizarTelaTutorial() {
+            document.getElementById('tutorial-texto').innerText = passosTutorial[passoAtual];
+            document.getElementById('tutorial-passo').innerText = `${passoAtual + 1} / ${passosTutorial.length}`;
         }
 
         window.onload = () => {
             const s = new URLSearchParams(window.location.search).get('sala');
             if(s) { document.getElementById('input-sala').value = s; entrarSala(); }
+
+            // REGISTRO DO SERVICE WORKER (PWA / OFFLINE)
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(() => console.log('Service Worker Registrado!'))
+                    .catch(err => console.error('Erro no SW:', err));
+            }
         };
+        
     </script>
 </body>
 </html>
