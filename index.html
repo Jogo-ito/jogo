@@ -4,124 +4,201 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>ITO</title>
+    
+    <link rel="icon" href="/icons/icon-light.png" type="image/png" media="(prefers-color-scheme: light)">
+    <link rel="apple-touch-icon" href="/icons/icon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" href="/icons/icon-dark.png" type="image/png" media="(prefers-color-scheme: dark)">
+    <link rel="apple-touch-icon" href="/icons/icon-dark.png" media="(prefers-color-scheme: dark)">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#F4F1EA" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)">
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;600;700;800;900&display=swap');
 
-        /* VARIÁVEIS DE TEMA */
+        /* =========================================
+           VARIÁVEIS DE TEMA (Identidade Aprovada)
+           ========================================= */
         :root {
-            --bg-color: #F7F7F2;
-            --text-color: #1A1A1A;
-            --muted-text: #888888;
-            --accent-color: #DDA74A; 
-            --border-color: #E0E0E0;
-            --btn-bg: #1A1A1A;
-            --btn-text: #FFFFFF;
+            --bg-color: #F4F1EA;      /* Algodão Cru */
+            --text-color: #1A1A1A;     /* Grafite */
+            --accent-color: #C19A6B;  /* Ouro Velho */
+            --border-color: rgba(26, 26, 26, 0.2);
+            --btn-txt: #F4F1EA;
+            --muted-text: rgba(26, 26, 26, 0.5);
+            --glow-primary: none;
         }
 
         body.dark-theme {
-            --bg-color: #0A0A0A;
-            --text-color: #FFFFFF;
-            --muted-text: #666666;
-            --accent-color: #FF0055; 
-            --border-color: #333333;
-            --btn-bg: #FFFFFF;
-            --btn-text: #0A0A0A;
+            --bg-color: #0A0A0A;      /* Preto Absoluto */
+            --text-color: #FFFFFF;     /* Branco Gelo */
+            --accent-color: #7c0229;  /* Carmesim Clássico */
+            --border-color: rgba(255, 255, 255, 0.15);
+            --btn-txt: #FFFFFF;
+            --muted-text: rgba(255, 255, 255, 0.5);
+            --glow-primary: 0 0 15px var(--accent-color);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
+        
         body, html { 
-            width: 100%; min-height: 100vh; font-family: 'Jost', sans-serif; 
+            width: 100%; min-height: 100vh; overflow-x: hidden; 
             background-color: var(--bg-color); color: var(--text-color);
-            transition: background-color 0.4s, color 0.4s; overflow-x: hidden;
+            transition: background-color 0.4s, color 0.4s;
             -webkit-user-select: none; user-select: none;
         }
 
-        /* HEADER E TEMAS (Ícones SVG) */
-        .top-bar { position: absolute; top: 20px; right: 20px; z-index: 1000; }
-        .theme-toggle { 
+        /* HEADER (Ícones de Tema e Voltar) */
+        .top-bar-right { position: absolute; top: 20px; right: 20px; z-index: 1000; }
+        .top-bar-left { position: absolute; top: 20px; left: 20px; z-index: 1000; }
+        
+        .icon-btn { 
             background: transparent; border: none; cursor: pointer; 
             color: var(--text-color); display: flex; align-items: center; justify-content: center;
-            padding: 5px; opacity: 0.7; transition: 0.3s;
+            padding: 8px; opacity: 0.6; transition: 0.3s;
         }
-        .theme-toggle:hover { opacity: 1; }
-        .theme-toggle svg { width: 24px; height: 24px; stroke-width: 2; }
+        .icon-btn:hover { opacity: 1; }
+        .icon-btn svg { width: 26px; height: 26px; stroke-width: 2; }
 
-        h1 { font-size: 3.5rem; font-weight: 700; letter-spacing: 8px; margin-top: 50px; margin-bottom: 30px; text-align: center; }
-
-        /* INPUTS E BOTÕES MINIMALISTAS */
-        .container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; width: 100%; max-width: 400px; margin: 0 auto; min-height: 80vh; }
+        /* =========================================
+           UI COMPARTILHADA (HOME & LOBBY)
+           ========================================= */
+        .container { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            padding: 20px; width: 100%; max-width: 400px; margin: 0 auto; min-height: 100vh; 
+        }
         
+        h1.logo { font-size: 4rem; font-weight: 900; letter-spacing: 12px; margin-bottom: 40px; text-align: center; }
+
         input { 
             width: 100%; padding: 18px; font-size: 1.1rem; text-align: center; letter-spacing: 2px;
             background: transparent; border: 2px solid var(--border-color); color: var(--text-color);
-            border-radius: 12px; margin-bottom: 15px; font-family: inherit; font-weight: 600; text-transform: uppercase;
+            border-radius: 12px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase;
             outline: none; transition: 0.3s;
         }
         input:focus { border-color: var(--accent-color); }
 
-        button { 
-            width: 100%; padding: 18px; font-size: 1rem; font-weight: 700; letter-spacing: 1px;
-            background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 12px;
-            cursor: pointer; transition: transform 0.2s, background 0.3s; font-family: inherit; margin-bottom: 10px;
-        }
-        button:active { transform: scale(0.97); }
-        .btn-revelar { background: var(--accent-color); color: #fff; }
-        
-        .divider { display: flex; align-items: center; width: 100%; margin: 20px 0; color: var(--muted-text); font-weight: 600; font-size: 0.9rem; }
-        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); margin: 0 15px; }
+        .input-lobby-name { border: 1px dashed var(--border-color); padding: 12px; margin-bottom: 20px; border-radius: 8px; }
 
-        /* ÁREA DE JOGO E LOBBY */
-        .sala-header { font-size: 1.2rem; font-weight: 700; letter-spacing: 4px; margin-bottom: 20px; opacity: 0.5; }
+        button.btn-primary { 
+            width: 100%; padding: 18px; font-size: 1rem; font-weight: 900; letter-spacing: 2px;
+            background: var(--accent-color); color: var(--btn-txt); border: none; border-radius: 12px;
+            cursor: pointer; transition: 0.2s; text-transform: uppercase;
+            box-shadow: var(--glow-primary);
+        }
+        button.btn-primary:active { transform: scale(0.97); }
+        
+        button.btn-secondary {
+            width: 100%; padding: 18px; font-size: 1rem; font-weight: 800; letter-spacing: 2px;
+            background: transparent; color: var(--text-color); border: 2px solid var(--border-color); 
+            border-radius: 12px; cursor: pointer; transition: 0.2s; text-transform: uppercase; margin-bottom: 10px;
+        }
+        button.btn-secondary:active { transform: scale(0.97); }
+        
+        .divider { display: flex; align-items: center; width: 100%; margin: 25px 0; color: var(--muted-text); font-weight: 700; font-size: 0.9rem; letter-spacing: 2px; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px dashed var(--border-color); margin: 0 15px; }
+
+        /* LISTA DO LOBBY */
+        .sala-header { font-size: 1.4rem; font-weight: 300; letter-spacing: 4px; margin-bottom: 25px; color: var(--muted-text); }
+        .sala-header strong { font-weight: 900; color: var(--accent-color); }
+        
         #qrcode { background: white; padding: 15px; display: inline-block; border-radius: 12px; margin-bottom: 15px; }
-        .btn-copy { background: transparent; color: var(--text-color); border: 2px solid var(--border-color); padding: 10px; font-size: 0.8rem; }
         
-        .lista-jogadores { list-style: none; width: 100%; text-align: left; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px; }
-        .jogador-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 1.1rem; }
-        .btn-kick { background: #ff4444; color: white; padding: 5px 10px; width: auto; font-size: 0.7rem; border-radius: 6px; margin: 0; }
+        .lista-jogadores { list-style: none; width: 100%; text-align: left; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .jogador-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px dashed var(--border-color); font-weight: 700; font-size: 1.1rem; }
+        .jogador-item span.voce { color: var(--accent-color); font-weight: 900; font-size: 0.8rem; letter-spacing: 1px; }
+        .btn-kick { background: transparent; color: #ff4444; border: 1px solid #ff4444; padding: 6px 12px; font-size: 0.7rem; border-radius: 6px; cursor: pointer; font-weight: 700; }
 
-        /* A GRANDE CARTA INTERATIVA */
+        /* =========================================
+           A CARTA (JOGO) - IDENTIDADE APROVADA
+           ========================================= */
+        #game-section { position: absolute; inset: 0; width: 100vw; height: 100vh; display: none; overflow: hidden; }
+        
         #card-principal {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            position: absolute; inset: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            cursor: pointer; z-index: 50; background: var(--bg-color);
+            cursor: pointer; z-index: 50; -webkit-tap-highlight-color: transparent;
         }
 
-        .numero-secreto { font-size: 35vh; font-weight: 700; display: none; line-height: 1; z-index: 10; color: var(--text-color); }
-        .interrogacao { font-size: 15vh; font-weight: 400; opacity: 0.2; transition: 0.2s; z-index: 10; }
-        .instrucao { position: absolute; bottom: 50px; font-size: 0.9rem; opacity: 0.4; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
-
-        .linha-decorativa { display: none; }
-        .neon-circle { display: none; }
-
-        body:not(.dark-theme) .linha-decorativa {
-            position: absolute; bottom: 120px; width: 100%; height: 2px; background: var(--accent-color);
-            display: block; transition: transform 0.3s, opacity 0.3s;
+        .numero-secreto { 
+            font-size: 35vh; font-weight: 700; line-height: 1;
+            position: absolute; top: 50%; left: 50%; 
+            color: var(--text-color);
+            transform: translate(-50%, -50%) translateY(-8vh) scale(0.8); 
+            opacity: 0; pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        body:not(.dark-theme) .linha-decorativa::after {
-            content: ''; position: absolute; left: 50%; top: -14px; width: 28px; height: 28px;
-            border: 2px solid var(--accent-color); border-radius: 8px; background: var(--bg-color); transform: translateX(-50%);
-        }
-        body:not(.dark-theme) #card-principal.active .linha-decorativa { transform: scaleY(2); opacity: 0.5; }
 
-        body.dark-theme .neon-circle {
-            position: absolute; width: 65vw; height: 65vw; max-width: 350px; max-height: 350px;
-            border: 4px solid var(--accent-color); border-radius: 50%; opacity: 0.05; transition: 0.2s;
-            display: flex; justify-content: center; align-items: center; pointer-events: none;
+        .alvo-interativo {
+            position: absolute; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%) translateY(-8vh);
+            width: 100px; height: 100px; 
+            border-radius: 50%; z-index: 10; transition: all 0.3s ease;
         }
-        body.dark-theme #card-principal.active .neon-circle { opacity: 1; box-shadow: 0 0 50px rgba(255,0,85,0.3); transform: scale(1.05); }
-        body.dark-theme #card-principal.active .numero-secreto { text-shadow: 0 0 20px rgba(255,255,255,0.4); }
 
-        .host-overlay { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 100; display: none; }
-        .sala-header-overlay { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 100; font-size: 1rem; font-weight: 700; letter-spacing: 3px; opacity: 0.5; display: none; }
+        .pulso {
+            position: absolute; inset: 0;
+            border: solid var(--accent-color); border-radius: 50%;
+            animation: respirar-amplo 3s infinite ease-out; 
+        }
+        
+        @keyframes respirar-amplo {
+            0% { transform: scale(0.5); opacity: 0.9; border-width: 6px; }
+            100% { transform: scale(3.5); opacity: 0; border-width: 0px; }
+        }
+
+        body.dark-theme .pulso { box-shadow: 0 0 15px var(--accent-color), inset 0 0 15px var(--accent-color); }
+
+        /* O FIO ORGÂNICO 60FPS */
+        #linha-fisica {
+            position: absolute; bottom: 20vh; left: 0;
+            width: 100%; height: 160px; 
+            overflow: visible; z-index: 5; pointer-events: none;
+        }
+        #fio-caotico {
+            fill: none; stroke: var(--accent-color); stroke-width: 4; stroke-linecap: round;
+            transition: stroke 0.4s;
+        }
+        body.dark-theme #fio-caotico { filter: drop-shadow(0 0 8px var(--accent-color)); }
+
+        /* ÁREA DE CONTROLES DO HOST (Ingame) */
+        .host-overlay { 
+            position: fixed; bottom: 0; left: 0; width: 100%; 
+            padding: 30px 20px 40px 20px; 
+            background: linear-gradient(to top, var(--bg-color) 70%, transparent);
+            z-index: 100; display: none; text-align: center; pointer-events: none; 
+        }
+        .host-overlay button { pointer-events: auto; margin: 0 auto; max-width: 400px; }
+
+        /* ESTADOS DE INTERAÇÃO */
+        #card-principal.active .alvo-interativo { opacity: 0; transform: translate(-50%, -50%) translateY(-8vh) scale(0.2); }
+        #card-principal.active .numero-secreto { opacity: 1; transform: translate(-50%, -50%) translateY(-8vh) scale(1); }
+
+        /* =========================================
+           MODAIS
+           ========================================= */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+            backdrop-filter: blur(8px);
+        }
+        .modal-content {
+            width: 85%; max-width: 350px; padding: 30px; border-radius: 20px;
+            background: var(--bg-color); color: var(--text-color);
+            text-align: center; border: 1px solid var(--border-color); box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .btn-group { display: flex; gap: 10px; margin-top: 25px; }
+        .btn-confirm { flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; background: var(--text-color); color: var(--bg-color); }
+        .btn-cancel { flex: 1; padding: 15px; border-radius: 10px; border: 2px solid var(--border-color); background: transparent; color: var(--text-color); font-weight: 700; cursor: pointer; }
 
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">
+    <div class="top-bar-right">
+        <button class="icon-btn" onclick="toggleTheme()" title="Trocar Tema">
             <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
@@ -140,51 +217,73 @@
     </div>
 
     <div id="setup-section" class="container">
-        <h1>ITO</h1>
+        <h1 class="logo">ITO</h1>
         
-        <input type="text" id="input-nome" placeholder="SEU NOME" autocomplete="off" maxlength="15" style="border-color: transparent; border-bottom-color: var(--border-color); border-radius: 0; margin-bottom: 30px;">
+        <input type="text" id="input-nome" placeholder="SEU NOME" autocomplete="off" maxlength="15">
+        <button class="btn-primary" onclick="criarSala()">CRIAR SALA</button>
         
-        <button onclick="criarSala()">CRIAR NOVA SALA</button>
-        <div class="divider">OU</div>
+        <div class="divider">OU INGRESSAR</div>
+        
         <input type="text" id="input-sala" placeholder="CÓDIGO DA SALA" autocomplete="off" maxlength="4">
-        <button onclick="entrarSala()" style="background: transparent; border: 2px solid var(--border-color); color: var(--text-color);">ENTRAR NA SALA</button>
+        <button class="btn-secondary" onclick="entrarSala()">ENTRAR</button>
     </div>
 
     <div id="lobby-area" class="container" style="display:none;">
         <div class="sala-header">SALA: <strong id="display-id-sala"></strong></div>
         
+        <input type="text" id="lobby-nome-input" class="input-lobby-name" placeholder="EDITAR NOME" maxlength="15" onchange="atualizarNomeLobby(this.value)">
+
         <div id="qrcode-container" style="display:none; text-align: center;">
             <div id="qrcode"></div>
-            <button class="btn-copy" onclick="copiarLink()">COPIAR LINK DA SALA</button>
+            <button class="btn-secondary" onclick="copiarLink()" style="font-size: 0.8rem; padding: 12px; margin-top: 10px;">COPIAR LINK DA SALA</button>
         </div>
 
         <ul class="lista-jogadores" id="lista-jogadores"></ul>
         
-        <div id="lobby-host-controls" style="width: 100%; margin-top: 20px; display: none;">
-            <button id="btn-sortear" onclick="sortearNumeros()">SORTEAR E COMEÇAR</button>
+        <div id="lobby-host-controls" style="width: 100%; margin-top: 30px; display: none;">
+            <button id="btn-sortear" class="btn-primary" onclick="sortearNumeros()">SORTEAR CARTAS</button>
         </div>
-        <p id="wait-message-lobby" style="margin-top:20px; color: var(--accent-color); font-weight: 600;">Aguardando Host...</p>
+        <p id="wait-message-lobby" style="margin-top:30px; color: var(--accent-color); font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">Aguardando Host...</p>
+
+        <button onclick="confirmExit('home')" style="background:transparent; border:none; color:var(--muted-text); margin-top:40px; text-decoration:underline; font-size:0.9rem; font-weight: 700; cursor: pointer;">Sair do Grupo</button>
     </div>
 
-    <div id="game-section" style="display:none;">
-        <div class="sala-header-overlay" id="sala-header-jogo">SALA: <strong>ABCD</strong></div>
+    <div id="game-section">
         
+        <div class="top-bar-left">
+            <button class="icon-btn" onclick="confirmExit('lobby')" title="Sair da Partida">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+        </div>
+
         <div id="card-principal"
              onmousedown="interactStart(event)" onmouseup="interactEnd(event)" onmouseleave="interactEnd(event)"
              ontouchstart="interactStart(event)" ontouchend="interactEnd(event)">
             
-            <div class="linha-decorativa"></div>
-            <div class="neon-circle"></div>
+            <svg id="linha-fisica" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path id="fio-caotico" d="M 0 50 C 33 50, 66 50, 100 50" />
+            </svg>
 
-            <div class="interrogacao" id="interrogacao">?</div>
+            <div class="alvo-interativo"><div class="pulso"></div></div>
             <div class="numero-secreto" id="meu-numero"></div>
-
-            <div class="instrucao" id="instrucao-texto">Segure para revelar</div>
         </div>
 
         <div class="host-overlay" id="host-controls">
-            <button class="btn-revelar" id="btn-revelar" style="display:none;" onclick="revelarTodos()">REVELAR TUDO</button>
-            <button class="btn-reset" id="btn-reset" style="display:none; background: var(--text-color); color: var(--bg-color);" onclick="voltarLobby()">PRÓXIMA RODADA (LOBBY)</button>
+            <button class="btn-primary" id="btn-revelar" style="display:none;" onclick="revelarTodos()">REVELAR MESA</button>
+            <button class="btn-secondary" id="btn-reset" style="display:none; background: var(--text-color); color: var(--bg-color); border: none;" onclick="voltarLobby()">NOVA RODADA</button>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-title" style="font-weight: 900; letter-spacing: 2px; margin-bottom: 15px;">ATENÇÃO</h3>
+            <p id="modal-msg" style="margin: 15px 0; color: var(--muted-text); font-weight: 600;"></p>
+            <div class="btn-group">
+                <button class="btn-cancel" onclick="closeModal()">VOLTAR</button>
+                <button id="modal-confirm-btn" class="btn-confirm">SAIR</button>
+            </div>
         </div>
     </div>
 
@@ -219,24 +318,87 @@
                 iconSun.style.display = 'block';
             }
 
-            // Recupera o nome salvo
             const savedName = localStorage.getItem('ito_player_name');
-            if (savedName) {
-                document.getElementById('input-nome').value = savedName;
-            }
+            if (savedName) document.getElementById('input-nome').value = savedName;
         });
 
-        // --- LÓGICA DO NOME ---
+        // --- LÓGICA DE NOME ---
         function getPlayerName() {
             let inputVal = document.getElementById('input-nome').value.trim();
-            if (!inputVal) {
-                inputVal = "Jogador " + Math.floor(Math.random() * 1000);
-            }
+            if (!inputVal) inputVal = "Jogador " + Math.floor(Math.random() * 1000);
             localStorage.setItem('ito_player_name', inputVal);
             return inputVal.toUpperCase();
         }
 
-        // --- CONFIGURAÇÃO SUPABASE ---
+        async function atualizarNomeLobby(novoNome) {
+            let val = novoNome.trim().toUpperCase();
+            if(!val) return;
+            localStorage.setItem('ito_player_name', val);
+            const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
+            if (!data) return;
+            let lista = data.jogadores;
+            let indexJogador = lista.findIndex(j => j.id === meuID);
+            if (indexJogador !== -1) {
+                lista[indexJogador].nome = val;
+                await sbClient.from('salas').update({ jogadores: lista }).eq('id_sala', salaAtual);
+            }
+        }
+
+        // --- MODAIS ---
+        function confirmExit(target) {
+            const modal = document.getElementById('confirm-modal');
+            const msg = document.getElementById('modal-msg');
+            const btn = document.getElementById('modal-confirm-btn');
+            modal.style.display = 'flex';
+            if(target === 'home') {
+                msg.innerText = souHost ? "Você é o host. Sair agora desfará a mesa. Confirmar?" : "Você abandonará o grupo. Confirmar?";
+                btn.onclick = () => window.location.href = window.location.pathname;
+            } else if (target === 'lobby') {
+                msg.innerText = "Partida em andamento. Deseja abandonar e voltar ao menu inicial?";
+                btn.onclick = () => window.location.href = window.location.pathname;
+            }
+        }
+        function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
+
+        // --- MOTOR DA ONDA 60FPS ---
+        let isHolding = false;
+        let amplitude = 0; 
+        
+        function animateWave(time) {
+            const fioPath = document.getElementById('fio-caotico');
+            if (!fioPath) return requestAnimationFrame(animateWave);
+
+            if (isHolding) { amplitude += (1 - amplitude) * 0.05; } 
+            else { amplitude += (0 - amplitude) * 0.08; }
+
+            if (amplitude > 0.01) {
+                const timeFactor = time * 0.002;
+                const y1 = 50 + (Math.sin(timeFactor * 1.5) * 35 + Math.sin(timeFactor * 0.8 + 2) * 20) * amplitude;
+                const y2 = 50 + (Math.sin(timeFactor * 1.2) * 35 + Math.sin(timeFactor * 1.9 + 4) * 20) * amplitude;
+                fioPath.setAttribute('d', `M 0 50 C 33 ${y1}, 66 ${y2}, 100 50`);
+            } else if (!isHolding && amplitude <= 0.01) {
+                fioPath.setAttribute('d', `M 0 50 C 33 50, 66 50, 100 50`);
+            }
+            requestAnimationFrame(animateWave);
+        }
+        requestAnimationFrame(animateWave);
+
+        function interactStart(e) {
+            if(e && e.type !== 'mousedown') e.preventDefault(); 
+            if(globalStatus === 'revelado') return;
+            if (navigator.vibrate) navigator.vibrate(50); 
+            document.getElementById('card-principal').classList.add('active');
+            isHolding = true;
+        }
+
+        function interactEnd(e) {
+            if(e && e.type !== 'mouseup' && e.type !== 'mouseleave') e.preventDefault();
+            if(globalStatus === 'revelado') return;
+            document.getElementById('card-principal').classList.remove('active');
+            isHolding = false;
+        }
+
+        // --- SUPABASE & LÓGICA DO JOGO ---
         const SUPABASE_URL = 'https://zatuzblawpfumwxzkfpu.supabase.co'; 
         const SUPABASE_KEY = 'sb_publishable_FmblL1EuUfu79E-wE3eJOw_BJxgMd_K';
         const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -247,36 +409,16 @@
         let souHost = false;
         let globalStatus = 'esperando';
 
-        function interactStart(e) {
-            if(e && e.type !== 'mousedown') e.preventDefault(); 
-            if(globalStatus === 'revelado') return; 
-            if (navigator.vibrate) navigator.vibrate(50); 
-            document.getElementById('interrogacao').style.display = 'none';
-            document.getElementById('meu-numero').style.display = 'block';
-            document.getElementById('card-principal').classList.add('active');
-        }
-
-        function interactEnd(e) {
-            if(e && e.type !== 'mouseup' && e.type !== 'mouseleave') e.preventDefault();
-            if(globalStatus === 'revelado') return; 
-            document.getElementById('interrogacao').style.display = 'block';
-            document.getElementById('meu-numero').style.display = 'none';
-            document.getElementById('card-principal').classList.remove('active');
-        }
-
         async function criarSala() {
             try {
                 const id = Math.random().toString(36).substring(4, 8).toUpperCase();
                 const nomeJogador = getPlayerName();
-                
                 const { error } = await sbClient.from('salas').insert([{ 
                     id_sala: id, status: 'esperando', jogadores: [{id: meuID, nome: nomeJogador, numero: null}] 
                 }]);
                 if(error) throw error;
-                
                 localStorage.setItem(`host_${id}`, 'true'); 
                 abrirSala(id, true);
-                
                 const urlSala = window.location.origin + window.location.pathname + "?sala=" + id;
                 document.getElementById("qrcode").innerHTML = ""; 
                 new QRCode(document.getElementById("qrcode"), { text: urlSala, width: 140, height: 140, colorDark: "#000000", colorLight: "#ffffff" });
@@ -288,22 +430,16 @@
             try {
                 const id = document.getElementById('input-sala').value.toUpperCase() || new URLSearchParams(window.location.search).get('sala');
                 if(!id) return;
-                
                 const nomeJogador = getPlayerName();
                 const { data, error } = await sbClient.from('salas').select('*').eq('id_sala', id).single();
                 if (error || !data) throw new Error("Sala não encontrada!");
                 
                 let lista = data.jogadores || [];
-                // Se o jogador já está na lista, atualiza o nome. Se não, adiciona.
                 let indexJogador = lista.findIndex(j => j.id === meuID);
-                if (indexJogador === -1) {
-                    lista.push({ id: meuID, nome: nomeJogador, numero: null });
-                } else {
-                    lista[indexJogador].nome = nomeJogador;
-                }
+                if (indexJogador === -1) lista.push({ id: meuID, nome: nomeJogador, numero: null });
+                else lista[indexJogador].nome = nomeJogador;
                 
                 await sbClient.from('salas').update({ jogadores: lista }).eq('id_sala', id);
-                
                 const isHost = localStorage.getItem(`host_${id}`) === 'true';
                 abrirSala(id, isHost);
             } catch (err) { alert(err.message); }
@@ -313,7 +449,7 @@
             salaAtual = id; souHost = isHost;
             document.getElementById('setup-section').style.display = 'none';
             document.getElementById('display-id-sala').innerText = id;
-            document.getElementById('sala-header-jogo').innerHTML = `SALA: <strong>${id}</strong>`;
+            document.getElementById('lobby-nome-input').value = localStorage.getItem('ito_player_name') || "";
             inscreverNoJogo();
         }
 
@@ -329,7 +465,6 @@
             const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
             if (!data) return;
             let n = shuffleArray(Array.from({length: 100}, (_, i) => i + 1));
-            // Mantém os nomes intactos ao sortear
             let novosJogadores = data.jogadores.map((j, i) => ({ id: j.id, nome: j.nome, numero: n[i] }));
             await sbClient.from('salas').update({ jogadores: novosJogadores, status: 'sorteado' }).eq('id_sala', salaAtual);
         }
@@ -361,7 +496,6 @@
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'salas', filter: `id_sala=eq.${salaAtual}` }, payload => {
                 atualizarInterface(payload.new);
             }).subscribe();
-            
             sbClient.from('salas').select('*').eq('id_sala', salaAtual).single().then(({data}) => { if(data) atualizarInterface(data); });
         }
 
@@ -369,20 +503,17 @@
             if (!d || !d.jogadores) return;
             if (!d.jogadores.find(j => j.id === meuID)) { 
                 localStorage.removeItem(`host_${salaAtual}`);
-                window.location.href = window.location.origin + window.location.pathname; return; 
+                window.location.href = window.location.pathname; return; 
             }
 
             globalStatus = d.status;
-
             const listaUl = document.getElementById('lista-jogadores');
             listaUl.innerHTML = "";
             d.jogadores.forEach((j, index) => {
                 const li = document.createElement('li');
                 li.className = 'jogador-item';
-                // Usa o nome salvo no banco, ou fallback para "JOGADOR X"
                 const nomeDisplay = j.nome || `JOGADOR ${index + 1}`;
-                li.innerHTML = `<span>${nomeDisplay} <span style="opacity:0.5; font-size:0.8rem;">${j.id === meuID ? '(VOCÊ)' : ''}</span></span>`;
-                
+                li.innerHTML = `<span>${nomeDisplay} ${j.id === meuID ? '<span class="voce">(VOCÊ)</span>' : ''}</span>`;
                 if (souHost && j.id !== meuID) {
                     const btn = document.createElement('button');
                     btn.innerText = "Remover"; btn.className = "btn-kick";
@@ -393,11 +524,12 @@
             });
 
             const eu = d.jogadores.find(j => j.id === meuID);
-            document.getElementById('meu-numero').innerText = eu.numero || "?";
+            document.getElementById('meu-numero').innerText = eu.numero || "";
 
             if (globalStatus === 'esperando') {
                 document.getElementById('lobby-area').style.display = 'flex';
                 document.getElementById('game-section').style.display = 'none';
+                document.getElementById('card-principal').classList.remove('active');
                 
                 if(souHost) {
                     document.getElementById('lobby-host-controls').style.display = 'block';
@@ -417,14 +549,9 @@
                 }
 
                 if (globalStatus === 'revelado') {
-                    document.getElementById('interrogacao').style.display = 'none';
-                    document.getElementById('meu-numero').style.display = 'block';
-                    document.getElementById('instrucao-texto').innerText = "REVELADO!";
                     document.getElementById('card-principal').classList.add('active');
+                    isHolding = false; // Garante que a linha pare de tremer
                 } else {
-                    document.getElementById('interrogacao').style.display = 'block';
-                    document.getElementById('meu-numero').style.display = 'none';
-                    document.getElementById('instrucao-texto').innerText = "Segure para revelar";
                     document.getElementById('card-principal').classList.remove('active');
                 }
             }
