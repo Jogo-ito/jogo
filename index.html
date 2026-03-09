@@ -4,10 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>ITO</title>
+    
+    <link rel="icon" href="/icons/icon-light.png" type="image/png" media="(prefers-color-scheme: light)">
+    <link rel="apple-touch-icon" href="/icons/icon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" href="/icons/icon-dark.png" type="image/png" media="(prefers-color-scheme: dark)">
+    <link rel="apple-touch-icon" href="/icons/icon-dark.png" media="(prefers-color-scheme: dark)">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#F7F7F2" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)">
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700;900&display=swap');
 
         /* VARIÁVEIS DE TEMA */
         :root {
@@ -38,7 +47,7 @@
             -webkit-user-select: none; user-select: none;
         }
 
-        /* HEADER E TEMAS (Ícones SVG) */
+        /* HEADER E TEMAS */
         .top-bar { position: absolute; top: 20px; right: 20px; z-index: 1000; }
         .theme-toggle { 
             background: transparent; border: none; cursor: pointer; 
@@ -50,7 +59,7 @@
 
         h1 { font-size: 3.5rem; font-weight: 700; letter-spacing: 8px; margin-top: 50px; margin-bottom: 30px; text-align: center; }
 
-        /* INPUTS E BOTÕES MINIMALISTAS */
+        /* INPUTS E BOTÕES */
         .container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; width: 100%; max-width: 400px; margin: 0 auto; min-height: 80vh; }
         
         input { 
@@ -60,6 +69,12 @@
             outline: none; transition: 0.3s;
         }
         input:focus { border-color: var(--accent-color); }
+
+        /* Feature 8: Input do Lobby */
+        .input-lobby-name {
+            border: 1px dashed var(--border-color); padding: 12px; font-size: 1rem;
+            margin-bottom: 20px; border-radius: 8px; font-weight: 700;
+        }
 
         button { 
             width: 100%; padding: 18px; font-size: 1rem; font-weight: 700; letter-spacing: 1px;
@@ -81,16 +96,16 @@
         .jogador-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 1.1rem; }
         .btn-kick { background: #ff4444; color: white; padding: 5px 10px; width: auto; font-size: 0.7rem; border-radius: 6px; margin: 0; }
 
-        /* A GRANDE CARTA INTERATIVA */
+        /* A GRANDE CARTA INTERATIVA (Feature 4: Ergonomia 28vh e -12vh) */
         #card-principal {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             cursor: pointer; z-index: 50; background: var(--bg-color);
         }
 
-        .numero-secreto { font-size: 35vh; font-weight: 700; display: none; line-height: 1; z-index: 10; color: var(--text-color); }
-        .interrogacao { font-size: 15vh; font-weight: 400; opacity: 0.2; transition: 0.2s; z-index: 10; }
-        .instrucao { position: absolute; bottom: 50px; font-size: 0.9rem; opacity: 0.4; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
+        .numero-secreto { font-size: 28vh; font-weight: 900; display: none; line-height: 1; z-index: 10; color: var(--text-color); transform: translateY(-12vh); }
+        .interrogacao { font-size: 15vh; font-weight: 400; opacity: 0.2; transition: 0.2s; z-index: 10; transform: translateY(-12vh); }
+        .instrucao { position: absolute; bottom: 120px; font-size: 0.9rem; opacity: 0.4; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
 
         .linha-decorativa { display: none; }
         .neon-circle { display: none; }
@@ -108,13 +123,28 @@
         body.dark-theme .neon-circle {
             position: absolute; width: 65vw; height: 65vw; max-width: 350px; max-height: 350px;
             border: 4px solid var(--accent-color); border-radius: 50%; opacity: 0.05; transition: 0.2s;
-            display: flex; justify-content: center; align-items: center; pointer-events: none;
+            display: flex; justify-content: center; align-items: center; pointer-events: none; transform: translateY(-12vh);
         }
-        body.dark-theme #card-principal.active .neon-circle { opacity: 1; box-shadow: 0 0 50px rgba(255,0,85,0.3); transform: scale(1.05); }
+        body.dark-theme #card-principal.active .neon-circle { opacity: 1; box-shadow: 0 0 50px rgba(255,0,85,0.3); transform: translateY(-12vh) scale(1.05); }
         body.dark-theme #card-principal.active .numero-secreto { text-shadow: 0 0 20px rgba(255,255,255,0.4); }
 
         .host-overlay { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 100; display: none; }
         .sala-header-overlay { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 100; font-size: 1rem; font-weight: 700; letter-spacing: 3px; opacity: 0.5; display: none; }
+
+        /* FEATURE 7 e 9: ESTILOS DO MODAL */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            width: 85%; max-width: 350px; padding: 30px; border-radius: 20px;
+            background: var(--bg-color); color: var(--text-color);
+            text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid var(--border-color);
+        }
+        .btn-group { display: flex; gap: 10px; margin-top: 25px; }
+        .btn-confirm { flex: 2; padding: 15px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; background: #d9534f; color: white; margin-bottom: 0;}
+        .btn-cancel { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid var(--border-color); background: transparent; color: var(--text-color); font-weight: 600; font-size: 12px; cursor: pointer; margin-bottom: 0;}
 
     </style>
 </head>
@@ -153,6 +183,8 @@
     <div id="lobby-area" class="container" style="display:none;">
         <div class="sala-header">SALA: <strong id="display-id-sala"></strong></div>
         
+        <input type="text" id="lobby-nome-input" class="input-lobby-name" placeholder="EDITAR SEU NOME" maxlength="15" onchange="atualizarNomeLobby(this.value)">
+
         <div id="qrcode-container" style="display:none; text-align: center;">
             <div id="qrcode"></div>
             <button class="btn-copy" onclick="copiarLink()">COPIAR LINK DA SALA</button>
@@ -164,9 +196,14 @@
             <button id="btn-sortear" onclick="sortearNumeros()">SORTEAR E COMEÇAR</button>
         </div>
         <p id="wait-message-lobby" style="margin-top:20px; color: var(--accent-color); font-weight: 600;">Aguardando Host...</p>
+
+        <button onclick="confirmExit('home')" style="background:transparent; border:none; color:var(--muted-text); margin-top:30px; text-decoration:underline; font-size:0.9rem;">Sair do Grupo</button>
     </div>
 
     <div id="game-section" style="display:none;">
+        
+        <button onclick="confirmExit('lobby')" style="position: absolute; top: 30px; left: 20px; z-index: 1000; background:transparent; border:none; color:var(--text-color); font-weight:700; opacity: 0.5; font-size: 14px;">← SAIR</button>
+
         <div class="sala-header-overlay" id="sala-header-jogo">SALA: <strong>ABCD</strong></div>
         
         <div id="card-principal"
@@ -179,12 +216,23 @@
             <div class="interrogacao" id="interrogacao">?</div>
             <div class="numero-secreto" id="meu-numero"></div>
 
-            <div class="instrucao" id="instrucao-texto">Segure para revelar</div>
+            <div class="instrucao" id="instrucao-texto" style="bottom: 120px;">Segure para revelar</div>
         </div>
 
         <div class="host-overlay" id="host-controls">
             <button class="btn-revelar" id="btn-revelar" style="display:none;" onclick="revelarTodos()">REVELAR TUDO</button>
             <button class="btn-reset" id="btn-reset" style="display:none; background: var(--text-color); color: var(--bg-color);" onclick="voltarLobby()">PRÓXIMA RODADA (LOBBY)</button>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-title">Atenção</h3>
+            <p id="modal-msg" style="margin: 15px 0; opacity: 0.8; font-weight: 600;"></p>
+            <div class="btn-group">
+                <button class="btn-cancel" onclick="closeModal()">CANCELAR</button>
+                <button id="modal-confirm-btn" class="btn-confirm">SAIR</button>
+            </div>
         </div>
     </div>
 
@@ -219,14 +267,13 @@
                 iconSun.style.display = 'block';
             }
 
-            // Recupera o nome salvo
             const savedName = localStorage.getItem('ito_player_name');
             if (savedName) {
                 document.getElementById('input-nome').value = savedName;
             }
         });
 
-        // --- LÓGICA DO NOME ---
+        // --- LÓGICA DE NOME ---
         function getPlayerName() {
             let inputVal = document.getElementById('input-nome').value.trim();
             if (!inputVal) {
@@ -235,6 +282,42 @@
             localStorage.setItem('ito_player_name', inputVal);
             return inputVal.toUpperCase();
         }
+
+        // Feature 8: Atualizar nome dentro do Lobby via Supabase
+        async function atualizarNomeLobby(novoNome) {
+            let val = novoNome.trim().toUpperCase();
+            if(!val) return;
+            localStorage.setItem('ito_player_name', val);
+            
+            const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
+            if (!data) return;
+            let lista = data.jogadores;
+            let indexJogador = lista.findIndex(j => j.id === meuID);
+            if (indexJogador !== -1) {
+                lista[indexJogador].nome = val;
+                await sbClient.from('salas').update({ jogadores: lista }).eq('id_sala', salaAtual);
+            }
+        }
+
+        // --- LÓGICA DE MODAIS (Saída) ---
+        function confirmExit(target) {
+            const modal = document.getElementById('confirm-modal');
+            const msg = document.getElementById('modal-msg');
+            const btn = document.getElementById('modal-confirm-btn');
+            
+            modal.style.display = 'flex';
+            
+            if(target === 'home') {
+                msg.innerText = souHost ? "Você é o host. Sair agora pode desfazer o grupo. Deseja retornar ao menu inicial?" : "Você sairá deste grupo. Deseja confirmar?";
+                btn.onclick = () => window.location.href = window.location.origin + window.location.pathname;
+            } else if (target === 'lobby') {
+                msg.innerText = "A partida está em andamento. Deseja mesmo abandonar e voltar ao menu?";
+                btn.onclick = () => window.location.href = window.location.origin + window.location.pathname;
+            }
+        }
+
+        function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
+
 
         // --- CONFIGURAÇÃO SUPABASE ---
         const SUPABASE_URL = 'https://zatuzblawpfumwxzkfpu.supabase.co'; 
@@ -294,7 +377,6 @@
                 if (error || !data) throw new Error("Sala não encontrada!");
                 
                 let lista = data.jogadores || [];
-                // Se o jogador já está na lista, atualiza o nome. Se não, adiciona.
                 let indexJogador = lista.findIndex(j => j.id === meuID);
                 if (indexJogador === -1) {
                     lista.push({ id: meuID, nome: nomeJogador, numero: null });
@@ -314,6 +396,10 @@
             document.getElementById('setup-section').style.display = 'none';
             document.getElementById('display-id-sala').innerText = id;
             document.getElementById('sala-header-jogo').innerHTML = `SALA: <strong>${id}</strong>`;
+            
+            // Preenche o input do lobby com o nome salvo
+            document.getElementById('lobby-nome-input').value = localStorage.getItem('ito_player_name') || "";
+            
             inscreverNoJogo();
         }
 
@@ -329,7 +415,6 @@
             const { data } = await sbClient.from('salas').select('*').eq('id_sala', salaAtual).single();
             if (!data) return;
             let n = shuffleArray(Array.from({length: 100}, (_, i) => i + 1));
-            // Mantém os nomes intactos ao sortear
             let novosJogadores = data.jogadores.map((j, i) => ({ id: j.id, nome: j.nome, numero: n[i] }));
             await sbClient.from('salas').update({ jogadores: novosJogadores, status: 'sorteado' }).eq('id_sala', salaAtual);
         }
@@ -379,7 +464,6 @@
             d.jogadores.forEach((j, index) => {
                 const li = document.createElement('li');
                 li.className = 'jogador-item';
-                // Usa o nome salvo no banco, ou fallback para "JOGADOR X"
                 const nomeDisplay = j.nome || `JOGADOR ${index + 1}`;
                 li.innerHTML = `<span>${nomeDisplay} <span style="opacity:0.5; font-size:0.8rem;">${j.id === meuID ? '(VOCÊ)' : ''}</span></span>`;
                 
