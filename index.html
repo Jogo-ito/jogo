@@ -53,6 +53,8 @@
 
         .top-bar-right { position: absolute; top: 20px; right: 20px; z-index: 1000; }
         .top-bar-left { position: absolute; top: 20px; left: 20px; z-index: 1000; }
+        /* V1.6.2: Container central para o Olho */
+        .top-bar-center { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; }
         
         .icon-btn { 
             background: transparent; border: none; cursor: pointer; 
@@ -122,7 +124,7 @@
         }
         .icon-btn-action:hover { border-color: var(--accent-color); color: var(--accent-color); }
         .icon-btn-action:active { transform: scale(0.9); }
-        .icon-btn-action svg { width: 24px; height: 24px; stroke-width: 1.5; } /* Traço mais fino para o dado */
+        .icon-btn-action svg { width: 24px; height: 24px; stroke-width: 1.5; }
 
         .sugestoes-wrapper { width: 100%; max-height: 180px; overflow-y: auto; padding-right: 5px; }
         .list-sugestoes { list-style: none; }
@@ -202,7 +204,7 @@
         .btn-confirm { flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; background: var(--text-color); color: var(--bg-color); }
         .btn-cancel { flex: 1; padding: 15px; border-radius: 10px; border: 2px solid var(--border-color); background: transparent; color: var(--text-color); font-weight: 700; cursor: pointer; }
 
-        /* V1.6.1: Limpeza total do FAB HELPER para evitar sobreposição de ícones */
+        /* FAB AJUDA EXCLUSIVO DO LOBBY */
         #btn-game-helper {
             position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px; border-radius: 50%;
             background: var(--accent-color); color: var(--btn-txt); border: none;
@@ -211,17 +213,7 @@
             transition: 0.2s;
         }
         #btn-game-helper:active { transform: scale(0.9); }
-        
-        /* Garante que os SVGs dentro do Helper fiquem limpos e centralizados */
-        #btn-game-helper svg {
-            width: 28px; height: 28px; stroke-width: 2;
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-        
-        /* Estilo específico do ícone do olho (V1.6 Ver Tema) */
-        #helper-icon-theme { stroke-width: 2.2; }
+        #btn-game-helper svg { width: 28px; height: 28px; stroke-width: 2; }
         
         .tutorial-controles { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; font-weight: 900; }
         .tutorial-controles button { background: transparent; border: none; font-size: 1.5rem; color: var(--accent-color); cursor: pointer; padding: 10px; }
@@ -286,8 +278,13 @@
                         <path d="M12 22V12"></path>
                         <path d="M20.5 6.5L12 12"></path>
                         <path d="M3.5 6.5L12 12"></path>
-                        <path d="M12 2l8.5 4.5"></path>
-                        <path d="M12 2L3.5 6.5"></path>
+                        
+                        <circle cx="12" cy="7.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                        <circle cx="7.5" cy="13.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                        <circle cx="7.5" cy="17" r="1.2" fill="currentColor" stroke="none"></circle>
+                        <circle cx="16.5" cy="12" r="1.2" fill="currentColor" stroke="none"></circle>
+                        <circle cx="16.5" cy="14.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                        <circle cx="16.5" cy="17" r="1.2" fill="currentColor" stroke="none"></circle>
                     </svg>
                 </button>
             </div>
@@ -324,6 +321,15 @@
             <button class="icon-btn" onclick="confirmExit('lobby')" title="Sair da Partida">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="top-bar-center escondido" id="theme-top-bar">
+            <button class="icon-btn" onclick="abrirVisualizacaoDeTema()" title="Ver Tema da Rodada" style="opacity: 0.8;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
                 </svg>
             </button>
         </div>
@@ -374,16 +380,11 @@
         </div>
     </div>
 
-    <button id="btn-game-helper" onclick="acionarHelperDoBotao()" title="Ajuda ou Tema">
-        <svg id="helper-icon-tutorial" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <button id="btn-game-helper" onclick="abrirTutorial()" title="Ajuda">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
-        </svg>
-        
-        <svg id="helper-icon-theme" class="escondido" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
         </svg>
     </button>
 
@@ -412,7 +413,6 @@
             if (savedName) document.getElementById('input-nome').value = savedName;
         });
 
-        // ONDA FÍSICA CLÁSSICA (V1.3 EXATA RESTAURADA)
         let isHolding = false;
         let amplitude = 0; 
         
@@ -459,7 +459,7 @@
         let souHost = false;
         let globalStatus = 'esperando';
         let debounceTimer;
-        let realtimeChannel = null; // V1.6 Canal Realtime para sugestões
+        let realtimeChannel = null;
 
         function getPlayerName() {
             let inputVal = document.getElementById('input-nome').value.trim();
@@ -569,18 +569,15 @@
             );
             await Promise.all(promises);
 
-            // V1.6: Salva o tema definido pelo Host na sala antes de iniciar
             const temaDefinido = document.getElementById('host-theme-input').value.trim() || "";
             await sbClient.from('salas').update({ status: 'sorteado', tema: temaDefinido }).eq('id', salaAtual);
         }
 
         async function voltarLobby() {
             if (!souHost) return;
-            // V1.6: Limpa o tema ao voltar ao lobby
             await sbClient.from('salas').update({ status: 'esperando', tema: '' }).eq('id', salaAtual);
             await sbClient.from('jogadores').update({ numero: null }).eq('sala_id', salaAtual);
             
-            // Limpa as sugestões visuais do Host
             document.getElementById('host-sugestoes-list').innerHTML = '<p id="no-suggestions-msg" style="font-size: 0.8rem; color: var(--muted-text); font-style: italic; text-align: center; padding: 10px 0;">Aguardando palpites da mesa...</p>';
             document.getElementById('host-theme-input').value = "";
         }
@@ -596,17 +593,14 @@
         }
 
         function inscreverNoJogo() {
-            // Canal Postgres Changes para Database (Salas e Jogadores)
             const dbChannel = sbClient.channel('db_ito_' + salaAtual);
             dbChannel.on('postgres_changes', { event: '*', schema: 'public', table: 'salas', filter: `id=eq.${salaAtual}` }, () => carregarEstadoSala());
             dbChannel.on('postgres_changes', { event: '*', schema: 'public', table: 'jogadores', filter: `sala_id=eq.${salaAtual}` }, () => carregarEstadoSala());
             dbChannel.subscribe();
             
-            // V1.6: Canal Broadcast para Sugestões Efêmeras de Tema
             realtimeChannel = sbClient.channel('realtime_ito_' + salaAtual);
             
             if (souHost) {
-                // Host escuta sugestões (Broadcast)
                 realtimeChannel.on('broadcast', { event: 'tema_sugerido' }, (payload) => {
                     if (globalStatus === 'esperando') { receiveSuggestionOnHost(payload.payload.texto); }
                 });
@@ -616,16 +610,14 @@
             carregarEstadoSala();
         }
 
-        // V1.6: Logica de Sugestões colaborativas
         function receiveSuggestionOnHost(texto) {
             if (!souHost) return;
-            if (navigator.vibrate) navigator.vibrate(50); // Feedback tátil no Host
+            if (navigator.vibrate) navigator.vibrate(50); 
 
             const list = document.getElementById('host-sugestoes-list');
             const noMsg = document.getElementById('no-suggestions-msg');
             if (noMsg) noMsg.remove();
 
-            // Evita duplicatas visuais imediatas
             const existing = list.querySelectorAll('li');
             for (let li of existing) { if (li.innerText === texto) return; }
 
@@ -634,10 +626,10 @@
             li.innerText = texto;
             li.onclick = () => {
                 document.getElementById('host-theme-input').value = texto;
-                li.style.borderColor = 'var(--accent-color)'; // Feedback visual de seleção
+                li.style.borderColor = 'var(--accent-color)'; 
                 if (navigator.vibrate) navigator.vibrate(30);
             };
-            list.prepend(li); // Adiciona no topo
+            list.prepend(li); 
         }
 
         function enviarSugestaoAoHost() {
@@ -645,18 +637,16 @@
             const texto = input.value.trim();
             if (!texto || !realtimeChannel) return;
 
-            // Envia via Broadcast (não grava na DB, o Host que lute)
             realtimeChannel.send({
                 type: 'broadcast',
                 event: 'tema_sugerido',
                 payload: { texto: texto }
             });
 
-            input.value = ""; // Limpa input
+            input.value = ""; 
             input.placeholder = "Sugestão enviada! Mande outra...";
             if (navigator.vibrate) navigator.vibrate(70);
             
-            // Feedback visual no botão
             const btn = input.nextElementSibling;
             btn.style.color = 'var(--accent-color)';
             btn.style.borderColor = 'var(--accent-color)';
@@ -674,7 +664,6 @@
             const temaSorteado = TEMAS_GENERICOS[index];
             document.getElementById('host-theme-input').value = temaSorteado;
             
-            // V1.6.1 Feedback visual no botão de dado geometrico
             const btn = document.querySelector('.input-group-theme .icon-btn-action');
             btn.style.borderColor = 'var(--accent-color)';
             btn.style.color = 'var(--accent-color)';
@@ -694,7 +683,7 @@
             }
 
             globalStatus = salaData.status;
-            temaDaRodadaAtual = salaData.tema; // V1.6 Guarda o tema globalmente no cliente
+            temaDaRodadaAtual = salaData.tema; 
             
             const listaUl = document.getElementById('lista-jogadores');
             const newIds = jogadoresData.map(j => j.id);
@@ -727,56 +716,36 @@
             if (globalStatus === 'revelado') isHolding = false;
             
             if (isEsperando) {
-                // V1.6 UI do Lobby dividida entre Host (Temas/Sorteio) e Jogador (Sugerir/Aguardar)
                 document.getElementById('lobby-host-controls').classList.toggle('escondido', !souHost);
                 document.getElementById('player-suggest-controls').classList.toggle('escondido', souHost);
+                document.getElementById('btn-game-helper').classList.remove('escondido');
             } else if (souHost) {
                 document.getElementById('btn-revelar').classList.toggle('escondido', globalStatus !== 'sorteado');
                 document.getElementById('btn-reset').classList.toggle('escondido', globalStatus !== 'revelado');
+                document.getElementById('btn-game-helper').classList.add('escondido');
+            } else {
+                document.getElementById('btn-game-helper').classList.add('escondido');
             }
             
-            // V1.6.1 Alternância do Botão Helper (Tutorial -> Olho do Tema) com lógica limpa
-            const btnHelper = document.getElementById('btn-game-helper');
-            const iconTutorial = document.getElementById('helper-icon-tutorial');
-            const iconTheme = document.getElementById('helper-icon-theme');
-
-            if (isEsperando) {
-                // Home ou Lobby: Botão é Tutorial e é visível
-                btnHelper.classList.remove('escondido');
-                iconTutorial.classList.remove('escondido');
-                iconTutorial.style.opacity = '1';
-                iconTheme.classList.add('escondido');
-                iconTheme.style.opacity = '0';
-            } else {
-                // Em Jogo: Botão vira Ver Tema se houver tema
+            // V1.6.2 Lógica do Olho no topo da tela centralizado (Só aparece no jogo se tiver tema)
+            const btnOlho = document.getElementById('theme-top-bar');
+            if (btnOlho) {
                 const temTema = temaDaRodadaAtual && temaDaRodadaAtual.trim() !== "";
-                btnHelper.classList.toggle('escondido', !temTema);
-                iconTutorial.classList.add('escondido');
-                iconTutorial.style.opacity = '0';
-                iconTheme.classList.remove('escondido');
-                iconTheme.style.opacity = '1';
+                btnOlho.classList.toggle('escondido', isEsperando || !temTema);
             }
         }
 
-        // V1.6 Gestão unificada dos modais de ajuda (Tutorial e Tema)
-        let temaDaRodadaAtual = ""; // Variável global do cliente
-
-        function acionarHelperDoBotao() {
-            if (navigator.vibrate) navigator.vibrate(30);
-            if (globalStatus === 'esperando') {
-                abrirTutorial(); // No lobby abre o tutorial
-            } else {
-                abrirVisualizacaoDeTema(); // No jogo abre o tema
-            }
-        }
+        let temaDaRodadaAtual = "";
 
         function abrirVisualizacaoDeTema() {
             if (!temaDaRodadaAtual) return;
+            if (navigator.vibrate) navigator.vibrate(30);
             document.getElementById('theme-view-text').innerText = temaDaRodadaAtual;
             document.getElementById('modal-theme-view').classList.remove('escondido');
         }
 
         function abrirTutorial() {
+            if (navigator.vibrate) navigator.vibrate(30);
             passoAtual = 0;
             atualizarTelaTutorial();
             document.getElementById('modal-tutorial').classList.remove('escondido');
@@ -787,7 +756,6 @@
             document.getElementById('modal-theme-view').classList.add('escondido');
         }
 
-        // Modais de confirmação padrão (revelar, sair)
         function abrirModalConfirmacao(titulo, texto, acaoConfirmar) {
             document.getElementById('modal-title').innerText = titulo;
             document.getElementById('modal-msg').innerText = texto;
@@ -812,12 +780,11 @@
             });
         }
 
-        // Logica interna do tutorial
         const passosTutorial = [
             "O objetivo do jogo é colocar todas as cartas da mesa em ordem crescente.",
             "A pegadinha? Vocês NÃO podem falar os números que tiraram!",
             "O Host define um TEMA da Rodada (Ex: 1 = Pior Comida / 100 = Melhor Comida).",
-            "Dê um palpite baseado no seu número. Se tirou 1, diga algo horrível. Se tirou 99, diga a melhor coisa possível. Deduzam a ordem juntos!"
+            "Dê um palpite baseado no seu número. Se tirou 1, diga algo horrível. Se tirou 100, diga a melhor coisa possível. Deduzam a ordem juntos!"
         ];
         let passoAtual = 0;
 
@@ -835,7 +802,6 @@
             const s = new URLSearchParams(window.location.search).get('sala');
             if(s) { document.getElementById('input-sala').value = s; entrarSala(); }
 
-            // REGISTRO DO SERVICE WORKER (PWA / OFFLINE)
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/sw.js')
                     .then(() => console.log('Service Worker Registrado!'))
