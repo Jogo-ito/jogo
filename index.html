@@ -15,6 +15,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <script src="/temas.js" defer></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;600;700;800;900&display=swap');
 
@@ -67,13 +70,13 @@
         
         h1.logo { font-size: 4rem; font-weight: 900; letter-spacing: 12px; margin-bottom: 40px; text-align: center; }
 
-        input { 
+        input[type="text"] { 
             width: 100%; padding: 18px; font-size: 1.1rem; text-align: center; letter-spacing: 2px;
             background: transparent; border: 2px solid var(--border-color); color: var(--text-color);
             border-radius: 12px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase;
             outline: none; transition: 0.3s;
         }
-        input:focus { border-color: var(--accent-color); }
+        input[type="text"]:focus { border-color: var(--accent-color); }
 
         .input-lobby-name { border: 1px dashed var(--border-color); padding: 12px; margin-bottom: 20px; border-radius: 8px; }
 
@@ -104,6 +107,37 @@
         .jogador-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px dashed var(--border-color); font-weight: 700; font-size: 1.1rem; }
         .jogador-item span.voce { color: var(--accent-color); font-weight: 900; font-size: 0.8rem; letter-spacing: 1px; }
         .btn-kick { background: transparent; color: #ff4444; border: 1px solid #ff4444; padding: 6px 12px; font-size: 0.7rem; border-radius: 6px; cursor: pointer; font-weight: 700; }
+
+        /* V1.6: UI DE TEMAS NO LOBBY (HOST) */
+        .host-theme-panel { width: 100%; text-align: left; margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .section-title { font-size: 0.8rem; font-weight: 900; letter-spacing: 2px; color: var(--accent-color); text-transform: uppercase; margin-bottom: 12px; display: block; }
+        
+        .input-group-theme { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; }
+        .input-group-theme input { flex: 1; margin-bottom: 0; font-size: 0.9rem; padding: 15px; letter-spacing: 0; text-transform: none; }
+        
+        .icon-btn-action {
+            background: transparent; border: 2px solid var(--border-color); cursor: pointer;
+            color: var(--text-color); border-radius: 10px; width: 50px; display: flex;
+            align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .icon-btn-action:hover { border-color: var(--accent-color); color: var(--accent-color); }
+        .icon-btn-action:active { transform: scale(0.9); }
+        .icon-btn-action svg { width: 22px; height: 22px; stroke-width: 2; }
+
+        .sugestoes-wrapper { width: 100%; max-height: 180px; overflow-y: auto; padding-right: 5px; }
+        .list-sugestoes { list-style: none; }
+        .sugestao-item {
+            padding: 12px; background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.2s;
+            color: var(--text-color); font-size: 0.9rem; font-weight: 500;
+        }
+        body.dark-theme .sugestao-item { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.05); }
+        .sugestao-item:hover { border-color: var(--accent-color); background: rgba(193, 154, 107, 0.05); }
+        body.dark-theme .sugestao-item:hover { background: rgba(124, 2, 41, 0.05); }
+        .sugestao-item:active { transform: scale(0.98); }
+
+        /* V1.6: UI DE SUGERIR TEMA NO LOBBY (JOGADOR) */
+        .player-suggest-panel { width: 100%; margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px; }
 
         /* CARTA (JOGO) */
         #game-section { position: absolute; inset: 0; width: 100vw; height: 100vh; overflow: hidden; }
@@ -142,7 +176,6 @@
         #fio-caotico { fill: none; stroke: var(--accent-color); stroke-width: 4; stroke-linecap: round; transition: stroke 0.4s; }
         body.dark-theme #fio-caotico { filter: drop-shadow(0 0 8px var(--accent-color)); }
 
-        /* REMOVIDO O BLUR: O background gradient não existe mais aqui */
         .host-overlay { 
             position: fixed; bottom: 30px; left: 0; width: 100%; padding: 0 20px; 
             z-index: 100; text-align: center; pointer-events: none; 
@@ -169,19 +202,26 @@
         .btn-confirm { flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; background: var(--text-color); color: var(--bg-color); }
         .btn-cancel { flex: 1; padding: 15px; border-radius: 10px; border: 2px solid var(--border-color); background: transparent; color: var(--text-color); font-weight: 700; cursor: pointer; }
 
-        /* FAB TUTORIAL */
-        #btn-ajuda {
-            position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%;
-            background: var(--accent-color); color: var(--btn-txt); font-size: 1.5rem; font-weight: 900; border: none;
+        /* FAB AJUDA / V1.6: FAB OLHO (VER TEMA) */
+        #btn-game-helper {
+            position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px; border-radius: 50%;
+            background: var(--accent-color); color: var(--btn-txt); border: none;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 1000; display: flex;
             align-items: center; justify-content: center; transition: 0.2s;
         }
-        #btn-ajuda:active { transform: scale(0.9); }
+        #btn-game-helper:active { transform: scale(0.9); }
+        #btn-game-helper svg { width: 28px; height: 28px; stroke-width: 2.2; }
+        
         .tutorial-controles { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; font-weight: 900; }
         .tutorial-controles button { background: transparent; border: none; font-size: 1.5rem; color: var(--accent-color); cursor: pointer; padding: 10px; }
         #tutorial-texto { min-height: 80px; margin-top: 15px; font-size: 1.1rem; color: var(--muted-text); font-weight: 600; }
         
         .escondido { display: none !important; }
+        
+        /* Estilização da barra de rolagem (webkit) */
+        .sugestoes-wrapper::-webkit-scrollbar { width: 4px; }
+        .sugestoes-wrapper::-webkit-scrollbar-track { background: transparent; }
+        .sugestoes-wrapper::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
     </style>
 </head>
 <body>
@@ -225,10 +265,45 @@
 
         <ul class="lista-jogadores" id="lista-jogadores"></ul>
         
-        <div id="lobby-host-controls" class="escondido" style="width: 100%; margin-top: 30px;">
-            <button id="btn-sortear" class="btn-primary" onclick="sortearNumeros()">SORTEAR CARTAS</button>
+        <div id="lobby-host-controls" class="host-theme-panel escondido">
+            <span class="section-title">Tema da Rodada</span>
+            <div class="input-group-theme">
+                <input type="text" id="host-theme-input" placeholder="Escreva o tema ou sorteie..." maxlength="100">
+                <button class="icon-btn-action" onclick="sortearTemaGenérico()" title="Sortear Tema">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <circle cx="15.5" cy="15.5" r="1.5"></circle>
+                        <circle cx="15.5" cy="8.5" r="1.5"></circle>
+                        <circle cx="8.5" cy="15.5" r="1.5"></circle>
+                        <circle cx="12" cy="12" r="1.5"></circle>
+                    </svg>
+                </button>
+            </div>
+
+            <span class="section-title">Sugestões do Grupo</span>
+            <div class="sugestoes-wrapper">
+                <ul class="list-sugestoes" id="host-sugestoes-list">
+                    <p id="no-suggestions-msg" style="font-size: 0.8rem; color: var(--muted-text); font-style: italic; text-align: center; padding: 10px 0;">Aguardando palpites da mesa...</p>
+                </ul>
+            </div>
+            
+            <button id="btn-sortear" class="btn-primary" style="margin-top: 30px;" onclick="sortearNumeros()">SORTEAR CARTAS</button>
         </div>
-        <p id="wait-message-lobby" class="escondido" style="margin-top:30px; color: var(--accent-color); font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">Aguardando Host...</p>
+
+        <div id="player-suggest-controls" class="player-suggest-panel escondido">
+            <span class="section-title">Sugira um Tema Absurdo</span>
+            <div class="input-group-theme">
+                <input type="text" id="player-theme-suggest-input" placeholder="Ex: Nível de calvície do João" maxlength="100">
+                <button class="icon-btn-action" onclick="enviarSugestaoAoHost()" title="Enviar Sugestão">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+            <p id="wait-message-lobby" style="margin-top:30px; color: var(--muted-text); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; font-size: 0.9rem; text-align: center;">Aguardando Host iniciar...</p>
+        </div>
 
         <button onclick="confirmExit('home')" style="background:transparent; border:none; color:var(--muted-text); margin-top:40px; text-decoration:underline; font-size:0.9rem; font-weight: 700; cursor: pointer;">Sair do Grupo</button>
     </div>
@@ -269,18 +344,40 @@
 
     <div id="modal-tutorial" class="modal-overlay escondido">
         <div class="modal-content">
-            <h3 style="font-weight: 900; letter-spacing: 2px;">COMO JOGAR</h3>
+            <h3 style="font-weight: 900; letter-spacing: 2px; text-transform: uppercase;">Como Jogar</h3>
             <p id="tutorial-texto"></p>
             <div class="tutorial-controles">
                 <button onclick="mudarPassoTutorial(-1)">&lt;</button>
                 <span id="tutorial-passo" style="color: var(--muted-text); font-size: 0.9rem;"></span>
                 <button onclick="mudarPassoTutorial(1)">&gt;</button>
             </div>
-            <button class="btn-primary" onclick="fecharTutorial()" style="margin-top: 20px;">ENTENDI</button>
+            <button class="btn-primary" onclick="fecharModalDeHelper()" style="margin-top: 20px;">ENTENDI</button>
         </div>
     </div>
 
-    <button id="btn-ajuda" onclick="abrirTutorial()">?</button>
+    <div id="modal-theme-view" class="modal-overlay escondido">
+        <div class="modal-content">
+            <h3 style="font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-color);">Tema da Rodada</h3>
+            <p id="theme-view-text" style="margin: 20px 0; font-size: 1.2rem; color: var(--text-color); font-weight: 700; line-height: 1.4;"></p>
+            <button class="btn-primary" onclick="fecharModalDeHelper()" style="margin-top: 10px;">FECHAR</button>
+        </div>
+    </div>
+
+    <button id="btn-game-helper" onclick="acionarHelperDoBotao()" title="Ajuda ou Tema">
+        <svg id="helper-icon-tutorial" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18h6"></path>
+            <path d="M10 22h4"></path>
+            <path d="M15.09 11.26a4 4 0 0 0-6.18 0l-1.91 1.74a1 1 0 0 0-.29.74v2.76A1 1 0 0 0 7.71 17h8.58a1 1 0 0 0 1-1v-2.76a1 1 0 0 0-.29-.74z"></path>
+            <path d="M12 2v2"></path>
+            <path d="M19.4 4.9a12.1 12.1 0 0 1 1.4 1.4"></path>
+            <path d="M3.2 6.3a12.1 12.1 0 0 1 1.4-1.4"></path>
+        </svg>
+        
+        <svg id="helper-icon-theme" class="escondido" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+    </button>
 
     <script>
         const iconMoon = document.getElementById('icon-moon');
@@ -354,6 +451,7 @@
         let souHost = false;
         let globalStatus = 'esperando';
         let debounceTimer;
+        let realtimeChannel = null; // V1.6 Canal Realtime para sugestões
 
         function getPlayerName() {
             let inputVal = document.getElementById('input-nome').value.trim();
@@ -367,7 +465,8 @@
                 const id = Math.random().toString(36).substring(4, 8).toUpperCase();
                 const nomeJogador = getPlayerName();
                 
-                const { error: errSala } = await sbClient.from('salas').insert([{ id: id, status: 'esperando' }]);
+                // V1.6 A coluna 'tema' agora existe na DB
+                const { error: errSala } = await sbClient.from('salas').insert([{ id: id, status: 'esperando', tema: '' }]);
                 if(errSala) throw errSala;
                 
                 const { data: hostData, error: errHost } = await sbClient.from('jogadores').insert([{
@@ -446,6 +545,10 @@
             if (!souHost) return;
             const { data: jogadoresDB } = await sbClient.from('jogadores').select('id').eq('sala_id', salaAtual).order('created_at', { ascending: true });
             
+            if (jogadoresDB.length < 2) {
+                alert("A partida precisa de pelo menos 2 jogadores."); return;
+            }
+
             let baralho = Array.from({ length: 100 }, (_, i) => i + 1);
             for (let i = baralho.length - 1; i > 0; i--) {
                 const arrayRandom = new Uint32Array(1);
@@ -458,13 +561,21 @@
                 sbClient.from('jogadores').update({ numero: baralho[index] }).eq('id', j.id)
             );
             await Promise.all(promises);
-            await sbClient.from('salas').update({ status: 'sorteado' }).eq('id', salaAtual);
+
+            // V1.6: Salva o tema definido pelo Host na sala antes de iniciar
+            const temaDefinido = document.getElementById('host-theme-input').value.trim() || "";
+            await sbClient.from('salas').update({ status: 'sorteado', tema: temaDefinido }).eq('id', salaAtual);
         }
 
         async function voltarLobby() {
             if (!souHost) return;
-            await sbClient.from('salas').update({ status: 'esperando' }).eq('id', salaAtual);
+            // V1.6: Limpa o tema ao voltar ao lobby
+            await sbClient.from('salas').update({ status: 'esperando', tema: '' }).eq('id', salaAtual);
             await sbClient.from('jogadores').update({ numero: null }).eq('sala_id', salaAtual);
+            
+            // Limpa as sugestões visuais do Host
+            document.getElementById('host-sugestoes-list').innerHTML = '<p id="no-suggestions-msg" style="font-size: 0.8rem; color: var(--muted-text); font-style: italic; text-align: center; padding: 10px 0;">Aguardando palpites da mesa...</p>';
+            document.getElementById('host-theme-input').value = "";
         }
 
         async function kick(id) {
@@ -478,11 +589,89 @@
         }
 
         function inscreverNoJogo() {
-            const channel = sbClient.channel('ito_' + salaAtual);
-            channel.on('postgres_changes', { event: '*', schema: 'public', table: 'salas', filter: `id=eq.${salaAtual}` }, () => carregarEstadoSala());
-            channel.on('postgres_changes', { event: '*', schema: 'public', table: 'jogadores', filter: `sala_id=eq.${salaAtual}` }, () => carregarEstadoSala());
-            channel.subscribe();
+            // Canal Postgres Changes para Database (Salas e Jogadores)
+            const dbChannel = sbClient.channel('db_ito_' + salaAtual);
+            dbChannel.on('postgres_changes', { event: '*', schema: 'public', table: 'salas', filter: `id=eq.${salaAtual}` }, () => carregarEstadoSala());
+            dbChannel.on('postgres_changes', { event: '*', schema: 'public', table: 'jogadores', filter: `sala_id=eq.${salaAtual}` }, () => carregarEstadoSala());
+            dbChannel.subscribe();
+            
+            // V1.6: Canal Broadcast para Sugestões Efêmeras de Tema
+            realtimeChannel = sbClient.channel('realtime_ito_' + salaAtual);
+            
+            if (souHost) {
+                // Host escuta sugestões (Broadcast)
+                realtimeChannel.on('broadcast', { event: 'tema_sugerido' }, (payload) => {
+                    if (globalStatus === 'esperando') { receiveSuggestionOnHost(payload.payload.texto); }
+                });
+            }
+            
+            realtimeChannel.subscribe();
             carregarEstadoSala();
+        }
+
+        // V1.6: Logica de Sugestões colaborativas
+        function receiveSuggestionOnHost(texto) {
+            if (!souHost) return;
+            if (navigator.vibrate) navigator.vibrate(50); // Feedback tátil no Host
+
+            const list = document.getElementById('host-sugestoes-list');
+            const noMsg = document.getElementById('no-suggestions-msg');
+            if (noMsg) noMsg.remove();
+
+            // Evita duplicatas visuais imediatas
+            const existing = list.querySelectorAll('li');
+            for (let li of existing) { if (li.innerText === texto) return; }
+
+            const li = document.createElement('li');
+            li.className = 'sugestao-item';
+            li.innerText = texto;
+            li.onclick = () => {
+                document.getElementById('host-theme-input').value = texto;
+                li.style.borderColor = 'var(--accent-color)'; // Feedback visual de seleção
+                if (navigator.vibrate) navigator.vibrate(30);
+            };
+            list.prepend(li); // Adiciona no topo
+        }
+
+        function enviarSugestaoAoHost() {
+            const input = document.getElementById('player-theme-suggest-input');
+            const texto = input.value.trim();
+            if (!texto || !realtimeChannel) return;
+
+            // Envia via Broadcast (não grava na DB, o Host que lute)
+            realtimeChannel.send({
+                type: 'broadcast',
+                event: 'tema_sugerido',
+                payload: { texto: texto }
+            });
+
+            input.value = ""; // Limpa input
+            input.placeholder = "Sugestão enviada! Mande outra...";
+            if (navigator.vibrate) navigator.vibrate(70);
+            
+            // Feedback visual no botão
+            const btn = input.nextElementSibling;
+            btn.style.color = 'var(--accent-color)';
+            btn.style.borderColor = 'var(--accent-color)';
+            setTimeout(() => { btn.style = ""; }, 1000);
+        }
+
+        function sortearTemaGenérico() {
+            if (!souHost || typeof TEMAS_GENERICOS === 'undefined') return;
+            if (navigator.vibrate) navigator.vibrate(30);
+            
+            const randomArray = new Uint32Array(1);
+            window.crypto.getRandomValues(randomArray);
+            const index = Math.floor((randomArray[0] / (0xffffffff + 1)) * TEMAS_GENERICOS.length);
+            
+            const temaSorteado = TEMAS_GENERICOS[index];
+            document.getElementById('host-theme-input').value = temaSorteado;
+            
+            // Feedback visual no botão de dado
+            const btn = document.querySelector('.input-group-theme .icon-btn-action');
+            btn.style.borderColor = 'var(--accent-color)';
+            btn.style.color = 'var(--accent-color)';
+            setTimeout(() => { btn.style = ""; }, 500);
         }
 
         async function carregarEstadoSala() {
@@ -498,6 +687,8 @@
             }
 
             globalStatus = salaData.status;
+            temaDaRodadaAtual = salaData.tema; // V1.6 Guarda o tema globalmente no cliente
+            
             const listaUl = document.getElementById('lista-jogadores');
             const newIds = jogadoresData.map(j => j.id);
             
@@ -526,20 +717,63 @@
             document.getElementById('game-section').classList.toggle('escondido', isEsperando);
             document.getElementById('card-principal').classList.toggle('active', globalStatus === 'revelado');
             
-            // Ocultar FAB de Ajuda na partida
-            document.getElementById('btn-ajuda').classList.toggle('escondido', !isEsperando);
-            
             if (globalStatus === 'revelado') isHolding = false;
             
             if (isEsperando) {
+                // V1.6 UI do Lobby dividida entre Host (Temas/Sorteio) e Jogador (Sugerir/Aguardar)
                 document.getElementById('lobby-host-controls').classList.toggle('escondido', !souHost);
-                document.getElementById('wait-message-lobby').classList.toggle('escondido', souHost);
+                document.getElementById('player-suggest-controls').classList.toggle('escondido', souHost);
             } else if (souHost) {
                 document.getElementById('btn-revelar').classList.toggle('escondido', globalStatus !== 'sorteado');
                 document.getElementById('btn-reset').classList.toggle('escondido', globalStatus !== 'revelado');
             }
+            
+            // V1.6 Alternância do Botão Helper (Tutorial -> Olho do Tema)
+            if (isEsperando) {
+                // Home ou Lobby: Botão é Tutorial (Lâmpada) e é visível
+                document.getElementById('btn-game-helper').classList.remove('escondido');
+                document.getElementById('helper-icon-tutorial').classList.remove('escondido');
+                document.getElementById('helper-icon-theme').classList.add('escondido');
+            } else {
+                // Em Jogo ('sorteado' ou 'revelado'): Botão vira Ver Tema (Olho)
+                // O botão de ver tema SÓ aparece se o Host de fato escreveu um tema.
+                const temTema = temaDaRodadaAtual && temaDaRodadaAtual.trim() !== "";
+                document.getElementById('btn-game-helper').classList.toggle('escondido', !temTema);
+                document.getElementById('helper-icon-tutorial').classList.add('escondido');
+                document.getElementById('helper-icon-theme').classList.remove('escondido');
+            }
         }
 
+        // V1.6 Gestão unificada dos modais de ajuda (Tutorial e Tema)
+        let temaDaRodadaAtual = ""; // Variável global do cliente
+
+        function acionarHelperDoBotao() {
+            if (navigator.vibrate) navigator.vibrate(30);
+            if (globalStatus === 'esperando') {
+                abrirTutorial(); // No lobby abre o tutorial
+            } else {
+                abrirVisualizacaoDeTema(); // No jogo abre o tema
+            }
+        }
+
+        function abrirVisualizacaoDeTema() {
+            if (!temaDaRodadaAtual) return;
+            document.getElementById('theme-view-text').innerText = temaDaRodadaAtual;
+            document.getElementById('modal-theme-view').classList.remove('escondido');
+        }
+
+        function abrirTutorial() {
+            passoAtual = 0;
+            atualizarTelaTutorial();
+            document.getElementById('modal-tutorial').classList.remove('escondido');
+        }
+
+        function fecharModalDeHelper() {
+            document.getElementById('modal-tutorial').classList.add('escondido');
+            document.getElementById('modal-theme-view').classList.add('escondido');
+        }
+
+        // Modais de confirmação padrão (revelar, sair)
         function abrirModalConfirmacao(titulo, texto, acaoConfirmar) {
             document.getElementById('modal-title').innerText = titulo;
             document.getElementById('modal-msg').innerText = texto;
@@ -564,21 +798,14 @@
             });
         }
 
+        // Logica interna do tutorial
         const passosTutorial = [
             "O objetivo do jogo é colocar todas as cartas da mesa em ordem crescente.",
             "A pegadinha? Vocês NÃO podem falar os números que tiraram!",
-            "O Host define um TEMA (Ex: Coisas úteis em um apocalipse zumbi).",
-            "Dê um palpite baseado no seu número. Se tirou 1, diga algo inútil. Se tirou 99, diga a melhor coisa possível. Deduzam a ordem juntos!"
+            "O Host define um TEMA da Rodada (Ex: 1 = Pior Comida / 100 = Melhor Comida).",
+            "Dê um palpite baseado no seu número. Se tirou 1, diga algo horrível. Se tirou 99, diga a melhor coisa possível. Deduzam a ordem juntos!"
         ];
         let passoAtual = 0;
-
-        function abrirTutorial() {
-            passoAtual = 0;
-            atualizarTelaTutorial();
-            document.getElementById('modal-tutorial').classList.remove('escondido');
-        }
-
-        function fecharTutorial() { document.getElementById('modal-tutorial').classList.add('escondido'); }
 
         function mudarPassoTutorial(direcao) {
             passoAtual = Math.max(0, Math.min(passosTutorial.length - 1, passoAtual + direcao));
