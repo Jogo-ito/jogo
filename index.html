@@ -122,7 +122,7 @@
         }
         .icon-btn-action:hover { border-color: var(--accent-color); color: var(--accent-color); }
         .icon-btn-action:active { transform: scale(0.9); }
-        .icon-btn-action svg { width: 22px; height: 22px; stroke-width: 2; }
+        .icon-btn-action svg { width: 24px; height: 24px; stroke-width: 1.5; } /* Traço mais fino para o dado */
 
         .sugestoes-wrapper { width: 100%; max-height: 180px; overflow-y: auto; padding-right: 5px; }
         .list-sugestoes { list-style: none; }
@@ -202,15 +202,26 @@
         .btn-confirm { flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; background: var(--text-color); color: var(--bg-color); }
         .btn-cancel { flex: 1; padding: 15px; border-radius: 10px; border: 2px solid var(--border-color); background: transparent; color: var(--text-color); font-weight: 700; cursor: pointer; }
 
-        /* FAB AJUDA / V1.6: FAB OLHO (VER TEMA) */
+        /* V1.6.1: Limpeza total do FAB HELPER para evitar sobreposição de ícones */
         #btn-game-helper {
             position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px; border-radius: 50%;
             background: var(--accent-color); color: var(--btn-txt); border: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 1000; display: flex;
-            align-items: center; justify-content: center; transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 1000;
+            padding: 0; margin: 0; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
         }
         #btn-game-helper:active { transform: scale(0.9); }
-        #btn-game-helper svg { width: 28px; height: 28px; stroke-width: 2.2; }
+        
+        /* Garante que os SVGs dentro do Helper fiquem limpos e centralizados */
+        #btn-game-helper svg {
+            width: 28px; height: 28px; stroke-width: 2;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        
+        /* Estilo específico do ícone do olho (V1.6 Ver Tema) */
+        #helper-icon-theme { stroke-width: 2.2; }
         
         .tutorial-controles { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; font-weight: 900; }
         .tutorial-controles button { background: transparent; border: none; font-size: 1.5rem; color: var(--accent-color); cursor: pointer; padding: 10px; }
@@ -271,12 +282,12 @@
                 <input type="text" id="host-theme-input" placeholder="Escreva o tema ou sorteie..." maxlength="100">
                 <button class="icon-btn-action" onclick="sortearTemaGenérico()" title="Sortear Tema">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                        <circle cx="15.5" cy="15.5" r="1.5"></circle>
-                        <circle cx="15.5" cy="8.5" r="1.5"></circle>
-                        <circle cx="8.5" cy="15.5" r="1.5"></circle>
-                        <circle cx="12" cy="12" r="1.5"></circle>
+                        <path d="M12 2L3.5 6.5v11L12 22l8.5-4.5v-11z"></path>
+                        <path d="M12 22V12"></path>
+                        <path d="M20.5 6.5L12 12"></path>
+                        <path d="M3.5 6.5L12 12"></path>
+                        <path d="M12 2l8.5 4.5"></path>
+                        <path d="M12 2L3.5 6.5"></path>
                     </svg>
                 </button>
             </div>
@@ -344,7 +355,7 @@
 
     <div id="modal-tutorial" class="modal-overlay escondido">
         <div class="modal-content">
-            <h3 style="font-weight: 900; letter-spacing: 2px; text-transform: uppercase;">Como Jogar</h3>
+            <h3 style="font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-color);">Como Jogar</h3>
             <p id="tutorial-texto"></p>
             <div class="tutorial-controles">
                 <button onclick="mudarPassoTutorial(-1)">&lt;</button>
@@ -365,12 +376,9 @@
 
     <button id="btn-game-helper" onclick="acionarHelperDoBotao()" title="Ajuda ou Tema">
         <svg id="helper-icon-tutorial" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 18h6"></path>
-            <path d="M10 22h4"></path>
-            <path d="M15.09 11.26a4 4 0 0 0-6.18 0l-1.91 1.74a1 1 0 0 0-.29.74v2.76A1 1 0 0 0 7.71 17h8.58a1 1 0 0 0 1-1v-2.76a1 1 0 0 0-.29-.74z"></path>
-            <path d="M12 2v2"></path>
-            <path d="M19.4 4.9a12.1 12.1 0 0 1 1.4 1.4"></path>
-            <path d="M3.2 6.3a12.1 12.1 0 0 1 1.4-1.4"></path>
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
         
         <svg id="helper-icon-theme" class="escondido" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -465,7 +473,6 @@
                 const id = Math.random().toString(36).substring(4, 8).toUpperCase();
                 const nomeJogador = getPlayerName();
                 
-                // V1.6 A coluna 'tema' agora existe na DB
                 const { error: errSala } = await sbClient.from('salas').insert([{ id: id, status: 'esperando', tema: '' }]);
                 if(errSala) throw errSala;
                 
@@ -667,7 +674,7 @@
             const temaSorteado = TEMAS_GENERICOS[index];
             document.getElementById('host-theme-input').value = temaSorteado;
             
-            // Feedback visual no botão de dado
+            // V1.6.1 Feedback visual no botão de dado geometrico
             const btn = document.querySelector('.input-group-theme .icon-btn-action');
             btn.style.borderColor = 'var(--accent-color)';
             btn.style.color = 'var(--accent-color)';
@@ -728,19 +735,26 @@
                 document.getElementById('btn-reset').classList.toggle('escondido', globalStatus !== 'revelado');
             }
             
-            // V1.6 Alternância do Botão Helper (Tutorial -> Olho do Tema)
+            // V1.6.1 Alternância do Botão Helper (Tutorial -> Olho do Tema) com lógica limpa
+            const btnHelper = document.getElementById('btn-game-helper');
+            const iconTutorial = document.getElementById('helper-icon-tutorial');
+            const iconTheme = document.getElementById('helper-icon-theme');
+
             if (isEsperando) {
-                // Home ou Lobby: Botão é Tutorial (Lâmpada) e é visível
-                document.getElementById('btn-game-helper').classList.remove('escondido');
-                document.getElementById('helper-icon-tutorial').classList.remove('escondido');
-                document.getElementById('helper-icon-theme').classList.add('escondido');
+                // Home ou Lobby: Botão é Tutorial e é visível
+                btnHelper.classList.remove('escondido');
+                iconTutorial.classList.remove('escondido');
+                iconTutorial.style.opacity = '1';
+                iconTheme.classList.add('escondido');
+                iconTheme.style.opacity = '0';
             } else {
-                // Em Jogo ('sorteado' ou 'revelado'): Botão vira Ver Tema (Olho)
-                // O botão de ver tema SÓ aparece se o Host de fato escreveu um tema.
+                // Em Jogo: Botão vira Ver Tema se houver tema
                 const temTema = temaDaRodadaAtual && temaDaRodadaAtual.trim() !== "";
-                document.getElementById('btn-game-helper').classList.toggle('escondido', !temTema);
-                document.getElementById('helper-icon-tutorial').classList.add('escondido');
-                document.getElementById('helper-icon-theme').classList.remove('escondido');
+                btnHelper.classList.toggle('escondido', !temTema);
+                iconTutorial.classList.add('escondido');
+                iconTutorial.style.opacity = '0';
+                iconTheme.classList.remove('escondido');
+                iconTheme.style.opacity = '1';
             }
         }
 
