@@ -1,5 +1,5 @@
 // Mudamos o nome para forçar a limpeza daquela versão ruim
-const CACHE_NAME = 'ito-cache-v1.6.1-classic'; 
+const CACHE_NAME = 'ito-cache-v1.7-remote'; 
 
 const ASSETS_TO_CACHE = [
   '/',
