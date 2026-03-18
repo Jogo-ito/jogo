@@ -800,10 +800,11 @@
             document.getElementById('tutorial-passo').innerText = `${passoAtual + 1} / ${passosTutorial.length}`;
         }
 
-        window.onload = () => {
+       window.onload = () => {
             const s = new URLSearchParams(window.location.search).get('sala');
             if(s) { document.getElementById('input-sala').value = s; entrarSala(); }
 
+            // REGISTRO DO SERVICE WORKER (PWA / OFFLINE)
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/sw.js')
                     .then(() => console.log('Service Worker Registrado!'))
