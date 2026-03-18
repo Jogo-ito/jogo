@@ -15,6 +15,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;600;700;800;900&display=swap');
 
@@ -50,43 +52,28 @@
 
         .top-bar-right { position: absolute; top: 20px; right: 20px; z-index: 1000; }
         .top-bar-left { position: absolute; top: 20px; left: 20px; z-index: 1000; }
-        .top-bar-center { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; }
+        .top-bar-center { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 100%; text-align: center; pointer-events: none; }
         
         .icon-btn { 
             background: transparent; border: none; cursor: pointer; 
-            color: var(--text-color); display: flex; align-items: center; justify-content: center;
-            padding: 8px; opacity: 0.6; transition: 0.3s;
+            color: var(--text-color); display: inline-flex; align-items: center; justify-content: center;
+            padding: 8px; opacity: 0.6; transition: 0.3s; pointer-events: auto;
         }
         .icon-btn:hover { opacity: 1; }
         .icon-btn svg { width: 26px; height: 26px; stroke-width: 2; }
 
         /* GERAL (HOME/LOBBY) */
         .container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; width: 100%; max-width: 400px; margin: 0 auto; min-height: 100vh; }
-        
         h1.logo { font-size: 4rem; font-weight: 900; letter-spacing: 12px; margin-bottom: 40px; text-align: center; }
 
-        input { 
-            width: 100%; padding: 18px; font-size: 1.1rem; text-align: center; letter-spacing: 2px;
-            background: transparent; border: 2px solid var(--border-color); color: var(--text-color);
-            border-radius: 12px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase;
-            outline: none; transition: 0.3s;
-        }
+        input { width: 100%; padding: 18px; font-size: 1.1rem; text-align: center; letter-spacing: 2px; background: transparent; border: 2px solid var(--border-color); color: var(--text-color); border-radius: 12px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; outline: none; transition: 0.3s; }
         input:focus { border-color: var(--accent-color); }
-
         .input-lobby-name { border: 1px dashed var(--border-color); padding: 12px; margin-bottom: 20px; border-radius: 8px; }
 
-        button.btn-primary { 
-            width: 100%; padding: 18px; font-size: 1rem; font-weight: 900; letter-spacing: 2px;
-            background: var(--accent-color); color: var(--btn-txt); border: none; border-radius: 12px;
-            cursor: pointer; transition: 0.2s; text-transform: uppercase; box-shadow: var(--glow-primary);
-        }
+        button.btn-primary { width: 100%; padding: 18px; font-size: 1rem; font-weight: 900; letter-spacing: 2px; background: var(--accent-color); color: var(--btn-txt); border: none; border-radius: 12px; cursor: pointer; transition: 0.2s; text-transform: uppercase; box-shadow: var(--glow-primary); }
         button.btn-primary:active { transform: scale(0.97); }
         
-        button.btn-secondary {
-            width: 100%; padding: 18px; font-size: 1rem; font-weight: 800; letter-spacing: 2px;
-            background: transparent; color: var(--text-color); border: 2px solid var(--border-color); 
-            border-radius: 12px; cursor: pointer; transition: 0.2s; text-transform: uppercase; margin-bottom: 10px;
-        }
+        button.btn-secondary { width: 100%; padding: 18px; font-size: 1rem; font-weight: 800; letter-spacing: 2px; background: transparent; color: var(--text-color); border: 2px solid var(--border-color); border-radius: 12px; cursor: pointer; transition: 0.2s; text-transform: uppercase; margin-bottom: 10px; }
         button.btn-secondary:active { transform: scale(0.97); }
         
         .divider { display: flex; align-items: center; width: 100%; margin: 25px 0; color: var(--muted-text); font-weight: 700; font-size: 0.9rem; letter-spacing: 2px; }
@@ -108,22 +95,14 @@
         .modo-btn.active { border-color: var(--accent-color); color: var(--accent-color); box-shadow: var(--glow-primary); }
         .modo-btn svg { width: 18px; height: 18px; }
 
-        /* CARTA (JOGO) */
+        /* CARTA FÍSICA E ONDA (MODO PRESENCIAL) */
         #game-section { position: absolute; inset: 0; width: 100vw; height: 100vh; overflow: hidden; }
-        
-        #card-principal {
-            position: absolute; inset: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            cursor: pointer; z-index: 50; -webkit-tap-highlight-color: transparent;
-        }
-
+        #card-principal { position: absolute; inset: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; z-index: 50; -webkit-tap-highlight-color: transparent; }
         .numero-secreto { font-size: 35vh; font-weight: 700; line-height: 1; position: absolute; top: 50%; left: 50%; color: var(--text-color); transform: translate(-50%, -50%) translateY(-8vh) scale(0.8); opacity: 0; pointer-events: none; transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .alvo-interativo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) translateY(-8vh); width: 100px; height: 100px; border-radius: 50%; z-index: 10; transition: all 0.3s ease; }
         .pulso { position: absolute; inset: 0; border: solid var(--accent-color); border-radius: 50%; animation: respirar-amplo 3s infinite ease-out; }
-        
         @keyframes respirar-amplo { 0% { transform: scale(0.5); opacity: 0.9; border-width: 6px; } 100% { transform: scale(3.5); opacity: 0; border-width: 0px; } }
         body.dark-theme .pulso { box-shadow: 0 0 15px var(--accent-color), inset 0 0 15px var(--accent-color); }
-
         #linha-fisica { position: absolute; bottom: 20vh; left: 0; width: 100%; height: 160px; overflow: visible; z-index: 5; pointer-events: none; }
         #fio-caotico { fill: none; stroke: var(--accent-color); stroke-width: 4; stroke-linecap: round; transition: stroke 0.4s; }
         body.dark-theme #fio-caotico { filter: drop-shadow(0 0 8px var(--accent-color)); }
@@ -131,29 +110,48 @@
         .host-overlay { position: fixed; bottom: 30px; left: 0; width: 100%; padding: 0 20px; z-index: 100; text-align: center; pointer-events: none; display: flex; flex-direction: column; gap: 15px; align-items: center; }
         .host-overlay button { pointer-events: auto; width: 100%; max-width: 400px; margin: 0; }
 
-        /* BOTÃO DE PISTA CENTRAL E MODAL DE PISTA */
-        #btn-abrir-pista { 
-            border: 1px dashed var(--border-color); border-radius: 20px; padding: 8px 16px; 
-            font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; gap: 8px; 
-            background: var(--bg-color); pointer-events: auto;
-        }
+        /* BOTÃO DE PISTA CENTRAL */
+        #btn-abrir-pista { border: 1px dashed var(--border-color); border-radius: 20px; padding: 8px 16px; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; gap: 8px; background: var(--bg-color); pointer-events: auto; }
         #btn-abrir-pista svg { width: 16px; height: 16px; }
         #btn-abrir-pista.has-pista { border: 1px solid var(--accent-color); color: var(--accent-color); box-shadow: var(--glow-primary); }
 
-        /* PLACAR DE PISTAS (PÓS REVELAÇÃO) */
-        #placar-pistas {
-            position: absolute; top: 80px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px;
-            background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 20px; padding: 20px;
-            z-index: 100; max-height: 50vh; overflow-y: auto; text-align: left;
-        }
+        /* PLACAR DE PISTAS PRESENCIAL */
+        #placar-pistas { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 20px; padding: 20px; z-index: 100; max-height: 50vh; overflow-y: auto; text-align: left; }
         .placar-item { border-bottom: 1px dashed var(--border-color); padding: 10px 0; }
         .placar-item:last-child { border-bottom: none; }
         .placar-nome { font-size: 0.8rem; font-weight: 800; color: var(--muted-text); text-transform: uppercase; }
         .placar-texto { font-size: 1.1rem; font-weight: 900; color: var(--text-color); }
 
-        /* ESTADOS DE INTERAÇÃO */
         #card-principal.active .alvo-interativo { opacity: 0; transform: translate(-50%, -50%) translateY(-8vh) scale(0.2); }
         #card-principal.active .numero-secreto { opacity: 1; transform: translate(-50%, -50%) translateY(-8vh) scale(1); }
+
+        /* ======== MODO REMOTO (TABULEIRO DE ARRASTAR) ======== */
+        #remote-section { padding-top: 80px; padding-bottom: 120px; justify-content: flex-start; }
+        #lista-cartas-remoto { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+        
+        .carta-remota { 
+            display: flex; align-items: center; background: var(--bg-color); 
+            border: 2px solid var(--border-color); border-radius: 16px; 
+            padding: 15px; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        body.dark-theme .carta-remota { background: #111; border-color: rgba(255,255,255,0.05); }
+        .carta-remota.sortable-ghost { opacity: 0.4; border-style: dashed; }
+        
+        .drag-handle { cursor: grab; padding-right: 15px; color: var(--muted-text); display: flex; align-items: center; }
+        .drag-handle:active { cursor: grabbing; color: var(--accent-color); }
+        .drag-handle svg { width: 24px; height: 24px; }
+        
+        .carta-info { flex: 1; text-align: left; overflow: hidden; }
+        .carta-nome { font-size: 0.75rem; font-weight: 800; color: var(--muted-text); text-transform: uppercase; margin-bottom: 4px; }
+        .carta-pista { font-size: 1rem; font-weight: 900; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .carta-numero { 
+            width: 50px; height: 50px; border-radius: 12px; background: rgba(128,128,128,0.1); 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 1.3rem; font-weight: 900; color: var(--muted-text); margin-left: 10px;
+        }
+        .carta-numero svg { width: 20px; height: 20px; opacity: 0.5; }
+        .carta-numero.revelado { background: var(--accent-color); color: var(--btn-txt); box-shadow: var(--glow-primary); }
 
         /* MODAIS E FAB */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px); display: flex; }
@@ -175,12 +173,21 @@
 
     <div class="top-bar-right">
         <button class="icon-btn" onclick="toggleTheme()" title="Trocar Tema">
-            <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="escondido">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
-            <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="escondido">
-                <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>
+            <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="escondido"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="escondido"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        </button>
+    </div>
+
+    <div class="top-bar-left escondido" id="box-btn-sair">
+        <button class="icon-btn" onclick="confirmExit('lobby')" title="Sair da Partida">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+    </div>
+
+    <div class="top-bar-center">
+        <button id="btn-abrir-pista" class="icon-btn escondido" onclick="abrirModalPista(event)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <span id="txt-btn-pista">DEFINIR PISTA</span>
         </button>
     </div>
 
@@ -227,19 +234,6 @@
 
     <div id="game-section" class="escondido">
         
-        <div class="top-bar-left">
-            <button class="icon-btn" onclick="confirmExit('lobby')" title="Sair da Partida">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            </button>
-        </div>
-
-        <div class="top-bar-center" id="box-btn-pista">
-            <button id="btn-abrir-pista" class="icon-btn escondido" onclick="abrirModalPista(event)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                <span id="txt-btn-pista">DEFINIR PISTA</span>
-            </button>
-        </div>
-
         <div id="placar-pistas" class="escondido shadow-2xl">
             <h3 style="font-weight: 900; margin-bottom: 10px; color: var(--accent-color);">PISTAS DA MESA:</h3>
             <div id="lista-pistas-reveladas"></div>
@@ -260,9 +254,15 @@
     </div>
 
     <div id="remote-section" class="escondido container">
-        <h2 style="color: var(--accent-color); font-weight: 900;">MODO REMOTO</h2>
-        <p style="margin-top: 20px; color: var(--muted-text);">Em breve: Arraste e ordene as cartas digitalmente.</p>
-        <button class="btn-secondary" style="margin-top: 40px;" onclick="voltarLobby()">VOLTAR AO LOBBY</button>
+        <h3 style="font-weight: 900; letter-spacing: 2px; text-align: center; color: var(--muted-text); margin-bottom: 10px;">ORGANIZE A MESA</h3>
+        
+        <div id="lista-cartas-remoto">
+            </div>
+
+        <div class="host-overlay" id="host-controls-remoto">
+            <button class="btn-primary escondido" id="btn-revelar-remoto" onclick="acionarRevelarMesa()">REVELAR MESA</button>
+            <button class="btn-secondary escondido" id="btn-reset-remoto" style="background: var(--text-color); color: var(--bg-color); border: none;" onclick="voltarLobby()">NOVA RODADA</button>
+        </div>
     </div>
 
     <div id="modal-pista" class="modal-overlay escondido">
@@ -315,6 +315,7 @@
         let globalStatus = 'esperando';
         let modoJogo = 'presencial';
         let debounceTimer;
+        let isDraggingRemoto = false; // Bloqueia a atualização da tela enquanto alguém arrasta
 
         // TEMA
         const iconMoon = document.getElementById('icon-moon');
@@ -347,10 +348,7 @@
         function animateWave(time) {
             const fioPath = document.getElementById('fio-caotico');
             if (!fioPath) return requestAnimationFrame(animateWave);
-
-            if (isHolding) { amplitude += (1 - amplitude) * 0.05; } 
-            else { amplitude += (0 - amplitude) * 0.08; }
-
+            if (isHolding) { amplitude += (1 - amplitude) * 0.05; } else { amplitude += (0 - amplitude) * 0.08; }
             if (amplitude > 0.01) {
                 const timeFactor = time * 0.002;
                 const y1 = 50 + (Math.sin(timeFactor * 1.5) * 35 + Math.sin(timeFactor * 0.8 + 2) * 20) * amplitude;
@@ -363,11 +361,8 @@
         }
         requestAnimationFrame(animateWave);
 
-        // CORREÇÃO: Impede que o clique na tela ou nos botões crashe a onda
         function interactStart(e) {
-            // Se o toque foi em cima do botão de sair, pista ou lua, ignora o efeito da carta
             if(e.target.closest('.icon-btn') || e.target.closest('.host-overlay')) return;
-            
             if(e && e.type !== 'mousedown') e.preventDefault();
             if(globalStatus === 'revelado') return;
             if (navigator.vibrate) navigator.vibrate(50); 
@@ -377,22 +372,19 @@
 
         function interactEnd(e) {
             if(e.target.closest('.icon-btn') || e.target.closest('.host-overlay')) return;
-
             if(e && e.type !== 'mouseup' && e.type !== 'mouseleave') e.preventDefault();
             if(globalStatus === 'revelado') return;
             document.getElementById('card-principal').classList.remove('active');
             isHolding = false;
         }
 
-        // NOVO: LÓGICA DO MODAL DE PISTA
+        // LÓGICA DO MODAL DE PISTA
         function abrirModalPista(e) {
             if(e) e.stopPropagation();
             document.getElementById('modal-pista').classList.remove('escondido');
         }
 
-        function fecharModalPista() {
-            document.getElementById('modal-pista').classList.add('escondido');
-        }
+        function fecharModalPista() { document.getElementById('modal-pista').classList.add('escondido'); }
 
         async function salvarPistaModal() {
             const texto = document.getElementById('input-modal-pista').value.trim();
@@ -511,12 +503,15 @@
                 sbClient.from('jogadores').update({ numero: baralho[index], pista: null }).eq('id', j.id)
             );
             await Promise.all(promises);
-            await sbClient.from('salas').update({ status: 'sorteado' }).eq('id', salaAtual);
+            
+            // Inicializa a ordem do tabuleiro remoto com os IDs dos jogadores
+            const ordemInicial = jogadoresDB.map(j => j.id).join(',');
+            await sbClient.from('salas').update({ status: 'sorteado', ordem_mesa: ordemInicial }).eq('id', salaAtual);
         }
 
         async function voltarLobby() {
             if (!souHost) return;
-            await sbClient.from('salas').update({ status: 'esperando' }).eq('id', salaAtual);
+            await sbClient.from('salas').update({ status: 'esperando', ordem_mesa: null }).eq('id', salaAtual);
             await sbClient.from('jogadores').update({ numero: null, pista: null }).eq('sala_id', salaAtual);
         }
 
@@ -537,6 +532,7 @@
         }
 
         async function carregarEstadoSala() {
+            if (isDraggingRemoto) return; // Não recarrega a tela de quem está arrastando a carta agora
             const { data: salaData } = await sbClient.from('salas').select('*').eq('id', salaAtual).single();
             const { data: jogadoresData } = await sbClient.from('jogadores').select('*').eq('sala_id', salaAtual).order('created_at', { ascending: true });
             if(salaData && jogadoresData) atualizarInterface(salaData, jogadoresData);
@@ -550,7 +546,9 @@
 
             globalStatus = salaData.status;
             modoJogo = salaData.modo || 'presencial';
+            const isEsperando = globalStatus === 'esperando';
             
+            // Sincroniza visual do botão de modo no Lobby
             document.getElementById('btn-modo-presencial').classList.toggle('active', modoJogo === 'presencial');
             document.getElementById('btn-modo-remoto').classList.toggle('active', modoJogo === 'remoto');
 
@@ -575,9 +573,10 @@
             const eu = jogadoresData.find(j => j.id === meuIdBD);
             document.getElementById('meu-numero').innerText = eu.numero || "";
             
-            // Controle visual do botão de pista
+            // Controle do Botão Global de Pista
             const btnPista = document.getElementById('btn-abrir-pista');
             const txtBtnPista = document.getElementById('txt-btn-pista');
+            
             if (!eu.numero) {
                 document.getElementById('input-modal-pista').value = "";
                 btnPista.classList.remove('has-pista');
@@ -586,9 +585,12 @@
                 btnPista.classList.add('has-pista');
                 txtBtnPista.innerText = "EDITAR PISTA";
             }
-
-            const isEsperando = globalStatus === 'esperando';
             
+            // Mostra o botão de pista em qualquer modo de jogo, desde que não esteja revelado ou no lobby
+            btnPista.classList.toggle('escondido', globalStatus === 'revelado' || isEsperando);
+            document.getElementById('box-btn-sair').classList.toggle('escondido', isEsperando);
+
+            // MÁQUINA DE ESTADOS DAS TELAS
             document.getElementById('lobby-area').classList.toggle('escondido', !isEsperando);
             
             if (isEsperando) {
@@ -601,17 +603,11 @@
                     document.getElementById('game-section').classList.remove('escondido');
                     document.getElementById('remote-section').classList.add('escondido');
                     
-                    // Mostra o botão da pista apenas se a mesa não estiver revelada
-                    btnPista.classList.toggle('escondido', globalStatus === 'revelado');
-                    
                     const placar = document.getElementById('placar-pistas');
                     placar.classList.toggle('escondido', globalStatus !== 'revelado');
                     if (globalStatus === 'revelado') {
                         document.getElementById('lista-pistas-reveladas').innerHTML = jogadoresData.map(j => `
-                            <div class="placar-item">
-                                <div class="placar-nome">${j.nome} - <span style="color: var(--accent-color);">${j.numero}</span></div>
-                                <div class="placar-texto">${j.pista || 'Não enviou pista'}</div>
-                            </div>
+                            <div class="placar-item"><div class="placar-nome">${j.nome} - <span style="color: var(--accent-color);">${j.numero}</span></div><div class="placar-texto">${j.pista || 'Não enviou pista'}</div></div>
                         `).join('');
                     }
                     
@@ -622,9 +618,73 @@
                         document.getElementById('btn-revelar').classList.toggle('escondido', globalStatus !== 'sorteado');
                         document.getElementById('btn-reset').classList.toggle('escondido', globalStatus !== 'revelado');
                     }
-                } else {
+                } else if (modoJogo === 'remoto') {
+                    // MODO REMOTO (TABULEIRO)
                     document.getElementById('game-section').classList.add('escondido');
                     document.getElementById('remote-section').classList.remove('escondido');
+                    
+                    const listaRemota = document.getElementById('lista-cartas-remoto');
+                    
+                    // Ordena os jogadores com base na ordem que está salva no banco
+                    let orderedJogadores = [...jogadoresData];
+                    if (salaData.ordem_mesa) {
+                        const ordemIds = salaData.ordem_mesa.split(',');
+                        orderedJogadores.sort((a, b) => {
+                            let idxA = ordemIds.indexOf(a.id);
+                            let idxB = ordemIds.indexOf(b.id);
+                            idxA = idxA === -1 ? 999 : idxA;
+                            idxB = idxB === -1 ? 999 : idxB;
+                            return idxA - idxB;
+                        });
+                    }
+
+                    listaRemota.innerHTML = orderedJogadores.map(j => {
+                        const isMe = j.id === meuIdBD;
+                        const hasPista = !!j.pista;
+                        const showNumero = globalStatus === 'revelado';
+                        const numeroReveal = (showNumero && j.numero) ? j.numero : '?';
+
+                        return `
+                        <div class="carta-remota" data-id="${j.id}">
+                            ${!showNumero ? `
+                            <div class="drag-handle">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                            </div>` : ''}
+                            <div class="carta-info">
+                                <div class="carta-nome">${j.nome} ${isMe ? '(VOCÊ)' : ''}</div>
+                                <div class="carta-pista">${hasPista ? `“${j.pista}”` : 'Pensando...'}</div>
+                            </div>
+                            <div class="carta-numero ${showNumero ? 'revelado' : ''}">
+                                ${showNumero ? numeroReveal : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>'}
+                            </div>
+                        </div>
+                        `;
+                    }).join('');
+
+                    // Inicializa a biblioteca de Arrastar e Soltar apenas na primeira vez
+                    if (!window.sortableRemoto) {
+                        window.sortableRemoto = new Sortable(document.getElementById('lista-cartas-remoto'), {
+                            handle: '.drag-handle',
+                            animation: 150,
+                            onStart: function () {
+                                isDraggingRemoto = true; // Bloqueia updates da tela enquanto você arrasta
+                            },
+                            onEnd: async function (evt) {
+                                const order = window.sortableRemoto.toArray();
+                                // Atualiza a ordem no banco para todo mundo ver
+                                await sbClient.from('salas').update({ ordem_mesa: order.join(',') }).eq('id', salaAtual);
+                                isDraggingRemoto = false;
+                            }
+                        });
+                    }
+                    
+                    // Bloqueia o arrastar quando revelado
+                    window.sortableRemoto.option("disabled", globalStatus === 'revelado');
+
+                    if (souHost) {
+                        document.getElementById('btn-revelar-remoto').classList.toggle('escondido', globalStatus !== 'sorteado');
+                        document.getElementById('btn-reset-remoto').classList.toggle('escondido', globalStatus !== 'revelado');
+                    }
                 }
             }
             document.getElementById('btn-ajuda').classList.toggle('escondido', !isEsperando);
