@@ -2,815 +2,332 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ITO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ITO - Sintonize com seus amigos</title>
     
-    <link rel="icon" href="/icons/icon-light.png" type="image/png" media="(prefers-color-scheme: light)">
-    <link rel="apple-touch-icon" href="/icons/icon-light.png" media="(prefers-color-scheme: light)">
-    <link rel="icon" href="/icons/icon-dark.png" type="image/png" media="(prefers-color-scheme: dark)">
-    <link rel="apple-touch-icon" href="/icons/icon-dark.png" media="(prefers-color-scheme: dark)">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#F4F1EA" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)">
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     
-    <script src="/temas.js" defer></script>
-
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;600;700;800;900&display=swap');
-
-        /* VARIÁVEIS DE TEMA */
-        :root {
-            --bg-color: #F4F1EA;
-            --text-color: #1A1A1A;     
-            --accent-color: #C19A6B;  
-            --border-color: rgba(26, 26, 26, 0.2);
-            --btn-txt: #F4F1EA;
-            --muted-text: rgba(26, 26, 26, 0.5);
-            --glow-primary: none;
-        }
-
-        body.dark-theme {
-            --bg-color: #0A0A0A;
-            --text-color: #FFFFFF;     
-            --accent-color: #7c0229;  
-            --border-color: rgba(255, 255, 255, 0.15);
-            --btn-txt: #FFFFFF;
-            --muted-text: rgba(255, 255, 255, 0.5);
-            --glow-primary: 0 0 15px var(--accent-color);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         
-        body, html { 
-            width: 100%; min-height: 100vh; overflow-x: hidden; 
-            background-color: var(--bg-color); color: var(--text-color);
-            transition: background-color 0.4s, color 0.4s;
-            -webkit-user-select: none; user-select: none;
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #020617; 
+            color: white; 
+            overscroll-behavior: none; 
+            overflow-x: hidden;
         }
 
-        .top-bar-right { position: absolute; top: 20px; right: 20px; z-index: 1000; }
-        .top-bar-left { position: absolute; top: 20px; left: 20px; z-index: 1000; }
-        /* Container central para o Olho */
-        .top-bar-center { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; }
+        /* Efeito de Vidro Premium */
+        .glass { 
+            background: rgba(30, 41, 59, 0.7); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.05); 
+        }
+
+        /* Animações de Carta */
+        .card-perspective { perspective: 1000px; }
+        .card-inner { transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); transform-style: preserve-3d; cursor: pointer; }
+        .revealed .card-inner { transform: rotateY(180deg); }
+        .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .card-back { transform: rotateY(180deg); background: white; color: #0f172a; border: 12px solid; } /* A cor da borda será injetada via JS */
         
-        .icon-btn { 
-            background: transparent; border: none; cursor: pointer; 
-            color: var(--text-color); display: flex; align-items: center; justify-content: center;
-            padding: 8px; opacity: 0.6; transition: 0.3s;
-        }
-        .icon-btn:hover { opacity: 1; }
-        .icon-btn svg { width: 26px; height: 26px; stroke-width: 2; }
-
-        /* GERAL (HOME/LOBBY) */
-        .container { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            padding: 20px; width: 100%; max-width: 400px; margin: 0 auto; min-height: 100vh;
-        }
-        
-        h1.logo { font-size: 4rem; font-weight: 900; letter-spacing: 12px; margin-bottom: 40px; text-align: center; }
-
-        input[type="text"] { 
-            width: 100%; padding: 18px; font-size: 1.1rem; text-align: center; letter-spacing: 2px;
-            background: transparent; border: 2px solid var(--border-color); color: var(--text-color);
-            border-radius: 12px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase;
-            outline: none; transition: 0.3s;
-        }
-        input[type="text"]:focus { border-color: var(--accent-color); }
-
-        .input-lobby-name { border: 1px dashed var(--border-color); padding: 12px; margin-bottom: 20px; border-radius: 8px; }
-
-        button.btn-primary { 
-            width: 100%; padding: 18px; font-size: 1rem; font-weight: 900; letter-spacing: 2px;
-            background: var(--accent-color); color: var(--btn-txt); border: none; border-radius: 12px;
-            cursor: pointer; transition: 0.2s; text-transform: uppercase; box-shadow: var(--glow-primary);
-        }
-        button.btn-primary:active { transform: scale(0.97); }
-        
-        button.btn-secondary {
-            width: 100%; padding: 18px; font-size: 1rem; font-weight: 800; letter-spacing: 2px;
-            background: transparent; color: var(--text-color); border: 2px solid var(--border-color); 
-            border-radius: 12px; cursor: pointer; transition: 0.2s; text-transform: uppercase; margin-bottom: 10px;
-        }
-        button.btn-secondary:active { transform: scale(0.97); }
-        
-        .divider { display: flex; align-items: center; width: 100%; margin: 25px 0; color: var(--muted-text); font-weight: 700; font-size: 0.9rem; letter-spacing: 2px; }
-        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px dashed var(--border-color); margin: 0 15px; }
-
-        /* LOBBY */
-        .sala-header { font-size: 1.4rem; font-weight: 300; letter-spacing: 4px; margin-bottom: 25px; color: var(--muted-text); }
-        .sala-header strong { font-weight: 900; color: var(--accent-color); }
-        
-        #qrcode { background: white; padding: 15px; display: inline-block; border-radius: 12px; margin-bottom: 15px; }
-        
-        .lista-jogadores { list-style: none; width: 100%; text-align: left; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 20px; }
-        .jogador-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px dashed var(--border-color); font-weight: 700; font-size: 1.1rem; }
-        .jogador-item span.voce { color: var(--accent-color); font-weight: 900; font-size: 0.8rem; letter-spacing: 1px; }
-        .btn-kick { background: transparent; color: #ff4444; border: 1px solid #ff4444; padding: 6px 12px; font-size: 0.7rem; border-radius: 6px; cursor: pointer; font-weight: 700; }
-
-        /* UI DE TEMAS NO LOBBY (HOST) */
-        .host-theme-panel { width: 100%; text-align: left; margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px; }
-        .section-title { font-size: 0.8rem; font-weight: 900; letter-spacing: 2px; color: var(--accent-color); text-transform: uppercase; margin-bottom: 12px; display: block; }
-        
-        .input-group-theme { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; }
-        .input-group-theme input { flex: 1; margin-bottom: 0; font-size: 0.9rem; padding: 15px; letter-spacing: 0; text-transform: none; }
-        
-        .icon-btn-action {
-            background: transparent; border: 2px solid var(--border-color); cursor: pointer;
-            color: var(--text-color); border-radius: 10px; width: 50px; display: flex;
-            align-items: center; justify-content: center; transition: 0.2s;
-        }
-        .icon-btn-action:hover { border-color: var(--accent-color); color: var(--accent-color); }
-        .icon-btn-action:active { transform: scale(0.9); }
-        .icon-btn-action svg { width: 24px; height: 24px; stroke-width: 1.5; }
-
-        .sugestoes-wrapper { width: 100%; max-height: 180px; overflow-y: auto; padding-right: 5px; }
-        .list-sugestoes { list-style: none; }
-        .sugestao-item {
-            padding: 12px; background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05);
-            border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.2s;
-            color: var(--text-color); font-size: 0.9rem; font-weight: 500;
-        }
-        body.dark-theme .sugestao-item { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.05); }
-        .sugestao-item:hover { border-color: var(--accent-color); background: rgba(193, 154, 107, 0.05); }
-        body.dark-theme .sugestao-item:hover { background: rgba(124, 2, 41, 0.05); }
-        .sugestao-item:active { transform: scale(0.98); }
-
-        /* UI DE SUGERIR TEMA NO LOBBY (JOGADOR) */
-        .player-suggest-panel { width: 100%; margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px; }
-
-        /* CARTA (JOGO) */
-        #game-section { position: absolute; inset: 0; width: 100vw; height: 100vh; overflow: hidden; }
-        
-        #card-principal {
-            position: absolute; inset: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            cursor: pointer; z-index: 50; -webkit-tap-highlight-color: transparent;
+        /* Feedback de entrada de jogadores */
+        .player-entry { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .numero-secreto { 
-            font-size: 35vh; font-weight: 700; line-height: 1; position: absolute; top: 50%; left: 50%; 
-            color: var(--text-color); transform: translate(-50%, -50%) translateY(-8vh) scale(0.8); 
-            opacity: 0; pointer-events: none; transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .alvo-interativo {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) translateY(-8vh);
-            width: 100px; height: 100px; border-radius: 50%; z-index: 10; transition: all 0.3s ease;
-        }
-
-        .pulso { position: absolute; inset: 0; border: solid var(--accent-color); border-radius: 50%; animation: respirar-amplo 3s infinite ease-out; }
-        
-        @keyframes respirar-amplo {
-            0% { transform: scale(0.5); opacity: 0.9; border-width: 6px; }
-            100% { transform: scale(3.5); opacity: 0; border-width: 0px; }
-        }
-
-        body.dark-theme .pulso { box-shadow: 0 0 15px var(--accent-color), inset 0 0 15px var(--accent-color); }
-
-        /* ONDA CLÁSSICA */
-        #linha-fisica {
-            position: absolute; bottom: 20vh; left: 0; width: 100%; height: 160px; 
-            overflow: visible; z-index: 5; pointer-events: none;
-        }
-        #fio-caotico { fill: none; stroke: var(--accent-color); stroke-width: 4; stroke-linecap: round; transition: stroke 0.4s; }
-        body.dark-theme #fio-caotico { filter: drop-shadow(0 0 8px var(--accent-color)); }
-
-        .host-overlay { 
-            position: fixed; bottom: 30px; left: 0; width: 100%; padding: 0 20px; 
-            z-index: 100; text-align: center; pointer-events: none; 
-            display: flex; flex-direction: column; gap: 15px; align-items: center;
-        }
-        .host-overlay button { pointer-events: auto; width: 100%; max-width: 400px; margin: 0; }
-
-        #card-principal.active .alvo-interativo { opacity: 0; transform: translate(-50%, -50%) translateY(-8vh) scale(0.2); }
-        #card-principal.active .numero-secreto { opacity: 1; transform: translate(-50%, -50%) translateY(-8vh) scale(1); }
-
-        /* MODAIS */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
-            align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px);
-            display: flex; 
-        }
-        .modal-content {
-            width: 85%; max-width: 350px; padding: 30px; border-radius: 20px;
-            background: var(--bg-color); color: var(--text-color); text-align: center; 
-            border: 1px solid var(--border-color); box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-        .btn-group { display: flex; gap: 10px; margin-top: 25px; }
-        .btn-confirm { flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; background: var(--text-color); color: var(--bg-color); }
-        .btn-cancel { flex: 1; padding: 15px; border-radius: 10px; border: 2px solid var(--border-color); background: transparent; color: var(--text-color); font-weight: 700; cursor: pointer; }
-
-        .tutorial-controles { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; font-weight: 900; }
-        .tutorial-controles button { background: transparent; border: none; font-size: 1.5rem; color: var(--accent-color); cursor: pointer; padding: 10px; }
-        #tutorial-texto { min-height: 80px; margin-top: 15px; font-size: 1.1rem; color: var(--muted-text); font-weight: 600; }
-        
-        /* FAB AJUDA (EXCLUSIVO DO LOBBY) */
-        #btn-game-helper {
-            position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px; border-radius: 50%;
-            background: var(--accent-color); color: var(--btn-txt); border: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 1000;
-            padding: 0; margin: 0; display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
-        }
-        #btn-game-helper:active { transform: scale(0.9); }
-        #btn-game-helper svg { width: 28px; height: 28px; stroke-width: 2; }
-        
-        .escondido { display: none !important; }
-        
-        /* Barra de rolagem */
-        .sugestoes-wrapper::-webkit-scrollbar { width: 4px; }
-        .sugestoes-wrapper::-webkit-scrollbar-track { background: transparent; }
-        .sugestoes-wrapper::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+        /* Esconder Views */
+        .hidden { display: none !important; }
     </style>
 </head>
-<body>
+<body class="text-slate-200">
 
-    <div class="top-bar-right">
-        <button class="icon-btn" onclick="toggleTheme()" title="Trocar Tema">
-            <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="escondido">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
-            <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="escondido">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>
-        </button>
-    </div>
-
-    <div id="setup-section" class="container">
-        <h1 class="logo">ITO</h1>
-        <input type="text" id="input-nome" placeholder="SEU NOME" autocomplete="off" maxlength="15">
-        <button class="btn-primary" onclick="criarSala()">CRIAR SALA</button>
-        <div class="divider">OU INGRESSAR</div>
-        <input type="text" id="input-sala" placeholder="CÓDIGO DA SALA" autocomplete="off" maxlength="4">
-        <button class="btn-secondary" onclick="entrarSala()">ENTRAR</button>
-    </div>
-
-    <div id="lobby-area" class="container escondido">
-        <div class="sala-header">SALA: <strong id="display-id-sala"></strong></div>
-        <input type="text" id="lobby-nome-input" class="input-lobby-name" placeholder="EDITAR NOME" maxlength="15" oninput="atualizarNomeLobby(this.value)">
-
-        <div id="qrcode-container" class="escondido" style="text-align: center;">
-            <div id="qrcode"></div>
-            <button class="btn-secondary" onclick="copiarLink()" style="font-size: 0.8rem; padding: 12px; margin-top: 10px;">COPIAR LINK DA SALA</button>
-        </div>
-
-        <ul class="lista-jogadores" id="lista-jogadores"></ul>
+    <div id="app" class="max-w-md mx-auto p-6 pb-24 min-h-screen flex flex-col justify-center">
         
-        <div id="lobby-host-controls" class="host-theme-panel escondido">
-            <span class="section-title">Tema da Rodada</span>
-            <div class="input-group-theme">
-                <input type="text" id="host-theme-input" placeholder="Escreva o tema ou sorteie..." maxlength="100">
-                <button class="icon-btn-action" onclick="sortearTemaGenérico()" title="Sortear Tema">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2L3.5 6.5v11L12 22l8.5-4.5v-11z"></path>
-                        <path d="M12 22V12"></path>
-                        <path d="M20.5 6.5L12 12"></path>
-                        <path d="M3.5 6.5L12 12"></path>
-                        
-                        <circle cx="12" cy="7.5" r="1.2" fill="currentColor" stroke="none"></circle>
-                        <circle cx="7.5" cy="13.5" r="1.2" fill="currentColor" stroke="none"></circle>
-                        <circle cx="7.5" cy="17" r="1.2" fill="currentColor" stroke="none"></circle>
-                        <circle cx="16.5" cy="12" r="1.2" fill="currentColor" stroke="none"></circle>
-                        <circle cx="16.5" cy="14.5" r="1.2" fill="currentColor" stroke="none"></circle>
-                        <circle cx="16.5" cy="17" r="1.2" fill="currentColor" stroke="none"></circle>
-                    </svg>
-                </button>
-            </div>
+        <div id="view-login" class="space-y-8 py-10 w-full">
+            <header class="text-center animate-slideIn">
+                <h1 class="text-7xl font-black italic tracking-tighter text-indigo-500 mb-2 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)]">ITO</h1>
+                <p class="text-slate-400 font-medium">Sintonize sua mente com o grupo</p>
+            </header>
 
-            <span class="section-title">Sugestões do Grupo</span>
-            <div class="sugestoes-wrapper">
-                <ul class="list-sugestoes" id="host-sugestoes-list">
-                    <p id="no-suggestions-msg" style="font-size: 0.8rem; color: var(--muted-text); font-style: italic; text-align: center; padding: 10px 0;">Aguardando palpites da mesa...</p>
-                </ul>
+            <div class="space-y-4 animate-slideIn" style="animation-delay: 0.1s;">
+                <div class="relative">
+                    <input id="input-nome" type="text" maxlength="15" placeholder="Seu apelido..." 
+                        class="w-full glass rounded-3xl p-5 text-xl font-bold text-center focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all shadow-inner">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="criarSala()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 p-5 rounded-3xl font-extrabold transition-all shadow-lg shadow-indigo-900/40 uppercase tracking-tight text-sm">
+                        Criar Sala
+                    </button>
+                    <button onclick="toggleEntrar()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 active:scale-95 p-5 rounded-3xl font-extrabold transition-all uppercase tracking-tight text-sm">
+                        Entrar
+                    </button>
+                </div>
             </div>
             
-            <button id="btn-sortear" class="btn-primary" style="margin-top: 30px;" onclick="sortearNumeros()">SORTEAR CARTAS</button>
-        </div>
-
-        <div id="player-suggest-controls" class="player-suggest-panel escondido">
-            <span class="section-title">Sugira um Tema Absurdo</span>
-            <div class="input-group-theme">
-                <input type="text" id="player-theme-suggest-input" placeholder="Ex: Pior lugar pra 1º encontro" maxlength="100">
-                <button class="icon-btn-action" onclick="enviarSugestaoAoHost()" title="Enviar Sugestão">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="22" y1="2" x2="11" y2="13"></line>
-                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                    </svg>
+            <div id="panel-entrar" class="hidden space-y-4 animate-slideIn">
+                <input id="input-sala-id" type="text" placeholder="CÓDIGO DA SALA" 
+                    class="w-full glass rounded-3xl p-5 text-center text-3xl font-mono font-black uppercase focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all text-emerald-400 placeholder:text-slate-600">
+                <button onclick="entrarSala()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 p-5 rounded-3xl font-black transition-all uppercase shadow-lg shadow-emerald-900/20 text-sm tracking-widest">
+                    Conectar agora
                 </button>
             </div>
-            <p id="wait-message-lobby" style="margin-top:30px; color: var(--muted-text); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; font-size: 0.9rem; text-align: center;">Aguardando Host iniciar...</p>
         </div>
 
-        <button onclick="confirmExit('home')" style="background:transparent; border:none; color:var(--muted-text); margin-top:40px; text-decoration:underline; font-size:0.9rem; font-weight: 700; cursor: pointer;">Sair do Grupo</button>
-    </div>
+        <div id="view-game" class="hidden space-y-6 w-full pt-4">
+            
+            <header class="flex justify-between items-center glass p-4 rounded-[2rem]">
+                <div class="flex items-center gap-3">
+                    <div id="my-color-indicator" class="w-4 h-4 rounded-full shadow-[0_0_15px_currentColor]"></div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-500 tracking-widest uppercase leading-none">Sala Ativa</p>
+                        <p id="display-sala-id" class="text-lg font-mono font-bold text-indigo-400 mt-1 leading-none">-</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="location.reload()" class="bg-slate-800/80 hover:bg-red-500/20 hover:text-red-400 p-3 rounded-2xl transition-all">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </header>
 
-    <div id="game-section" class="escondido">
-        <div class="top-bar-left">
-            <button class="icon-btn" onclick="confirmExit('lobby')" title="Sair da Partida">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-            </button>
-        </div>
+            <section class="bg-indigo-600 p-6 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="thermometer" class="w-4 h-4 text-indigo-200"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-indigo-100 bg-indigo-900/30 px-2 py-1 rounded-full">Tema Atual</span>
+                    </div>
+                    <input id="input-tema" maxlength="60" placeholder="Digite o desafio aqui..." 
+                        class="bg-transparent text-2xl font-black w-full outline-none placeholder:text-indigo-400/50 border-b-2 border-indigo-400/20 pb-2 focus:border-white transition-all">
+                </div>
+                <i data-lucide="flame" class="absolute -right-6 -bottom-6 w-32 h-32 text-white/10 transform rotate-12"></i>
+            </section>
 
-        <div class="top-bar-center escondido" id="theme-top-bar">
-            <button class="icon-btn" onclick="abrirVisualizacaoDeTema()" title="Ver Tema da Rodada" style="opacity: 0.8;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-            </button>
-        </div>
-
-        <div id="card-principal" onmousedown="interactStart(event)" onmouseup="interactEnd(event)" onmouseleave="interactEnd(event)" ontouchstart="interactStart(event)" ontouchend="interactEnd(event)">
-            <svg id="linha-fisica" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path id="fio-caotico" d="M 0 50 C 33 50, 66 50, 100 50" />
-            </svg>
-            <div class="alvo-interativo"><div class="pulso"></div></div>
-            <div class="numero-secreto" id="meu-numero"></div>
-        </div>
-
-        <div class="host-overlay" id="host-controls">
-            <button class="btn-primary escondido" id="btn-revelar" onclick="acionarRevelarMesa()">REVELAR MESA</button>
-            <button class="btn-secondary escondido" id="btn-reset" style="background: var(--text-color); color: var(--bg-color); border: none;" onclick="voltarLobby()">NOVA RODADA</button>
-        </div>
-    </div>
-
-    <div id="confirm-modal" class="modal-overlay escondido">
-        <div class="modal-content">
-            <h3 id="modal-title" style="font-weight: 900; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase;">ATENÇÃO</h3>
-            <p id="modal-msg" style="margin: 15px 0; color: var(--muted-text); font-weight: 600;"></p>
-            <div class="btn-group">
-                <button class="btn-cancel" onclick="fecharModal()">VOLTAR</button>
-                <button id="modal-confirm-btn" class="btn-confirm">CONFIRMAR</button>
+            <div id="area-carta" class="card-perspective h-80 w-full" onclick="revelarLocal()">
+                <div id="carta-inner" class="card-inner relative w-full h-full">
+                    <div class="card-face bg-gradient-to-br from-slate-800 to-slate-900 border-4 border-slate-700">
+                        <div class="w-20 h-20 bg-slate-950/50 rounded-full flex items-center justify-center mb-4 border border-slate-700/50">
+                            <i data-lucide="hand" class="w-10 h-10 text-indigo-500 animate-pulse"></i>
+                        </div>
+                        <p class="text-slate-500 font-black text-xs tracking-[0.4em] uppercase">Tocar para ver</p>
+                    </div>
+                    <div id="carta-frente" class="card-face card-back">
+                        <div class="absolute top-8 left-10 font-black italic opacity-10 text-2xl tracking-tighter">ITO</div>
+                        <h2 id="display-numero" class="text-[9rem] leading-none font-black tracking-tighter">0</h2>
+                        <div class="absolute bottom-8 right-10 font-black italic opacity-10 text-2xl tracking-tighter">ITO</div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div id="modal-tutorial" class="modal-overlay escondido">
-        <div class="modal-content">
-            <h3 style="font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-color);">Como Jogar</h3>
-            <p id="tutorial-texto"></p>
-            <div class="tutorial-controles">
-                <button onclick="mudarPassoTutorial(-1)">&lt;</button>
-                <span id="tutorial-passo" style="color: var(--muted-text); font-size: 0.9rem;"></span>
-                <button onclick="mudarPassoTutorial(1)">&gt;</button>
+            <div id="container-pista" class="hidden space-y-3 animate-slideIn">
+                <div class="flex justify-center items-center gap-2 text-slate-500">
+                    <i data-lucide="pen-tool" class="w-3 h-3"></i>
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em]">Sua Pista para o Grupo</p>
+                </div>
+                <div class="glass p-2 rounded-[2rem]">
+                    <input id="input-pista" type="text" maxlength="35" placeholder="Ex: Um café recém passado..." 
+                        class="w-full bg-slate-900/50 p-4 rounded-3xl text-center text-xl font-bold text-emerald-400 outline-none placeholder:text-slate-600 focus:bg-slate-900 transition-all">
+                </div>
             </div>
-            <button class="btn-primary" onclick="fecharModalDeHelper()" style="margin-top: 20px;">ENTENDI</button>
+
+            <footer class="grid grid-cols-2 gap-4">
+                <button onclick="sortear()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 p-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest active:scale-95 transition-transform shadow-lg">
+                    Novo Round
+                </button>
+                <button onclick="revelarGeral()" class="bg-emerald-600 hover:bg-emerald-500 p-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest text-white shadow-lg shadow-emerald-900/40 active:scale-95 transition-transform">
+                    Revelar Tudo
+                </button>
+            </footer>
+
+            <div class="space-y-4 pt-4 border-t border-slate-800">
+                <div class="flex justify-between items-center px-2">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="users" class="w-4 h-4 text-slate-500"></i>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Mesa de Jogo</p>
+                    </div>
+                    <span id="player-count" class="text-[10px] font-bold bg-slate-800 text-slate-400 px-3 py-1 rounded-full">-</span>
+                </div>
+                <div id="lista-jogadores" class="space-y-2">
+                    </div>
+            </div>
+
         </div>
     </div>
-
-    <div id="modal-theme-view" class="modal-overlay escondido">
-        <div class="modal-content">
-            <h3 style="font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-color);">Tema da Rodada</h3>
-            <p id="theme-view-text" style="margin: 20px 0; font-size: 1.2rem; color: var(--text-color); font-weight: 700; line-height: 1.4;"></p>
-            <button class="btn-primary" onclick="fecharModalDeHelper()" style="margin-top: 10px;">FECHAR</button>
-        </div>
-    </div>
-
-    <button id="btn-game-helper" onclick="abrirTutorial()" title="Ajuda">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-        </svg>
-    </button>
 
     <script>
-        const iconMoon = document.getElementById('icon-moon');
-        const iconSun = document.getElementById('icon-sun');
-        const body = document.body;
+        // --- ⚙️ CONFIGURAÇÕES SUPABASE ---
+        const supabase = supabase.createClient("SUA_URL_AQUI", "SUA_KEY_AQUI");
 
-        function toggleTheme() {
-            const isDark = body.classList.toggle('dark-theme');
-            localStorage.setItem('ito_theme', isDark ? 'dark' : 'light');
-            iconMoon.classList.toggle('escondido', isDark);
-            iconSun.classList.toggle('escondido', !isDark);
-        }
+        // Paleta Vibrante de Identidade
+        const COLORS = ['#10b981', '#f43f5e', '#f59e0b', '#8b5cf6', '#0ea5e9', '#d946ef', '#14b8a6', '#f97316'];
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('ito_theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-            
-            body.classList.toggle('dark-theme', isDark);
-            iconMoon.classList.toggle('escondido', isDark);
-            iconSun.classList.toggle('escondido', !isDark);
-
-            const savedName = localStorage.getItem('ito_player_name');
-            if (savedName) document.getElementById('input-nome').value = savedName;
-        });
-
-        let isHolding = false;
-        let amplitude = 0; 
+        let salaId = null;
+        let userId = localStorage.getItem('ito_user_id') || crypto.randomUUID();
+        let minhaCor = localStorage.getItem('ito_user_color') || COLORS[Math.floor(Math.random() * COLORS.length)];
         
-        function animateWave(time) {
-            const fioPath = document.getElementById('fio-caotico');
-            if (!fioPath) return requestAnimationFrame(animateWave);
+        localStorage.setItem('ito_user_id', userId);
+        localStorage.setItem('ito_user_color', minhaCor);
 
-            if (isHolding) { amplitude += (1 - amplitude) * 0.05; } 
-            else { amplitude += (0 - amplitude) * 0.08; }
-
-            if (amplitude > 0.01) {
-                const timeFactor = time * 0.002;
-                const y1 = 50 + (Math.sin(timeFactor * 1.5) * 35 + Math.sin(timeFactor * 0.8 + 2) * 20) * amplitude;
-                const y2 = 50 + (Math.sin(timeFactor * 1.2) * 35 + Math.sin(timeFactor * 1.9 + 4) * 20) * amplitude;
-                fioPath.setAttribute('d', `M 0 50 C 33 ${y1}, 66 ${y2}, 100 50`);
-            } else if (!isHolding && amplitude <= 0.01) {
-                fioPath.setAttribute('d', `M 0 50 C 33 50, 66 50, 100 50`);
-            }
-            requestAnimationFrame(animateWave);
-        }
-        requestAnimationFrame(animateWave);
-
-        function interactStart(e) {
-            if(e && e.type !== 'mousedown') e.preventDefault();
-            if(globalStatus === 'revelado') return;
-            if (navigator.vibrate) navigator.vibrate(50); 
-            document.getElementById('card-principal').classList.add('active');
-            isHolding = true;
+        // Sanitização Anti-XSS
+        function clean(str) {
+            if (!str) return "";
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML.replace(/[<>]/g, "").trim();
         }
 
-        function interactEnd(e) {
-            if(e && e.type !== 'mouseup' && e.type !== 'mouseleave') e.preventDefault();
-            if(globalStatus === 'revelado') return;
-            document.getElementById('card-principal').classList.remove('active');
-            isHolding = false;
-        }
-
-        const SUPABASE_URL = 'https://zatuzblawpfumwxzkfpu.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_FmblL1EuUfu79E-wE3eJOw_BJxgMd_K';
-        const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        let salaAtual = "";
-        let meuIdBD = null; 
-        let souHost = false;
-        let globalStatus = 'esperando';
-        let debounceTimer;
-        let realtimeChannel = null;
-
-        function getPlayerName() {
-            let inputVal = document.getElementById('input-nome').value.trim();
-            if (!inputVal) inputVal = "Jogador " + Math.floor(Math.random() * 1000);
-            localStorage.setItem('ito_player_name', inputVal);
-            return inputVal.toUpperCase();
+        function toggleEntrar() { 
+            document.getElementById('panel-entrar').classList.toggle('hidden'); 
         }
 
         async function criarSala() {
-            try {
-                const id = Math.random().toString(36).substring(4, 8).toUpperCase();
-                const nomeJogador = getPlayerName();
-                
-                const { error: errSala } = await sbClient.from('salas').insert([{ id: id, status: 'esperando', tema: '' }]);
-                if(errSala) throw errSala;
-                
-                const { data: hostData, error: errHost } = await sbClient.from('jogadores').insert([{
-                    sala_id: id, nome: nomeJogador, is_host: true
-                }]).select().single();
-                if(errHost) throw errHost;
-
-                meuIdBD = hostData.id;
-                localStorage.setItem(`ito_uuid_${id}`, meuIdBD);
-                localStorage.setItem(`host_${id}`, 'true'); 
-                
-                salaAtual = id;
-                souHost = true;
-                abrirSala();
-            } catch (err) { alert("Erro ao criar sala. Verifique a conexão."); }
+            const { data } = await supabase.from('salas').insert([{ status: 'lobby' }]).select();
+            if (data) {
+                salaId = data[0].id;
+                await participar();
+            }
         }
 
         async function entrarSala() {
-            try {
-                const id = document.getElementById('input-sala').value.toUpperCase() || new URLSearchParams(window.location.search).get('sala');
-                if(!id) return;
-                
-                const nomeJogador = getPlayerName();
-                const { data: salaData, error } = await sbClient.from('salas').select('*').eq('id', id).single();
-                if (error || !salaData) throw new Error("Sala não encontrada!");
-                
-                const { count } = await sbClient.from('jogadores').select('*', { count: 'exact', head: true }).eq('sala_id', id);
-                if(count >= 50) throw new Error("Esta sala já atingiu o limite máximo de 50 jogadores.");
-
-                let storedId = localStorage.getItem(`ito_uuid_${id}`);
-                if (storedId) {
-                    const { data: exData } = await sbClient.from('jogadores').select('id').eq('id', storedId).single();
-                    if(exData) meuIdBD = storedId;
-                }
-                
-                if(!meuIdBD) {
-                    const { data: novoJogador, error: errJog } = await sbClient.from('jogadores').insert([{
-                        sala_id: id, nome: nomeJogador, is_host: false
-                    }]).select().single();
-                    if(errJog) throw errJog;
-                    
-                    meuIdBD = novoJogador.id;
-                    localStorage.setItem(`ito_uuid_${id}`, meuIdBD);
-                }
-
-                salaAtual = id;
-                souHost = localStorage.getItem(`host_${id}`) === 'true';
-                abrirSala();
-            } catch (err) { alert(err.message); }
+            salaId = document.getElementById('input-sala-id').value.trim().toUpperCase();
+            if (salaId) await participar();
         }
 
-        function abrirSala() {
-            document.getElementById('setup-section').classList.add('escondido');
-            document.getElementById('display-id-sala').innerText = salaAtual;
-            document.getElementById('lobby-nome-input').value = localStorage.getItem('ito_player_name') || "";
+        async function participar() {
+            const nomeRaw = document.getElementById('input-nome').value || "Misterioso";
+            const nomeSanitizado = clean(nomeRaw);
             
-            // V1.7 QR Code liberado para todos no Lobby
-            const urlSala = window.location.origin + window.location.pathname + "?sala=" + salaAtual;
-            document.getElementById("qrcode").innerHTML = "";
-            new QRCode(document.getElementById("qrcode"), { text: urlSala, width: 140, height: 140, colorDark: "#000000", colorLight: "#ffffff" });
-            document.getElementById('qrcode-container').classList.remove('escondido');
-
-            inscreverNoJogo();
-        }
-
-        function atualizarNomeLobby(novoNome) {
-            let val = novoNome.trim().toUpperCase();
-            if(!val) return;
-            localStorage.setItem('ito_player_name', val);
+            await supabase.from('jogadores').upsert([{ 
+                id: userId, 
+                sala_id: salaId, 
+                nome: nomeSanitizado,
+                cor_hex: minhaCor 
+            }]);
             
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(async () => {
-                if(meuIdBD) await sbClient.from('jogadores').update({ nome: val }).eq('id', meuIdBD);
-            }, 500);
-        }
-
-        async function sortearNumeros() {
-            if (!souHost) return;
-            const { data: jogadoresDB } = await sbClient.from('jogadores').select('id').eq('sala_id', salaAtual).order('created_at', { ascending: true });
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-game').classList.remove('hidden');
+            document.getElementById('display-sala-id').innerText = salaId;
             
-            // V1.7: Trava de 2 jogadores removida para facilitar os seus testes locais.
-            // if (jogadoresDB.length < 2) {
-            //     alert("A partida precisa de pelo menos 2 jogadores."); return;
-            // }
-
-            let baralho = Array.from({ length: 100 }, (_, i) => i + 1);
-            for (let i = baralho.length - 1; i > 0; i--) {
-                const arrayRandom = new Uint32Array(1);
-                window.crypto.getRandomValues(arrayRandom);
-                const j = Math.floor((arrayRandom[0] / (0xffffffff + 1)) * (i + 1));
-                [baralho[i], baralho[j]] = [baralho[j], baralho[i]];
-            }
-
-            const promises = jogadoresDB.map((j, index) => 
-                sbClient.from('jogadores').update({ numero: baralho[index] }).eq('id', j.id)
-            );
-            await Promise.all(promises);
-
-            const temaDefinido = document.getElementById('host-theme-input').value.trim() || "";
-            await sbClient.from('salas').update({ status: 'sorteado', tema: temaDefinido }).eq('id', salaAtual);
-        }
-
-        async function voltarLobby() {
-            if (!souHost) return;
-            await sbClient.from('salas').update({ status: 'esperando', tema: '' }).eq('id', salaAtual);
-            await sbClient.from('jogadores').update({ numero: null }).eq('sala_id', salaAtual);
+            // Configura a cor do player na UI
+            document.getElementById('my-color-indicator').style.backgroundColor = minhaCor;
+            document.getElementById('my-color-indicator').style.color = minhaCor;
+            document.getElementById('carta-frente').style.borderColor = minhaCor;
             
-            document.getElementById('host-sugestoes-list').innerHTML = '<p id="no-suggestions-msg" style="font-size: 0.8rem; color: var(--muted-text); font-style: italic; text-align: center; padding: 10px 0;">Aguardando palpites da mesa...</p>';
-            document.getElementById('host-theme-input').value = "";
+            lucide.createIcons();
+            initRealtime();
         }
 
-        async function kick(id) {
-            await sbClient.from('jogadores').delete().eq('id', id);
+        function initRealtime() {
+            supabase.channel('ito_room_' + salaId)
+                .on('postgres_changes', { event: '*', schema: 'public' }, () => atualizarInterface())
+                .subscribe();
+            atualizarInterface();
         }
 
-        function copiarLink() {
-            const urlSala = window.location.origin + window.location.pathname + "?sala=" + salaAtual;
-            navigator.clipboard.writeText(urlSala);
-            alert("Link copiado!");
-        }
+        async function atualizarInterface() {
+            const { data: sala } = await supabase.from('salas').select('*').eq('id', salaId).single();
+            const { data: jogadores } = await supabase.from('jogadores').select('*').eq('sala_id', salaId);
+            if (!sala || !jogadores) return;
 
-        function inscreverNoJogo() {
-            const dbChannel = sbClient.channel('db_ito_' + salaAtual);
-            dbChannel.on('postgres_changes', { event: '*', schema: 'public', table: 'salas', filter: `id=eq.${salaAtual}` }, () => carregarEstadoSala());
-            dbChannel.on('postgres_changes', { event: '*', schema: 'public', table: 'jogadores', filter: `sala_id=eq.${salaAtual}` }, () => carregarEstadoSala());
-            dbChannel.subscribe();
-            
-            realtimeChannel = sbClient.channel('realtime_ito_' + salaAtual);
-            
-            if (souHost) {
-                realtimeChannel.on('broadcast', { event: 'tema_sugerido' }, (payload) => {
-                    if (globalStatus === 'esperando') { receiveSuggestionOnHost(payload.payload.texto); }
-                });
-            }
-            
-            realtimeChannel.subscribe();
-            carregarEstadoSala();
-        }
-
-        function receiveSuggestionOnHost(texto) {
-            if (!souHost) return;
-            if (navigator.vibrate) navigator.vibrate(50); 
-
-            const list = document.getElementById('host-sugestoes-list');
-            const noMsg = document.getElementById('no-suggestions-msg');
-            if (noMsg) noMsg.remove();
-
-            const existing = list.querySelectorAll('li');
-            for (let li of existing) { if (li.innerText === texto) return; }
-
-            const li = document.createElement('li');
-            li.className = 'sugestao-item';
-            li.innerText = texto;
-            li.onclick = () => {
-                document.getElementById('host-theme-input').value = texto;
-                li.style.borderColor = 'var(--accent-color)'; 
-                if (navigator.vibrate) navigator.vibrate(30);
+            // TEMA
+            const inputTema = document.getElementById('input-tema');
+            if (document.activeElement !== inputTema) inputTema.value = sala.tema || "";
+            inputTema.onchange = async () => {
+                await supabase.from('salas').update({ tema: clean(inputTema.value) }).eq('id', salaId);
             };
-            list.prepend(li); 
-        }
 
-        function enviarSugestaoAoHost() {
-            const input = document.getElementById('player-theme-suggest-input');
-            const texto = input.value.trim();
-            if (!texto || !realtimeChannel) return;
+            // JOGADORES (MESA DIGITAL)
+            document.getElementById('player-count').innerText = `${jogadores.length} Players`;
+            const lista = document.getElementById('lista-jogadores');
+            
+            lista.innerHTML = jogadores.map(j => {
+                const isMe = j.id === userId;
+                const hasPista = !!j.pista;
+                const pistaHtml = hasPista 
+                    ? `<p class="text-xs font-bold text-emerald-400 italic mt-1">“${j.pista}”</p>`
+                    : `<p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mt-1">Pensando...</p>`;
+                
+                const iconHtml = hasPista
+                    ? `<i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500/50"></i>`
+                    : `<div class="w-4 h-4 rounded-full border-2 border-slate-700 border-t-indigo-500 animate-spin"></div>`;
 
-            realtimeChannel.send({
-                type: 'broadcast',
-                event: 'tema_sugerido',
-                payload: { texto: texto }
-            });
+                const revealHtml = (j.numero && sala.status === 'revelado') 
+                    ? `<div class="bg-white text-slate-900 min-w-[2.5rem] h-10 px-2 rounded-xl flex items-center justify-center font-black text-xl shadow-lg border-4" style="border-color: ${j.cor_hex}">${j.numero}</div>` 
+                    : iconHtml;
 
-            input.value = ""; 
-            input.placeholder = "Sugestão enviada! Mande outra...";
-            if (navigator.vibrate) navigator.vibrate(70);
-            
-            const btn = input.nextElementSibling;
-            btn.style.color = 'var(--accent-color)';
-            btn.style.borderColor = 'var(--accent-color)';
-            setTimeout(() => { btn.style = ""; }, 1000);
-        }
+                return `
+                <div class="player-entry glass p-4 rounded-3xl flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="w-2 h-10 rounded-full" style="background-color: ${j.cor_hex}"></div>
+                        <div>
+                            <p class="text-sm font-black ${isMe ? 'text-indigo-400' : 'text-slate-200'}">
+                                ${j.nome} ${isMe ? '<span class="text-[10px] opacity-50 ml-1">(VOCÊ)</span>' : ''}
+                            </p>
+                            ${pistaHtml}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        ${revealHtml}
+                    </div>
+                </div>`;
+            }).join('');
+            lucide.createIcons();
 
-        function sortearTemaGenérico() {
-            if (!souHost || typeof TEMAS_GENERICOS === 'undefined') return;
-            if (navigator.vibrate) navigator.vibrate(30);
+            // LÓGICA LOCAL (Sua Carta e Sua Pista)
+            const eu = jogadores.find(j => j.id === userId);
+            const containerPista = document.getElementById('container-pista');
+            const inputPista = document.getElementById('input-pista');
+            const areaCarta = document.getElementById('area-carta');
             
-            const randomArray = new Uint32Array(1);
-            window.crypto.getRandomValues(randomArray);
-            const index = Math.floor((randomArray[0] / (0xffffffff + 1)) * TEMAS_GENERICOS.length);
-            
-            const temaSorteado = TEMAS_GENERICOS[index];
-            document.getElementById('host-theme-input').value = temaSorteado;
-            
-            const btn = document.querySelector('.input-group-theme .icon-btn-action');
-            btn.style.borderColor = 'var(--accent-color)';
-            btn.style.color = 'var(--accent-color)';
-            setTimeout(() => { btn.style = ""; }, 500);
-        }
-
-        async function carregarEstadoSala() {
-            const { data: salaData } = await sbClient.from('salas').select('*').eq('id', salaAtual).single();
-            const { data: jogadoresData } = await sbClient.from('jogadores').select('*').eq('sala_id', salaAtual).order('created_at', { ascending: true });
-            if(salaData && jogadoresData) atualizarInterface(salaData, jogadoresData);
-        }
-
-        function atualizarInterface(salaData, jogadoresData) {
-            if (!jogadoresData.find(j => j.id === meuIdBD)) { 
-                localStorage.removeItem(`host_${salaAtual}`);
-                window.location.href = window.location.pathname; return; 
-            }
-
-            globalStatus = salaData.status;
-            temaDaRodadaAtual = salaData.tema; 
-            
-            const listaUl = document.getElementById('lista-jogadores');
-            const newIds = jogadoresData.map(j => j.id);
-            
-            Array.from(listaUl.children).forEach(li => { if(!newIds.includes(li.dataset.id)) li.remove(); });
-            
-            jogadoresData.forEach((j, index) => {
-                let li = listaUl.querySelector(`li[data-id="${j.id}"]`);
-                const isMe = j.id === meuIdBD;
-                if(!li) {
-                    li = document.createElement('li');
-                    li.className = 'jogador-item';
-                    li.dataset.id = j.id;
-                    listaUl.appendChild(li);
-                }
-                let content = `<span>${j.nome || `JOGADOR ${index + 1}`} ${isMe ? '<span class="voce">(VOCÊ)</span>' : ''}</span>`;
-                if (souHost && !isMe) content += `<button class="btn-kick" onclick="kick('${j.id}')">Remover</button>`;
-                li.innerHTML = content;
-            });
-
-            const eu = jogadoresData.find(j => j.id === meuIdBD);
-            document.getElementById('meu-numero').innerText = eu.numero || "";
-
-            const isEsperando = globalStatus === 'esperando';
-            
-            document.getElementById('lobby-area').classList.toggle('escondido', !isEsperando);
-            document.getElementById('game-section').classList.toggle('escondido', isEsperando);
-            document.getElementById('card-principal').classList.toggle('active', globalStatus === 'revelado');
-            
-            if (globalStatus === 'revelado') isHolding = false;
-            
-            if (isEsperando) {
-                document.getElementById('lobby-host-controls').classList.toggle('escondido', !souHost);
-                document.getElementById('player-suggest-controls').classList.toggle('escondido', souHost);
-                document.getElementById('btn-game-helper').classList.remove('escondido');
-            } else if (souHost) {
-                document.getElementById('btn-revelar').classList.toggle('escondido', globalStatus !== 'sorteado');
-                document.getElementById('btn-reset').classList.toggle('escondido', globalStatus !== 'revelado');
-                document.getElementById('btn-game-helper').classList.add('escondido');
+            if (eu?.numero && sala.status === 'jogando') {
+                document.getElementById('display-numero').innerText = eu.numero;
+                containerPista.classList.remove('hidden');
+                
+                if (document.activeElement !== inputPista) inputPista.value = eu.pista || "";
+                inputPista.onchange = async () => {
+                    await supabase.from('jogadores').update({ pista: clean(inputPista.value) }).eq('id', userId);
+                };
             } else {
-                document.getElementById('btn-game-helper').classList.add('escondido');
+                containerPista.classList.add('hidden');
+                if (sala.status !== 'revelado') {
+                    areaCarta.classList.remove('revealed');
+                }
             }
+
+            if (sala.status === 'revelado') {
+                areaCarta.classList.add('revealed');
+            }
+        }
+
+        async function sortear() {
+            await supabase.from('salas').update({ status: 'sorteando', tema: '' }).eq('id', salaId);
+            const { data: jogadores } = await supabase.from('jogadores').select('id').eq('sala_id', salaId);
             
-            // Controle do Olho no topo da tela centralizado
-            const btnOlho = document.getElementById('theme-top-bar');
-            if (btnOlho) {
-                const temTema = temaDaRodadaAtual && temaDaRodadaAtual.trim() !== "";
-                btnOlho.classList.toggle('escondido', isEsperando || !temTema);
+            for (const j of jogadores) {
+                await supabase.from('jogadores').update({ numero: null, pista: null }).eq('id', j.id);
             }
-        }
 
-        let temaDaRodadaAtual = "";
-
-        function abrirVisualizacaoDeTema() {
-            if (!temaDaRodadaAtual) return;
-            if (navigator.vibrate) navigator.vibrate(30);
-            document.getElementById('theme-view-text').innerText = temaDaRodadaAtual;
-            document.getElementById('modal-theme-view').classList.remove('escondido');
-        }
-
-        function abrirTutorial() {
-            if (navigator.vibrate) navigator.vibrate(30);
-            passoAtual = 0;
-            atualizarTelaTutorial();
-            document.getElementById('modal-tutorial').classList.remove('escondido');
-        }
-
-        function fecharModalDeHelper() {
-            document.getElementById('modal-tutorial').classList.add('escondido');
-            document.getElementById('modal-theme-view').classList.add('escondido');
-        }
-
-        function abrirModalConfirmacao(titulo, texto, acaoConfirmar) {
-            document.getElementById('modal-title').innerText = titulo;
-            document.getElementById('modal-msg').innerText = texto;
-            document.getElementById('modal-confirm-btn').onclick = acaoConfirmar; 
-            document.getElementById('confirm-modal').classList.remove('escondido');
-        }
-
-        function fecharModal() { document.getElementById('confirm-modal').classList.add('escondido'); }
-
-        function confirmExit(target) {
-            if(target === 'home') {
-                abrirModalConfirmacao("SAIR DO GRUPO", souHost ? "Você é o host. Sair agora desfará a mesa. Confirmar?" : "Você abandonará o grupo. Confirmar?", () => window.location.href = window.location.pathname);
-            } else if (target === 'lobby') {
-                abrirModalConfirmacao("SAIR DA PARTIDA", "Partida em andamento. Deseja abandonar e voltar ao menu inicial?", () => window.location.href = window.location.pathname);
+            let nums = Array.from({length: 100}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            for (let i = 0; i < jogadores.length; i++) {
+                await supabase.from('jogadores').update({ numero: nums[i] }).eq('id', jogadores[i].id);
             }
+            await supabase.from('salas').update({ status: 'jogando' }).eq('id', salaId);
         }
 
-        function acionarRevelarMesa() {
-            abrirModalConfirmacao("REVELAR CARTAS?", "Todos os números da mesa ficarão visíveis. Essa ação não pode ser desfeita.", async () => {
-                await sbClient.from('salas').update({ status: 'revelado' }).eq('id', salaAtual);
-                fecharModal();
-            });
+        function revelarLocal() { 
+            document.getElementById('area-carta').classList.toggle('revealed'); 
         }
-
-        const passosTutorial = [
-            "O objetivo do jogo é colocar todas as cartas da mesa em ordem crescente.",
-            "A pegadinha? Vocês NÃO podem falar os números que tiraram!",
-            "O Host define um TEMA da Rodada (Ex: 1 = Pior Comida / 100 = Melhor Comida).",
-            "Dê um palpite baseado no seu número. Se tirou 1, diga algo horrível. Se tirou 100, diga a melhor coisa possível. Deduzam a ordem juntos!"
-        ];
-        let passoAtual = 0;
-
-        function mudarPassoTutorial(direcao) {
-            passoAtual = Math.max(0, Math.min(passosTutorial.length - 1, passoAtual + direcao));
-            atualizarTelaTutorial();
+        
+        async function revelarGeral() { 
+            await supabase.from('salas').update({ status: 'revelado' }).eq('id', salaId); 
         }
-
-        function atualizarTelaTutorial() {
-            document.getElementById('tutorial-texto').innerText = passosTutorial[passoAtual];
-            document.getElementById('tutorial-passo').innerText = `${passoAtual + 1} / ${passosTutorial.length}`;
-        }
-
-       window.onload = () => {
-            const s = new URLSearchParams(window.location.search).get('sala');
-            if(s) { document.getElementById('input-sala').value = s; entrarSala(); }
-
-            // REGISTRO DO SERVICE WORKER (PWA / OFFLINE)
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(() => console.log('Service Worker Registrado!'))
-                    .catch(err => console.error('Erro no SW:', err));
-            }
-        };
     </script>
 </body>
 </html>
