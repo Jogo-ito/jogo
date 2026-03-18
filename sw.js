@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ito-cache-v1.8'; // Atualizado para v1.8 para forçar refresh do código
+const CACHE_NAME = 'ito-cache-v1.9';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
