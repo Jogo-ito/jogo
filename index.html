@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ITO</title>
+    <title>ITO - Sintonize com seus amigos</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -163,7 +163,6 @@
 
     <script>
         // --- ⚙️ CONFIGURAÇÕES SUPABASE ---
-        // A variável foi alterada para 'db' para não conflitar com a biblioteca global
         const db = window.supabase.createClient(
             "https://zatuzblawpfumwxzkfpu.supabase.co", 
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphdHV6Ymxhd3BmdW13eHprZnB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NDE4NzEsImV4cCI6MjA4ODUxNzg3MX0.jKkfclscnkGk2SocjfCI9q5QVGBpSjxEzR07PXhdeHo"
@@ -191,8 +190,15 @@
             document.getElementById('panel-entrar').classList.toggle('hidden'); 
         }
 
+        // --- CORREÇÃO DA GERAÇÃO DA SALA AQUI ---
         async function criarSala() {
-            const { data, error } = await db.from('salas').insert([{ status: 'lobby' }]).select();
+            // Gera um código de 4 caracteres para não dar erro de ID nulo
+            const codigoSala = Math.random().toString(36).substring(2, 6).toUpperCase();
+
+            const { data, error } = await db.from('salas').insert([{ 
+                id: codigoSala,
+                status: 'lobby' 
+            }]).select();
             
             if (error) {
                 console.error("Erro ao criar sala:", error);
