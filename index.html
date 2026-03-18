@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ITO</title>
+    <title>ITO - Sintonize com seus amigos</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -33,7 +33,7 @@
         .card-inner { transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); transform-style: preserve-3d; cursor: pointer; }
         .revealed .card-inner { transform: rotateY(180deg); }
         .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-        .card-back { transform: rotateY(180deg); background: white; color: #0f172a; border: 12px solid; } /* A cor da borda será injetada via JS */
+        .card-back { transform: rotateY(180deg); background: white; color: #0f172a; border: 12px solid; } 
         
         /* Feedback de entrada de jogadores */
         .player-entry { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -138,11 +138,11 @@
             </div>
 
             <footer class="grid grid-cols-2 gap-4">
-                <button onclick="sortear()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 p-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest active:scale-95 transition-transform shadow-lg">
-                    Novo Round
+                <button onclick="sortear()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 p-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest active:scale-95 transition-transform shadow-lg flex items-center justify-center gap-2">
+                    <i data-lucide="shuffle" class="w-4 h-4 text-indigo-400"></i> Novo Round
                 </button>
-                <button onclick="revelarGeral()" class="bg-emerald-600 hover:bg-emerald-500 p-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest text-white shadow-lg shadow-emerald-900/40 active:scale-95 transition-transform">
-                    Revelar Tudo
+                <button onclick="revelarGeral()" class="bg-emerald-600 hover:bg-emerald-500 p-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest text-white shadow-lg shadow-emerald-900/40 active:scale-95 transition-transform flex items-center justify-center gap-2">
+                    <i data-lucide="eye" class="w-4 h-4"></i> Revelar Tudo
                 </button>
             </footer>
 
@@ -163,10 +163,12 @@
 
     <script>
         // --- ⚙️ CONFIGURAÇÕES SUPABASE ---
-const supabase = supabase.createClient(
-    "https://zatuzblawpfumwxzkfpu.supabase.co", 
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphdHV6Ymxhd3BmdW13eHprZnB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NDE4NzEsImV4cCI6MjA4ODUxNzg3MX0.jKkfclscnkGk2SocjfCI9q5QVGBpSjxEzR07PXhdeHo"
-);
+        // A variável foi alterada para 'db' para não conflitar com a biblioteca global
+        const db = window.supabase.createClient(
+            "https://zatuzblawpfumwxzkfpu.supabase.co", 
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphdHV6Ymxhd3BmdW13eHprZnB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NDE4NzEsImV4cCI6MjA4ODUxNzg3MX0.jKkfclscnkGk2SocjfCI9q5QVGBpSjxEzR07PXhdeHo"
+        );
+
         // Paleta Vibrante de Identidade
         const COLORS = ['#10b981', '#f43f5e', '#f59e0b', '#8b5cf6', '#0ea5e9', '#d946ef', '#14b8a6', '#f97316'];
 
@@ -190,8 +192,15 @@ const supabase = supabase.createClient(
         }
 
         async function criarSala() {
-            const { data } = await supabase.from('salas').insert([{ status: 'lobby' }]).select();
-            if (data) {
+            const { data, error } = await db.from('salas').insert([{ status: 'lobby' }]).select();
+            
+            if (error) {
+                console.error("Erro ao criar sala:", error);
+                alert("Falha ao conectar no Supabase. Erro: " + error.message);
+                return;
+            }
+
+            if (data && data.length > 0) {
                 salaId = data[0].id;
                 await participar();
             }
@@ -206,12 +215,18 @@ const supabase = supabase.createClient(
             const nomeRaw = document.getElementById('input-nome').value || "Misterioso";
             const nomeSanitizado = clean(nomeRaw);
             
-            await supabase.from('jogadores').upsert([{ 
+            const { error } = await db.from('jogadores').upsert([{ 
                 id: userId, 
                 sala_id: salaId, 
                 nome: nomeSanitizado,
                 cor_hex: minhaCor 
             }]);
+
+            if (error) {
+                console.error("Erro ao entrar na sala:", error);
+                alert("Falha ao registrar jogador. Erro: " + error.message);
+                return;
+            }
             
             document.getElementById('view-login').classList.add('hidden');
             document.getElementById('view-game').classList.remove('hidden');
@@ -227,22 +242,23 @@ const supabase = supabase.createClient(
         }
 
         function initRealtime() {
-            supabase.channel('ito_room_' + salaId)
+            db.channel('ito_room_' + salaId)
                 .on('postgres_changes', { event: '*', schema: 'public' }, () => atualizarInterface())
                 .subscribe();
             atualizarInterface();
         }
 
         async function atualizarInterface() {
-            const { data: sala } = await supabase.from('salas').select('*').eq('id', salaId).single();
-            const { data: jogadores } = await supabase.from('jogadores').select('*').eq('sala_id', salaId);
-            if (!sala || !jogadores) return;
+            const { data: sala, error: erroSala } = await db.from('salas').select('*').eq('id', salaId).single();
+            const { data: jogadores } = await db.from('jogadores').select('*').eq('sala_id', salaId);
+            
+            if (erroSala || !sala || !jogadores) return;
 
             // TEMA
             const inputTema = document.getElementById('input-tema');
             if (document.activeElement !== inputTema) inputTema.value = sala.tema || "";
             inputTema.onchange = async () => {
-                await supabase.from('salas').update({ tema: clean(inputTema.value) }).eq('id', salaId);
+                await db.from('salas').update({ tema: clean(inputTema.value) }).eq('id', salaId);
             };
 
             // JOGADORES (MESA DIGITAL)
@@ -265,7 +281,7 @@ const supabase = supabase.createClient(
                     : iconHtml;
 
                 return `
-                <div class="player-entry glass p-4 rounded-3xl flex items-center justify-between shadow-sm">
+                <div class="player-entry glass p-4 rounded-3xl flex items-center justify-between shadow-sm mt-2">
                     <div class="flex items-center gap-4">
                         <div class="w-2 h-10 rounded-full" style="background-color: ${j.cor_hex}"></div>
                         <div>
@@ -294,7 +310,7 @@ const supabase = supabase.createClient(
                 
                 if (document.activeElement !== inputPista) inputPista.value = eu.pista || "";
                 inputPista.onchange = async () => {
-                    await supabase.from('jogadores').update({ pista: clean(inputPista.value) }).eq('id', userId);
+                    await db.from('jogadores').update({ pista: clean(inputPista.value) }).eq('id', userId);
                 };
             } else {
                 containerPista.classList.add('hidden');
@@ -309,18 +325,18 @@ const supabase = supabase.createClient(
         }
 
         async function sortear() {
-            await supabase.from('salas').update({ status: 'sorteando', tema: '' }).eq('id', salaId);
-            const { data: jogadores } = await supabase.from('jogadores').select('id').eq('sala_id', salaId);
+            await db.from('salas').update({ status: 'sorteando', tema: '' }).eq('id', salaId);
+            const { data: jogadores } = await db.from('jogadores').select('id').eq('sala_id', salaId);
             
             for (const j of jogadores) {
-                await supabase.from('jogadores').update({ numero: null, pista: null }).eq('id', j.id);
+                await db.from('jogadores').update({ numero: null, pista: null }).eq('id', j.id);
             }
 
             let nums = Array.from({length: 100}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
             for (let i = 0; i < jogadores.length; i++) {
-                await supabase.from('jogadores').update({ numero: nums[i] }).eq('id', jogadores[i].id);
+                await db.from('jogadores').update({ numero: nums[i] }).eq('id', jogadores[i].id);
             }
-            await supabase.from('salas').update({ status: 'jogando' }).eq('id', salaId);
+            await db.from('salas').update({ status: 'jogando' }).eq('id', salaId);
         }
 
         function revelarLocal() { 
@@ -328,7 +344,7 @@ const supabase = supabase.createClient(
         }
         
         async function revelarGeral() { 
-            await supabase.from('salas').update({ status: 'revelado' }).eq('id', salaId); 
+            await db.from('salas').update({ status: 'revelado' }).eq('id', salaId); 
         }
     </script>
 </body>
