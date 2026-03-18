@@ -129,29 +129,53 @@
         #remote-section { padding-top: 80px; padding-bottom: 120px; justify-content: flex-start; }
         #lista-cartas-remoto { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
         
-        .carta-remota { 
+        /* Animação e Estilos de Carta (provided by user) */
+        .card-perspective { perspective: 1000px; width: 100%; display: block; border-radius: 2.5rem; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .card-inner { width: 100%; min-height: 120px; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; position: relative; }
+        .carta-remota.is-flipped .card-inner { transform: rotateY(180deg); }
+        
+        .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        
+        /* Estilos do Mockup (Adaptados) */
+        .card-front { 
             display: flex; align-items: center; background: var(--bg-color); 
-            border: 2px solid var(--border-color); border-radius: 16px; 
-            padding: 15px; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 2px solid var(--border-color); border-radius: 2.5rem; 
+            padding: 20px; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            width: 100%; justify-content: flex-start;
         }
-        body.dark-theme .carta-remota { background: #111; border-color: rgba(255,255,255,0.05); }
+        body.dark-theme .card-front { background: #111; border-color: rgba(255,255,255,0.05); }
+
         .carta-remota.sortable-ghost { opacity: 0.4; border-style: dashed; }
         
-        .drag-handle { cursor: grab; padding-right: 15px; color: var(--muted-text); display: flex; align-items: center; }
-        .drag-handle:active { cursor: grabbing; color: var(--accent-color); }
-        .drag-handle svg { width: 24px; height: 24px; }
+        .drag-handle-remoto { cursor: grab; padding-right: 20px; color: var(--muted-text); display: flex; align-items: center; pointer-events: auto; }
+        .drag-handle-remoto:active { cursor: grabbing; color: var(--accent-color); }
+        .drag-handle-remoto svg { width: 28px; height: 28px; }
         
-        .carta-info { flex: 1; text-align: left; overflow: hidden; }
-        .carta-nome { font-size: 0.75rem; font-weight: 800; color: var(--muted-text); text-transform: uppercase; margin-bottom: 4px; }
-        .carta-pista { font-size: 1rem; font-weight: 900; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        .carta-numero { 
-            width: 50px; height: 50px; border-radius: 12px; background: rgba(128,128,128,0.1); 
+        .player-label-front { font-size: 1.1rem; font-weight: 800; color: var(--text-color); flex: 1; text-align: left; }
+
+        .carta-numero-secret { 
+            width: 60px; height: 60px; border-radius: 16px; background: rgba(128,128,128,0.1); 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 1.3rem; font-weight: 900; color: var(--muted-text); margin-left: 10px;
+            font-size: 1.8rem; font-weight: 900; color: var(--muted-text); margin-left: auto;
         }
-        .carta-numero svg { width: 20px; height: 20px; opacity: 0.5; }
-        .carta-numero.revelado { background: var(--accent-color); color: var(--btn-txt); box-shadow: var(--glow-primary); }
+
+        /* Costas da Carta (provided mockup style) */
+        .card-back { 
+            transform: rotateY(180deg); background: white; color: #0f172a; border-width: 12px; border-style: solid; border-radius: 2.5rem;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 20px;
+        }
+        
+        .carta-numero-reveal { font-size: 5rem; font-weight: 900; color: #0f172a; margin-bottom: -10px; margin-top: -15px; }
+
+        .player-info-back { text-align: center; }
+        .player-info-back .placar-nome { font-size: 0.8rem; font-weight: 800; color: rgba(15, 23, 42, 0.6); text-transform: uppercase; }
+        .player-info-back .placar-texto { font-size: 1rem; font-weight: 900; color: #0f172a; }
+
+        /* Estilo da Linha Direcional (Físico inspirado) */
+        #remote-header { width: 100%; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; position: relative; }
+        #direction-line { flex: 1; height: 4px; background: var(--border-color); border-radius: 2px; position: relative; }
+        #direction-line::after { content: ''; position: absolute; right: -2px; top: -5px; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 10px solid var(--border-color); }
+        #remote-header span { font-size: 0.9rem; font-weight: 900; color: var(--muted-text); }
 
         /* MODAIS E FAB */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px); display: flex; }
@@ -254,7 +278,12 @@
     </div>
 
     <div id="remote-section" class="escondido container">
-        <h3 style="font-weight: 900; letter-spacing: 2px; text-align: center; color: var(--muted-text); margin-bottom: 10px;">ORGANIZE A MESA</h3>
+        
+        <div id="remote-header">
+            <span>0</span>
+            <div id="direction-line"></div>
+            <span>100</span>
+        </div>
         
         <div id="lista-cartas-remoto">
             </div>
@@ -316,6 +345,7 @@
         let modoJogo = 'presencial';
         let debounceTimer;
         let isDraggingRemoto = false; // Bloqueia a atualização da tela enquanto alguém arrasta
+        let jogadoresSorteadosAtivos = false; // Controla quando os cards foram gerados
 
         // TEMA
         const iconMoon = document.getElementById('icon-moon');
@@ -362,7 +392,9 @@
         requestAnimationFrame(animateWave);
 
         function interactStart(e) {
-            if(e.target.closest('.icon-btn') || e.target.closest('.host-overlay')) return;
+            // Se o toque foi em cima de elementos da UI, ignora
+            if(e.target.closest('.icon-btn') || e.target.closest('.host-overlay') || e.target.closest('#placar-pistas')) return;
+            
             if(e && e.type !== 'mousedown') e.preventDefault();
             if(globalStatus === 'revelado') return;
             if (navigator.vibrate) navigator.vibrate(50); 
@@ -371,7 +403,9 @@
         }
 
         function interactEnd(e) {
-            if(e.target.closest('.icon-btn') || e.target.closest('.host-overlay')) return;
+            // UI elements ignore interaction end if they didn't start it
+            if(e.target.closest('.icon-btn') || e.target.closest('.host-overlay') || e.target.closest('#placar-pistas')) return;
+
             if(e && e.type !== 'mouseup' && e.type !== 'mouseleave') e.preventDefault();
             if(globalStatus === 'revelado') return;
             document.getElementById('card-principal').classList.remove('active');
@@ -387,14 +421,14 @@
         function fecharModalPista() { document.getElementById('modal-pista').classList.add('escondido'); }
 
         async function salvarPistaModal() {
-            const texto = document.getElementById('input-modal-pista').value.trim();
+            const texto = clean(document.getElementById('input-modal-pista').value);
             if(meuIdBD) await sbClient.from('jogadores').update({ pista: texto }).eq('id', meuIdBD);
             fecharModalPista();
         }
 
         // LÓGICA DE SALA
         function getPlayerName() {
-            let inputVal = document.getElementById('input-nome').value.trim();
+            let inputVal = clean(document.getElementById('input-nome').value);
             if (!inputVal) inputVal = "Jogador " + Math.floor(Math.random() * 1000);
             localStorage.setItem('ito_player_name', inputVal);
             return inputVal.toUpperCase();
@@ -430,13 +464,16 @@
 
         async function entrarSala() {
             try {
-                const id = document.getElementById('input-sala').value.toUpperCase() || new URLSearchParams(window.location.search).get('sala');
+                const id = clean(document.getElementById('input-sala').value).toUpperCase() || new URLSearchParams(window.location.search).get('sala');
                 if(!id) return;
                 
                 const nomeJogador = getPlayerName();
                 const { data: salaData, error } = await sbClient.from('salas').select('*').eq('id', id).single();
                 if (error || !salaData) throw new Error("Sala não encontrada!");
                 
+                // [GROWTH/SEGURANÇA] Impede entrada em partidas já iniciadas/reveladas
+                if (salaData.status !== 'esperando') throw new Error("A partida já começou ou terminou nessa sala.");
+
                 const { count } = await sbClient.from('jogadores').select('*', { count: 'exact', head: true }).eq('sala_id', id);
                 if(count >= 50) throw new Error("Esta sala já atingiu o limite máximo de 50 jogadores.");
 
@@ -470,7 +507,7 @@
         }
 
         function atualizarNomeLobby(novoNome) {
-            let val = novoNome.trim().toUpperCase();
+            let val = clean(novoNome).toUpperCase();
             if(!val) return;
             localStorage.setItem('ito_player_name', val);
             
@@ -482,6 +519,7 @@
 
         async function selecionarModo(novoModo) {
             if (!souHost) return;
+            // O frontend reflete a UI localmente e o banco sincroniza pros outros
             document.getElementById('btn-modo-presencial').classList.toggle('active', novoModo === 'presencial');
             document.getElementById('btn-modo-remoto').classList.toggle('active', novoModo === 'remoto');
             await sbClient.from('salas').update({ modo: novoModo }).eq('id', salaAtual);
@@ -491,6 +529,8 @@
             if (!souHost) return;
             const { data: jogadoresDB } = await sbClient.from('jogadores').select('id').eq('sala_id', salaAtual).order('created_at', { ascending: true });
             
+            if (jogadoresDB.length < 1) { alert("Aguarde pelo menos 1 jogador entrar."); return; }
+
             let baralho = Array.from({ length: 100 }, (_, i) => i + 1);
             for (let i = baralho.length - 1; i > 0; i--) {
                 const arrayRandom = new Uint32Array(1);
@@ -511,7 +551,9 @@
 
         async function voltarLobby() {
             if (!souHost) return;
-            await sbClient.from('salas').update({ status: 'esperando', ordem_mesa: null }).eq('id', salaAtual);
+            // [SEGURANÇA] Garante que apenas o Host consegue alterar o status no Supabase (configurado via RLS)
+            const { error } = await sbClient.from('salas').update({ status: 'esperando', ordem_mesa: null }).eq('id', salaAtual);
+            if (error) { alert("Ação não permitida ou erro na conexão."); return; }
             await sbClient.from('jogadores').update({ numero: null, pista: null }).eq('sala_id', salaAtual);
         }
 
@@ -524,21 +566,34 @@
         }
 
         function inscreverNoJogo() {
-            const channel = sbClient.channel('ito_' + salaAtual);
-            channel.on('postgres_changes', { event: '*', schema: 'public', table: 'salas', filter: `id=eq.${salaAtual}` }, () => carregarEstadoSala());
-            channel.on('postgres_changes', { event: '*', schema: 'public', table: 'jogadores', filter: `sala_id=eq.${salaAtual}` }, () => carregarEstadoSala());
-            channel.subscribe();
+            // [CÓDIGO MELHORADO] Limpa inscrição antiga antes de abrir nova para evitar duplicação
+            if (window.channelIto) sbClient.removeChannel(window.channelIto);
+
+            window.channelIto = sbClient.channel('ito_' + salaAtual);
+            window.channelIto.on('postgres_changes', { event: '*', schema: 'public', table: 'salas', filter: `id=eq.${salaAtual}` }, () => carregarEstadoSala());
+            window.channelIto.on('postgres_changes', { event: '*', schema: 'public', table: 'jogadores', filter: `sala_id=eq.${salaAtual}` }, () => carregarEstadoSala());
+            window.channelIto.subscribe();
             carregarEstadoSala();
         }
 
         async function carregarEstadoSala() {
-            if (isDraggingRemoto) return; // Não recarrega a tela de quem está arrastando a carta agora
+            // [ANTI-CONFLITO] Não recarrega a tela de quem está arrastando a carta agora
+            if (isDraggingRemoto) return;
             const { data: salaData } = await sbClient.from('salas').select('*').eq('id', salaAtual).single();
             const { data: jogadoresData } = await sbClient.from('jogadores').select('*').eq('sala_id', salaAtual).order('created_at', { ascending: true });
             if(salaData && jogadoresData) atualizarInterface(salaData, jogadoresData);
         }
 
+        // NOVO: Sanitização Anti-XSS básica
+        function clean(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML.trim();
+        }
+
         function atualizarInterface(salaData, jogadoresData) {
+            // Verifica se eu ainda existo na sala (fui kickado?)
             if (!jogadoresData.find(j => j.id === meuIdBD)) { 
                 localStorage.removeItem(`host_${salaAtual}`);
                 window.location.href = window.location.pathname; return; 
@@ -565,7 +620,7 @@
                     li.dataset.id = j.id;
                     listaUl.appendChild(li);
                 }
-                let content = `<span>${j.nome || `JOGADOR ${index + 1}`} ${isMe ? '<span class="voce">(VOCÊ)</span>' : ''}</span>`;
+                let content = `<span>${clean(j.nome) || `JOGADOR ${index + 1}`} ${isMe ? '<span class="voce">(VOCÊ)</span>' : ''}</span>`;
                 if (souHost && !isMe) content += `<button class="btn-kick" onclick="kick('${j.id}')">Remover</button>`;
                 li.innerHTML = content;
             });
@@ -582,6 +637,7 @@
                 btnPista.classList.remove('has-pista');
                 txtBtnPista.innerText = "DEFINIR PISTA";
             } else if (eu.pista) {
+                document.getElementById('input-modal-pista').value = clean(eu.pista);
                 btnPista.classList.add('has-pista');
                 txtBtnPista.innerText = "EDITAR PISTA";
             }
@@ -598,16 +654,22 @@
                 document.getElementById('remote-section').classList.add('escondido');
                 document.getElementById('lobby-host-controls').classList.toggle('escondido', !souHost);
                 document.getElementById('wait-message-lobby').classList.toggle('escondido', souHost);
+                jogadoresSorteadosAtivos = false; // Reseta o controle dos cards
+                
+                // Reseta visual da carta física
+                document.getElementById('card-principal').classList.remove('active');
             } else {
                 if (modoJogo === 'presencial') {
+                    // MODO FÍSICO (SOFÁ)
                     document.getElementById('game-section').classList.remove('escondido');
                     document.getElementById('remote-section').classList.add('escondido');
                     
                     const placar = document.getElementById('placar-pistas');
                     placar.classList.toggle('escondido', globalStatus !== 'revelado');
                     if (globalStatus === 'revelado') {
+                        // Sanitiza antes de renderizar no placar
                         document.getElementById('lista-pistas-reveladas').innerHTML = jogadoresData.map(j => `
-                            <div class="placar-item"><div class="placar-nome">${j.nome} - <span style="color: var(--accent-color);">${j.numero}</span></div><div class="placar-texto">${j.pista || 'Não enviou pista'}</div></div>
+                            <div class="placar-item"><div class="placar-nome">${clean(j.nome)} - <span style="color: var(--accent-color);">${j.numero}</span></div><div class="placar-texto">${clean(j.pista) || 'Não enviou pista'}</div></div>
                         `).join('');
                     }
                     
@@ -619,11 +681,12 @@
                         document.getElementById('btn-reset').classList.toggle('escondido', globalStatus !== 'revelado');
                     }
                 } else if (modoJogo === 'remoto') {
-                    // MODO REMOTO (TABULEIRO)
+                    // MODO REMOTO (TABULEIRO/CARD MOCKUP)
                     document.getElementById('game-section').classList.add('escondido');
                     document.getElementById('remote-section').classList.remove('escondido');
                     
                     const listaRemota = document.getElementById('lista-cartas-remoto');
+                    const showNumero = globalStatus === 'revelado';
                     
                     // Ordena os jogadores com base na ordem que está salva no banco
                     let orderedJogadores = [...jogadoresData];
@@ -638,42 +701,57 @@
                         });
                     }
 
+                    // [REVISÃO DE UX/DESIGN] Geração de Cards com flip e minimalismo
                     listaRemota.innerHTML = orderedJogadores.map(j => {
                         const isMe = j.id === meuIdBD;
                         const hasPista = !!j.pista;
-                        const showNumero = globalStatus === 'revelado';
                         const numeroReveal = (showNumero && j.numero) ? j.numero : '?';
+                        
+                        // Determina a cor do jogador (Mockup assume uma cor padrão #6366f1 ou do tema)
+                        // Para este projeto, usaremos a cor de acento do tema ou uma paleta simples
+                        const playerColors = ['#6366f1', '#10b981', '#f97316', '#d946ef', '#14b8a6', '#f43f5e'];
+                        const playerColor = playerColors[jogadoresData.indexOf(j) % playerColors.length];
 
                         return `
-                        <div class="carta-remota" data-id="${j.id}">
-                            ${!showNumero ? `
-                            <div class="drag-handle">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                            </div>` : ''}
-                            <div class="carta-info">
-                                <div class="carta-nome">${j.nome} ${isMe ? '(VOCÊ)' : ''}</div>
-                                <div class="carta-pista">${hasPista ? `“${j.pista}”` : 'Pensando...'}</div>
-                            </div>
-                            <div class="carta-numero ${showNumero ? 'revelado' : ''}">
-                                ${showNumero ? numeroReveal : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>'}
+                        <div class="card-perspective carta-remota ${showNumero ? 'is-flipped' : ''}" data-id="${j.id}" style="--player-card-color: ${playerColor};">
+                            <div class="card-inner">
+                                <div class="card-face card-front">
+                                    ${!showNumero ? `
+                                    <div class="drag-handle-remoto">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg>
+                                    </div>` : ''}
+                                    <div class="player-label-front">${clean(j.nome)} ${isMe ? '(VOCÊ)' : ''}</div>
+                                    <div class="carta-numero-secret">?</div>
+                                </div>
+                                <div class="card-face card-back" style="border-color: ${playerColor};">
+                                    <div class="carta-numero-reveal">${numeroReveal}</div>
+                                    <div class="player-info-back">
+                                        <div class="placar-nome">${clean(j.nome)} ${isMe ? '(VOCÊ)' : ''}</div>
+                                        <div class="placar-texto">${hasPista ? `“${clean(j.pista)}”` : 'Aguardando pista...'}</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         `;
                     }).join('');
 
-                    // Inicializa a biblioteca de Arrastar e Soltar apenas na primeira vez
+                    // Inicializa a biblioteca de Arrastar e Soltar na primeira vez
                     if (!window.sortableRemoto) {
                         window.sortableRemoto = new Sortable(document.getElementById('lista-cartas-remoto'), {
-                            handle: '.drag-handle',
-                            animation: 150,
+                            handle: '.drag-handle-remoto',
+                            animation: 150, // FPS mais fluido
+                            fallbackTolerance: 3, // Ajuda com cliques/toques acidentais
                             onStart: function () {
                                 isDraggingRemoto = true; // Bloqueia updates da tela enquanto você arrasta
+                                if (navigator.vibrate) navigator.vibrate(30);
                             },
                             onEnd: async function (evt) {
                                 const order = window.sortableRemoto.toArray();
                                 // Atualiza a ordem no banco para todo mundo ver
                                 await sbClient.from('salas').update({ ordem_mesa: order.join(',') }).eq('id', salaAtual);
-                                isDraggingRemoto = false;
+                                
+                                // Delay curto para evitar flickering na sincronização externa
+                                setTimeout(() => { isDraggingRemoto = false; }, 500);
                             }
                         });
                     }
@@ -728,9 +806,23 @@
         function atualizarTelaTutorial() { document.getElementById('tutorial-texto').innerText = passosTutorial[passoAtual]; document.getElementById('tutorial-passo').innerText = `${passoAtual + 1} / ${passosTutorial.length}`; }
 
         window.onload = () => {
-            const s = new URLSearchParams(window.location.search).get('sala');
+            const s = clean(new URLSearchParams(window.location.search).get('sala'));
             if(s) { document.getElementById('input-sala').value = s; entrarSala(); }
-            if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+
+            // [GROWTH/SEO] Atualiza tags Open Graph e Meta dinamicamente para compartilhamento
+            // Em produção, isso deve ser feito no servidor, mas no cliente ajuda a testar
+            if (s) {
+                document.title = `ITO - Entre no grupo ${s}`;
+                // Exemplo de atualização de meta og:title
+                // document.querySelector('meta[property="og:title"]').setAttribute("content", `ITO - Jogue no grupo ${s}`);
+            }
+
+            // REGISTRO DO SERVICE WORKER (PWA / OFFLINE)
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(() => console.log('ITO Service Worker Ativo! v1.7'))
+                    .catch(err => console.error('Erro no SW:', err));
+            }
         };
     </script>
 </body>
