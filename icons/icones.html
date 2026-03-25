@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador Completo de Ícones ITO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@900&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background: #222; color: #fff; font-family: 'Jost', sans-serif; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px;
+        }
+        .container {
+            display: flex; gap: 40px; flex-wrap: wrap; justify-content: center;
+        }
+        .icon-box {
+            display: flex; flex-direction: column; align-items: center;
+        }
+        button { 
+            padding: 15px 30px; font-size: 14px; font-family: 'Jost', sans-serif; font-weight: 900; letter-spacing: 1px;
+            color: #fff; border: none; border-radius: 8px; 
+            cursor: pointer; margin-top: 25px; transition: 0.2s;
+        }
+        button:active { transform: scale(0.95); }
+        .btn-light { background: #C19A6B; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .btn-dark { background: #7c0229; box-shadow: 0 0 15px #7c0229; }
+        
+        canvas { 
+            border-radius: 20px; /* Arredondamento apenas visual para o preview */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6); 
+            background: #fff;
+        }
+        h2 { margin-bottom: 40px; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+    <h2>GERADOR OFICIAL DE ÍCONES (512x512)</h2>
+    
+    <div class="container">
+        <div class="icon-box">
+            <canvas id="canvasLight" width="512" height="512"></canvas>
+            <button class="btn-light" onclick="downloadIcon('canvasLight', 'icon-light.png')">BAIXAR ICON-LIGHT.PNG</button>
+        </div>
+
+        <div class="icon-box">
+            <canvas id="canvasDark" width="512" height="512"></canvas>
+            <button class="btn-dark" onclick="downloadIcon('canvasDark', 'icon-dark.png')">BAIXAR ICON-DARK.PNG</button>
+        </div>
+    </div>
+
+    <script>
+        document.fonts.ready.then(() => {
+            desenharIconeClaro();
+            desenharIconeEscuro();
+        });
+
+        function desenharIconeClaro() {
+            const ctx = document.getElementById('canvasLight').getContext('2d');
+            
+            // Fundo Algodão Cru
+            ctx.fillStyle = '#F4F1EA';
+            ctx.fillRect(0, 0, 512, 512);
+
+            // Círculo Ouro Velho (Sem Glow)
+            ctx.beginPath();
+            ctx.arc(256, 256, 170, 0, Math.PI * 2);
+            ctx.strokeStyle = '#C19A6B';
+            ctx.lineWidth = 14;
+            ctx.stroke();
+
+            // Texto Grafite
+            ctx.fillStyle = '#1A1A1A';
+            ctx.font = '900 145px Jost';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('ITO', 256, 275); 
+        }
+
+        function desenharIconeEscuro() {
+            const ctx = document.getElementById('canvasDark').getContext('2d');
+            
+            // Fundo Preto Absoluto
+            ctx.fillStyle = '#0A0A0A';
+            ctx.fillRect(0, 0, 512, 512);
+
+            // Círculo Carmesim com Glow Neon
+            ctx.shadowColor = '#7c0229';
+            ctx.shadowBlur = 40;
+            ctx.beginPath();
+            ctx.arc(256, 256, 170, 0, Math.PI * 2);
+            ctx.strokeStyle = '#7c0229';
+            ctx.lineWidth = 14;
+            ctx.stroke();
+
+            // Reforça o brilho
+            ctx.shadowBlur = 10;
+            ctx.stroke();
+
+            // Texto Branco Sólido
+            ctx.shadowBlur = 0; 
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '900 145px Jost';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('ITO', 256, 275); 
+        }
+
+        function downloadIcon(canvasId, fileName) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>

@@ -355,6 +355,14 @@
         let souHost = false;
         let globalStatus = 'esperando';
         let debounceTimer;
+        let canalAtivo = null;
+
+        // [v1.6] FIX 1: Anti-XSS — escapa HTML antes de renderizar nomes
+        function sanitize(str) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
 
         function getPlayerName() {
             let inputVal = document.getElementById('input-nome').value.trim();
@@ -409,6 +417,11 @@
                     if(exData) meuIdBD = storedId;
                 }
                 
+                // [v1.6] FIX 2: Trava de penetras — bloqueia novos jogadores se partida em andamento
+                if (salaData.status !== 'esperando' && !meuIdBD) {
+                    throw new Error("Esta partida já está em andamento. Aguarde a próxima rodada.");
+                }
+
                 if(!meuIdBD) {
                     const { data: novoJogador, error: errJog } = await sbClient.from('jogadores').insert([{
                         sala_id: id, nome: nomeJogador, is_host: false
@@ -479,10 +492,14 @@
         }
 
         function inscreverNoJogo() {
+            // [v1.6] FIX 3: Evita vazamento de canais Realtime — remove canal antigo antes de criar novo
+            if (canalAtivo) sbClient.removeChannel(canalAtivo);
+
             const channel = sbClient.channel('ito_' + salaAtual);
             channel.on('postgres_changes', { event: '*', schema: 'public', table: 'salas', filter: `id=eq.${salaAtual}` }, () => carregarEstadoSala());
             channel.on('postgres_changes', { event: '*', schema: 'public', table: 'jogadores', filter: `sala_id=eq.${salaAtual}` }, () => carregarEstadoSala());
             channel.subscribe();
+            canalAtivo = channel;
             carregarEstadoSala();
         }
 
@@ -513,7 +530,7 @@
                     li.dataset.id = j.id;
                     listaUl.appendChild(li);
                 }
-                let content = `<span>${j.nome || `JOGADOR ${index + 1}`} ${isMe ? '<span class="voce">(VOCÊ)</span>' : ''}</span>`;
+                let content = `<span>${sanitize(j.nome || `JOGADOR ${index + 1}`)} ${isMe ? '<span class="voce">(VOCÊ)</span>' : ''}</span>`;
                 if (souHost && !isMe) content += `<button class="btn-kick" onclick="kick('${j.id}')">Remover</button>`;
                 li.innerHTML = content;
             });
