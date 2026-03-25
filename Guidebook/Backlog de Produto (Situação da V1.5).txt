@@ -1,0 +1,25 @@
+Backlog de Produto (Situação da V1.5)
+Para garantir a evolução contínua, este é o levantamento do escopo que estava pendente, refinado ou não, na janela de desenvolvimento da versão 1.5, e que ditam os próximos épicos do desenvolvimento.
+
+🔴 Alta Prioridade (Bugs e Segurança)
+Filtro Anti-XSS (Segurança): Em v1.5, os campos input-nome enviam os dados brutos para o banco. É vital criar uma função de sanitização (ex: clean()) para impedir injeção de HTML/JS prejudicial na renderização do Lobby.
+
+Trava de "Penetras" (Lógica de Sala): Um usuário pode entrar na sala (via URL) mesmo com a partida em andamento (Status sorteado). O backend precisa barrar conexões em salas onde o status !== esperando.
+
+Vazamento de Conexões Realtime: A função inscreverNoJogo() não remove canais antigos se for chamada duas vezes, causando memory leak (múltiplos websockets abertos no mesmo cliente).
+
+🟡 Média Prioridade (Novas Features: O "Modo Remoto")
+Mesa Virtual (Drag & Drop): Criação de um tabuleiro digital completo (#remote-section) onde os jogadores que estão no computador/Discord possam ver as cartas e ordená-las com o mouse.
+
+Biblioteca de Ordenação: Implementação de SortableJS para garantir fluidez de 60fps ao arrastar as cartas no mobile.
+
+Sincronização do Tabuleiro: Criar a coluna ordem_mesa na tabela salas para salvar a array (posição das cartas) em tempo real e transmiti-la via WebSocket para os outros jogadores.
+
+Entrada de Dicas (Pistas): Como em v1.5 a comunicação depende da voz (presencial), para o modo remoto é essencial criar um modal para o usuário digitar sua pista (#input-modal-pista), salvando-a em uma nova coluna pista no banco.
+
+🟢 Baixa Prioridade (Growth, Retenção e Experiência)
+Integração do Banco de Temas: Conectar o arquivo isolado temas.js (que contém os desafios espectrais) ao motor do jogo, oferecendo uma sugestão automática de tema no lobby.
+
+Otimização SEO e Open Graph: Implementar metatags no <head> (og:title, og:image) para que, ao compartilhar o link da sala no WhatsApp, uma miniatura atrativa do jogo seja exibida em vez de um link puro, otimizando o custo de aquisição/viralidade.
+
+Toasts Nativos: Substituir os retornos genéricos do navegador (alert()) no momento do login e de cópia do QR Code por pop-ups estilizados (Toasts) para um feel premium.

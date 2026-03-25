@@ -1,0 +1,40 @@
+ARQUITETURA v1.6 — ITO
+=======================
+
+Stack
+-----
+- Frontend: HTML5, CSS3 puro, JavaScript Vanilla
+- Backend: Supabase (PostgreSQL + Realtime via WebSockets)
+- PWA: manifest.json + sw.js
+- Libs: @supabase/supabase-js@2, qrcode.js
+
+Banco de Dados (Supabase)
+--------------------------
+Tabela: salas
+  - id        text     Código de 4 letras (ex: 'A7X9')
+  - status    text     'esperando' | 'sorteado' | 'revelado'
+  - modo      text     'presencial' (padrão)
+
+Tabela: jogadores
+  - id        uuid     Gerado pelo Supabase
+  - sala_id   fk       Referência para salas
+  - nome      text     Nome do jogador
+  - numero    integer  Número sorteado (1-100)
+  - is_host   boolean  Se é o criador da sala
+
+Seções da Interface
+--------------------
+  #setup-section     Tela inicial (input nome, criar/entrar sala)
+  #lobby-area        Lobby (lista de jogadores, QR Code, controles do host)
+  #game-section      Jogo (carta com onda animada, número secreto)
+  #confirm-modal     Modal de confirmações críticas (sair, revelar)
+  #modal-tutorial    Tutorial passo a passo
+
+Fluxo de Estado
+----------------
+  esperando → sorteado → revelado → esperando (nova rodada)
+
+Mudanças Arquiteturais em v1.6
+--------------------------------
+- Nenhuma mudança de schema ou estrutura de UI planejada.
+- Correções são todas client-side (sanitização, verificação de status, gestão de canais Realtime).

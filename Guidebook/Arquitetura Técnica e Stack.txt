@@ -1,0 +1,16 @@
+Arquitetura Técnica e Stack
+2.1 Stack de Tecnologias
+Frontend: HTML5, CSS3 puro (inspirado no Tailwind para responsividade), JavaScript (Vanilla).
+
+Backend & Banco de Dados: Supabase (PostgreSQL como banco relacional e Supabase Realtime via WebSockets para sincronização multi-player).
+
+Offline/App Experience: Progressive Web App (PWA) habilitado através de manifest.json e sw.js para caching e instalação na tela inicial.
+
+Bibliotecas Externas: * @supabase/supabase-js@2 (Client do Backend).
+
+qrcode.js (Geração de QR Code de convite no Lobby).
+
+2.2 Estrutura de Interface (UI/UX)
+Minimalismo e Tematização: O app suporta dark-theme e light-theme alternáveis via botão e preferência do sistema operacional, controlados por variáveis CSS (--bg-color, --accent-color, etc.).
+
+Animação Core (A Onda Física): O mecanismo de ocultar/revelar a carta usa uma curva de Bezier em um elemento <svg>, manipulado via requestAnimationFrame em JavaScript. Ao segurar o toque, a "onda" (#fio-caotico) se estabiliza e revela a opacidade do número secreto, garantindo uma proteção contra "olhares curiosos".

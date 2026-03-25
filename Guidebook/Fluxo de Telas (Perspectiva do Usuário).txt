@@ -1,0 +1,34 @@
+Fluxo de Telas (Perspectiva do Usuário)
+Este é o mapeamento do "Caminho Feliz" que o jogador percorre na interface da versão 1.5.
+
+1. Tela Inicial (Setup) - #setup-section
+
+Ação: O usuário insere seu nome/apelido.
+
+Decisão: Pode escolher clicar em "CRIAR SALA" (tornando-se o Host) ou preencher o campo de 4 letras e clicar em "ENTRAR".
+
+2. Tela de Lobby - #lobby-area
+
+Visualização: O jogador vê o ID curto da sala e um QR Code para facilitar o convite.
+
+Sincronização: Uma lista de jogadores é renderizada e atualizada em tempo real. O próprio nome ganha um badge "(VOCÊ)".
+
+Controles do Host: Apenas o criador da sala visualiza os botões de "Remover" ao lado dos outros jogadores e o botão principal "SORTEAR CARTAS".
+
+Ação: O Host clica em Sortear, engatilhando a transição de tela para todos.
+
+3. Tela de Jogo (Modo Físico/Presencial) - #game-section
+
+Visualização: A tela exibe o "Alvo Interativo" com um efeito de pulso e a linha animada (fio caótico).
+
+Ação do Jogador (Mecânica Tátil): O jogador pressiona e mantém o dedo na tela (onmousedown / ontouchstart). A linha se estabiliza e o número secreto aparece no centro da tela. Ao soltar, o número volta a sumir.
+
+Ação do Grupo: Os jogadores debatem e alinham os celulares na mesa física.
+
+Controle do Host: O Host visualiza uma overlay no rodapé com o botão "REVELAR MESA".
+
+4. Tela de Revelação (Pós-Jogo)
+
+Visualização: O pulso interativo some e a opacidade de todos os números na sala é fixada em 100%, mostrando o resultado final nas telas.
+
+Ação: O Host clica em "NOVA RODADA", limpando os números e retornando todos os clientes imediatamente para o Lobby.

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ITO</title>
+    
+    <link rel="icon" href="/icons/icon-light.png" type="image/png" media="(prefers-color-scheme: light)">
+    <link rel="apple-touch-icon" href="/icons/icon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" href="/icons/icon-dark.png" type="image/png" media="(prefers-color-scheme: dark)">
+    <link rel="apple-touch-icon" href="/icons/icon-dark.png" media="(prefers-color-scheme: dark)">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#F4F1EA" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;600;700;800;900&display=swap');
+
+        /* v1.5 */
+        /* VARIÁVEIS DE TEMA */
+        :root {
+            --bg-color: #F4F1EA;
+            --text-color: #1A1A1A;     
+            --accent-color: #C19A6B;  
+            --border-color: rgba(26, 26, 26, 0.2);
+            --btn-txt: #F4F1EA;
+            --muted-text: rgba(26, 26, 26, 0.5);
+            --glow-primary: none;
+        }
+
+        body.dark-theme {
+            --bg-color: #0A0A0A;
+            --text-color: #FFFFFF;     
+            --accent-color: #7c0229;  
+            --border-color: rgba(255, 255, 255, 0.15);
+            --btn-txt: #FFFFFF;
+            --muted-text: rgba(255, 255, 255, 0.5);
+            --glow-primary: 0 0 15px var(--accent-color);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Jost', sans-serif; }
+        
+        body, html { 
+            width: 100%; min-height: 100vh; overflow-x: hidden; 
+            background-color: var(--bg-color); color: var(--text-color);
+            transition: background-color 0.4s, color 0.4s;
+            -webkit-user-select: none; user-select: none;
+        }
+
+        .top-bar-right { position: absolute; top: 20px; right: 20px; z-index: 1000; }
+        .top-bar-left { position: absolute; top: 20px; left: 20px; z-index: 1000; }
+        
+        .icon-btn { 
+            background: transparent; border: none; cursor: pointer; 
+            color: var(--text-color); display: flex; align-items: center; justify-content: center;
+            padding: 8px; opacity: 0.6; transition: 0.3s;
+        }
+        .icon-btn:hover { opacity: 1; }
+        .icon-btn svg { width: 26px; height: 26px; stroke-width: 2; }
+
+        /* GERAL (HOME/LOBBY) */
+        .container { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            padding: 20px; width: 100%; max-width: 400px; margin: 0 auto; min-height: 100vh;
+        }
+        
+        h1.logo { font-size: 4rem; font-weight: 900; letter-spacing: 12px; margin-bottom: 40px; text-align: center; }
+
+        input { 
+            width: 100%; padding: 18px; font-size: 1.1rem; text-align: center; letter-spacing: 2px;
+            background: transparent; border: 2px solid var(--border-color); color: var(--text-color);
+            border-radius: 12px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase;
+            outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: var(--accent-color); }
+
+        .input-lobby-name { border: 1px dashed var(--border-color); padding: 12px; margin-bottom: 20px; border-radius: 8px; }
+
+        button.btn-primary { 
+            width: 100%; padding: 18px; font-size: 1rem; font-weight: 900; letter-spacing: 2px;
+            background: var(--accent-color); color: var(--btn-txt); border: none; border-radius: 12px;
+            cursor: pointer; transition: 0.2s; text-transform: uppercase; box-shadow: var(--glow-primary);
+        }
+        button.btn-primary:active { transform: scale(0.97); }
+        
+        button.btn-secondary {
+            width: 100%; padding: 18px; font-size: 1rem; font-weight: 800; letter-spacing: 2px;
+            background: transparent; color: var(--text-color); border: 2px solid var(--border-color); 
+            border-radius: 12px; cursor: pointer; transition: 0.2s; text-transform: uppercase; margin-bottom: 10px;
+        }
+        button.btn-secondary:active { transform: scale(0.97); }
+        
+        .divider { display: flex; align-items: center; width: 100%; margin: 25px 0; color: var(--muted-text); font-weight: 700; font-size: 0.9rem; letter-spacing: 2px; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px dashed var(--border-color); margin: 0 15px; }
+
+        /* LOBBY */
+        .sala-header { font-size: 1.4rem; font-weight: 300; letter-spacing: 4px; margin-bottom: 25px; color: var(--muted-text); }
+        .sala-header strong { font-weight: 900; color: var(--accent-color); }
+        
+        #qrcode { background: white; padding: 15px; display: inline-block; border-radius: 12px; margin-bottom: 15px; }
+        
+        .lista-jogadores { list-style: none; width: 100%; text-align: left; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .jogador-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px dashed var(--border-color); font-weight: 700; font-size: 1.1rem; }
+        .jogador-item span.voce { color: var(--accent-color); font-weight: 900; font-size: 0.8rem; letter-spacing: 1px; }
+        .btn-kick { background: transparent; color: #ff4444; border: 1px solid #ff4444; padding: 6px 12px; font-size: 0.7rem; border-radius: 6px; cursor: pointer; font-weight: 700; }
+
+        /* CARTA (JOGO) */
+        #game-section { position: absolute; inset: 0; width: 100vw; height: 100vh; overflow: hidden; }
+        
+        #card-principal {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            cursor: pointer; z-index: 50; -webkit-tap-highlight-color: transparent;
+        }
+
+        .numero-secreto { 
+            font-size: 35vh; font-weight: 700; line-height: 1; position: absolute; top: 50%; left: 50%; 
+            color: var(--text-color); transform: translate(-50%, -50%) translateY(-8vh) scale(0.8); 
+            opacity: 0; pointer-events: none; transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .alvo-interativo {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) translateY(-8vh);
+            width: 100px; height: 100px; border-radius: 50%; z-index: 10; transition: all 0.3s ease;
+        }
+
+        .pulso { position: absolute; inset: 0; border: solid var(--accent-color); border-radius: 50%; animation: respirar-amplo 3s infinite ease-out; }
+        
+        @keyframes respirar-amplo {
+            0% { transform: scale(0.5); opacity: 0.9; border-width: 6px; }
+            100% { transform: scale(3.5); opacity: 0; border-width: 0px; }
+        }
+
+        body.dark-theme .pulso { box-shadow: 0 0 15px var(--accent-color), inset 0 0 15px var(--accent-color); }
+
+        /* ONDA CLÁSSICA 1.3 EXATAMENTE COMO VOCÊ MANDOU (Restaurada) */
+        #linha-fisica {
+            position: absolute; bottom: 20vh; left: 0; width: 100%; height: 160px; 
+            overflow: visible; z-index: 5; pointer-events: none;
+        }
+        #fio-caotico { fill: none; stroke: var(--accent-color); stroke-width: 4; stroke-linecap: round; transition: stroke 0.4s; }
+        body.dark-theme #fio-caotico { filter: drop-shadow(0 0 8px var(--accent-color)); }
+
+        /* REMOVIDO O BLUR: O background gradient não existe mais aqui */
+        .host-overlay { 
+            position: fixed; bottom: 30px; left: 0; width: 100%; padding: 0 20px; 
+            z-index: 100; text-align: center; pointer-events: none; 
+            display: flex; flex-direction: column; gap: 15px; align-items: center;
+        }
+        .host-overlay button { pointer-events: auto; width: 100%; max-width: 400px; margin: 0; }
+
+        /* ESTADOS DE INTERAÇÃO */
+        #card-principal.active .alvo-interativo { opacity: 0; transform: translate(-50%, -50%) translateY(-8vh) scale(0.2); }
+        #card-principal.active .numero-secreto { opacity: 1; transform: translate(-50%, -50%) translateY(-8vh) scale(1); }
+
+        /* MODAIS E FAB */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
+            align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px);
+            display: flex; 
+        }
+        .modal-content {
+            width: 85%; max-width: 350px; padding: 30px; border-radius: 20px;
+            background: var(--bg-color); color: var(--text-color); text-align: center; 
+            border: 1px solid var(--border-color); box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .btn-group { display: flex; gap: 10px; margin-top: 25px; }
+        .btn-confirm { flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; background: var(--text-color); color: var(--bg-color); }
+        .btn-cancel { flex: 1; padding: 15px; border-radius: 10px; border: 2px solid var(--border-color); background: transparent; color: var(--text-color); font-weight: 700; cursor: pointer; }
+
+        /* FAB TUTORIAL */
+        #btn-ajuda {
+            position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%;
+            background: var(--accent-color); color: var(--btn-txt); font-size: 1.5rem; font-weight: 900; border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 1000; display: flex;
+            align-items: center; justify-content: center; transition: 0.2s;
+        }
+        #btn-ajuda:active { transform: scale(0.9); }
+        .tutorial-controles { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; font-weight: 900; }
+        .tutorial-controles button { background: transparent; border: none; font-size: 1.5rem; color: var(--accent-color); cursor: pointer; padding: 10px; }
+        #tutorial-texto { min-height: 80px; margin-top: 15px; font-size: 1.1rem; color: var(--muted-text); font-weight: 600; }
+        
+        .escondido { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar-right">
+        <button class="icon-btn" onclick="toggleTheme()" title="Trocar Tema">
+            <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="escondido">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="escondido">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+        </button>
+    </div>
+
+    <div id="setup-section" class="container">
+        <h1 class="logo">ITO</h1>
+        <input type="text" id="input-nome" placeholder="SEU NOME" autocomplete="off" maxlength="15">
+        <button class="btn-primary" onclick="criarSala()">CRIAR SALA</button>
+        <div class="divider">OU INGRESSAR</div>
+        <input type="text" id="input-sala" placeholder="CÓDIGO DA SALA" autocomplete="off" maxlength="4">
+        <button class="btn-secondary" onclick="entrarSala()">ENTRAR</button>
+    </div>
+
+    <div id="lobby-area" class="container escondido">
+        <div class="sala-header">SALA: <strong id="display-id-sala"></strong></div>
+        <input type="text" id="lobby-nome-input" class="input-lobby-name" placeholder="EDITAR NOME" maxlength="15" oninput="atualizarNomeLobby(this.value)">
+
+        <div id="qrcode-container" class="escondido" style="text-align: center;">
+            <div id="qrcode"></div>
+            <button class="btn-secondary" onclick="copiarLink()" style="font-size: 0.8rem; padding: 12px; margin-top: 10px;">COPIAR LINK DA SALA</button>
+        </div>
+
+        <ul class="lista-jogadores" id="lista-jogadores"></ul>
+        
+        <div id="lobby-host-controls" class="escondido" style="width: 100%; margin-top: 30px;">
+            <button id="btn-sortear" class="btn-primary" onclick="sortearNumeros()">SORTEAR CARTAS</button>
+        </div>
+        <p id="wait-message-lobby" class="escondido" style="margin-top:30px; color: var(--accent-color); font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">Aguardando Host...</p>
+
+        <button onclick="confirmExit('home')" style="background:transparent; border:none; color:var(--muted-text); margin-top:40px; text-decoration:underline; font-size:0.9rem; font-weight: 700; cursor: pointer;">Sair do Grupo</button>
+    </div>
+
+    <div id="game-section" class="escondido">
+        <div class="top-bar-left">
+            <button class="icon-btn" onclick="confirmExit('lobby')" title="Sair da Partida">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+        </div>
+
+        <div id="card-principal" onmousedown="interactStart(event)" onmouseup="interactEnd(event)" onmouseleave="interactEnd(event)" ontouchstart="interactStart(event)" ontouchend="interactEnd(event)">
+            <svg id="linha-fisica" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path id="fio-caotico" d="M 0 50 C 33 50, 66 50, 100 50" />
+            </svg>
+            <div class="alvo-interativo"><div class="pulso"></div></div>
+            <div class="numero-secreto" id="meu-numero"></div>
+        </div>
+
+        <div class="host-overlay" id="host-controls">
+            <button class="btn-primary escondido" id="btn-revelar" onclick="acionarRevelarMesa()">REVELAR MESA</button>
+            <button class="btn-secondary escondido" id="btn-reset" style="background: var(--text-color); color: var(--bg-color); border: none;" onclick="voltarLobby()">NOVA RODADA</button>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal-overlay escondido">
+        <div class="modal-content">
+            <h3 id="modal-title" style="font-weight: 900; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase;">ATENÇÃO</h3>
+            <p id="modal-msg" style="margin: 15px 0; color: var(--muted-text); font-weight: 600;"></p>
+            <div class="btn-group">
+                <button class="btn-cancel" onclick="fecharModal()">VOLTAR</button>
+                <button id="modal-confirm-btn" class="btn-confirm">CONFIRMAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-tutorial" class="modal-overlay escondido">
+        <div class="modal-content">
+            <h3 style="font-weight: 900; letter-spacing: 2px;">COMO JOGAR</h3>
+            <p id="tutorial-texto"></p>
+            <div class="tutorial-controles">
+                <button onclick="mudarPassoTutorial(-1)">&lt;</button>
+                <span id="tutorial-passo" style="color: var(--muted-text); font-size: 0.9rem;"></span>
+                <button onclick="mudarPassoTutorial(1)">&gt;</button>
+            </div>
+            <button class="btn-primary" onclick="fecharTutorial()" style="margin-top: 20px;">ENTENDI</button>
+        </div>
+    </div>
+
+    <button id="btn-ajuda" onclick="abrirTutorial()">?</button>
+
+    <script>
+        const iconMoon = document.getElementById('icon-moon');
+        const iconSun = document.getElementById('icon-sun');
+        const body = document.body;
+
+        function toggleTheme() {
+            const isDark = body.classList.toggle('dark-theme');
+            localStorage.setItem('ito_theme', isDark ? 'dark' : 'light');
+            iconMoon.classList.toggle('escondido', isDark);
+            iconSun.classList.toggle('escondido', !isDark);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('ito_theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+            
+            body.classList.toggle('dark-theme', isDark);
+            iconMoon.classList.toggle('escondido', isDark);
+            iconSun.classList.toggle('escondido', !isDark);
+
+            const savedName = localStorage.getItem('ito_player_name');
+            if (savedName) document.getElementById('input-nome').value = savedName;
+        });
+
+        // ONDA FÍSICA CLÁSSICA (V1.3 EXATA RESTAURADA)
+        let isHolding = false;
+        let amplitude = 0; 
+        
+        function animateWave(time) {
+            const fioPath = document.getElementById('fio-caotico');
+            if (!fioPath) return requestAnimationFrame(animateWave);
+
+            if (isHolding) { amplitude += (1 - amplitude) * 0.05; } 
+            else { amplitude += (0 - amplitude) * 0.08; }
+
+            if (amplitude > 0.01) {
+                const timeFactor = time * 0.002;
+                const y1 = 50 + (Math.sin(timeFactor * 1.5) * 35 + Math.sin(timeFactor * 0.8 + 2) * 20) * amplitude;
+                const y2 = 50 + (Math.sin(timeFactor * 1.2) * 35 + Math.sin(timeFactor * 1.9 + 4) * 20) * amplitude;
+                fioPath.setAttribute('d', `M 0 50 C 33 ${y1}, 66 ${y2}, 100 50`);
+            } else if (!isHolding && amplitude <= 0.01) {
+                fioPath.setAttribute('d', `M 0 50 C 33 50, 66 50, 100 50`);
+            }
+            requestAnimationFrame(animateWave);
+        }
+        requestAnimationFrame(animateWave);
+
+        function interactStart(e) {
+            if(e && e.type !== 'mousedown') e.preventDefault();
+            if(globalStatus === 'revelado') return;
+            if (navigator.vibrate) navigator.vibrate(50); 
+            document.getElementById('card-principal').classList.add('active');
+            isHolding = true;
+        }
+
+        function interactEnd(e) {
+            if(e && e.type !== 'mouseup' && e.type !== 'mouseleave') e.preventDefault();
+            if(globalStatus === 'revelado') return;
+            document.getElementById('card-principal').classList.remove('active');
+            isHolding = false;
+        }
+
+        const SUPABASE_URL = 'https://zatuzblawpfumwxzkfpu.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_FmblL1EuUfu79E-wE3eJOw_BJxgMd_K';
+        const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let salaAtual = "";
+        let meuIdBD = null; 
+        let souHost = false;
+        let globalStatus = 'esperando';
+        let debounceTimer;
+        let canalAtivo = null;
+
+        // [v1.6] FIX 1: Anti-XSS — escapa HTML antes de renderizar nomes
+        function sanitize(str) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        function getPlayerName() {
+            let inputVal = document.getElementById('input-nome').value.trim();
+            if (!inputVal) inputVal = "Jogador " + Math.floor(Math.random() * 1000);
+            localStorage.setItem('ito_player_name', inputVal);
+            return inputVal.toUpperCase();
+        }
+
+        async function criarSala() {
+            try {
+                const id = Math.random().toString(36).substring(4, 8).toUpperCase();
+                const nomeJogador = getPlayerName();
+                
+                const { error: errSala } = await sbClient.from('salas').insert([{ id: id, status: 'esperando' }]);
+                if(errSala) throw errSala;
+                
+                const { data: hostData, error: errHost } = await sbClient.from('jogadores').insert([{
+                    sala_id: id, nome: nomeJogador, is_host: true
+                }]).select().single();
+                if(errHost) throw errHost;
+
+                meuIdBD = hostData.id;
+                localStorage.setItem(`ito_uuid_${id}`, meuIdBD);
+                localStorage.setItem(`host_${id}`, 'true'); 
+                
+                salaAtual = id;
+                souHost = true;
+                abrirSala();
+                
+                const urlSala = window.location.origin + window.location.pathname + "?sala=" + id;
+                document.getElementById("qrcode").innerHTML = "";
+                new QRCode(document.getElementById("qrcode"), { text: urlSala, width: 140, height: 140, colorDark: "#000000", colorLight: "#ffffff" });
+                document.getElementById('qrcode-container').classList.remove('escondido');
+            } catch (err) { alert("Erro ao criar sala. Verifique a conexão."); }
+        }
+
+        async function entrarSala() {
+            try {
+                const id = document.getElementById('input-sala').value.toUpperCase() || new URLSearchParams(window.location.search).get('sala');
+                if(!id) return;
+                
+                const nomeJogador = getPlayerName();
+                const { data: salaData, error } = await sbClient.from('salas').select('*').eq('id', id).single();
+                if (error || !salaData) throw new Error("Sala não encontrada!");
+                
+                const { count } = await sbClient.from('jogadores').select('*', { count: 'exact', head: true }).eq('sala_id', id);
+                if(count >= 50) throw new Error("Esta sala já atingiu o limite máximo de 50 jogadores.");
+
+                let storedId = localStorage.getItem(`ito_uuid_${id}`);
+                if (storedId) {
+                    const { data: exData } = await sbClient.from('jogadores').select('id').eq('id', storedId).single();
+                    if(exData) meuIdBD = storedId;
+                }
+                
+                // [v1.6] FIX 2: Trava de penetras — bloqueia novos jogadores se partida em andamento
+                if (salaData.status !== 'esperando' && !meuIdBD) {
+                    throw new Error("Esta partida já está em andamento. Aguarde a próxima rodada.");
+                }
+
+                if(!meuIdBD) {
+                    const { data: novoJogador, error: errJog } = await sbClient.from('jogadores').insert([{
+                        sala_id: id, nome: nomeJogador, is_host: false
+                    }]).select().single();
+                    if(errJog) throw errJog;
+                    
+                    meuIdBD = novoJogador.id;
+                    localStorage.setItem(`ito_uuid_${id}`, meuIdBD);
+                }
+
+                salaAtual = id;
+                souHost = localStorage.getItem(`host_${id}`) === 'true';
+                abrirSala();
+            } catch (err) { alert(err.message); }
+        }
+
+        function abrirSala() {
+            document.getElementById('setup-section').classList.add('escondido');
+            document.getElementById('display-id-sala').innerText = salaAtual;
+            document.getElementById('lobby-nome-input').value = localStorage.getItem('ito_player_name') || "";
+            inscreverNoJogo();
+        }
+
+        function atualizarNomeLobby(novoNome) {
+            let val = novoNome.trim().toUpperCase();
+            if(!val) return;
+            localStorage.setItem('ito_player_name', val);
+            
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(async () => {
+                if(meuIdBD) await sbClient.from('jogadores').update({ nome: val }).eq('id', meuIdBD);
+            }, 500);
+        }
+
+        async function sortearNumeros() {
+            if (!souHost) return;
+            const { data: jogadoresDB } = await sbClient.from('jogadores').select('id').eq('sala_id', salaAtual).order('created_at', { ascending: true });
+            
+            let baralho = Array.from({ length: 100 }, (_, i) => i + 1);
+            for (let i = baralho.length - 1; i > 0; i--) {
+                const arrayRandom = new Uint32Array(1);
+                window.crypto.getRandomValues(arrayRandom);
+                const j = Math.floor((arrayRandom[0] / (0xffffffff + 1)) * (i + 1));
+                [baralho[i], baralho[j]] = [baralho[j], baralho[i]];
+            }
+
+            const promises = jogadoresDB.map((j, index) => 
+                sbClient.from('jogadores').update({ numero: baralho[index] }).eq('id', j.id)
+            );
+            await Promise.all(promises);
+            await sbClient.from('salas').update({ status: 'sorteado' }).eq('id', salaAtual);
+        }
+
+        async function voltarLobby() {
+            if (!souHost) return;
+            await sbClient.from('salas').update({ status: 'esperando' }).eq('id', salaAtual);
+            await sbClient.from('jogadores').update({ numero: null }).eq('sala_id', salaAtual);
+        }
+
+        async function kick(id) {
+            await sbClient.from('jogadores').delete().eq('id', id);
+        }
+
+        function copiarLink() {
+            const urlSala = window.location.origin + window.location.pathname + "?sala=" + salaAtual;
+            navigator.clipboard.writeText(urlSala);
+            alert("Link copiado!");
+        }
+
+        function inscreverNoJogo() {
+            // [v1.6] FIX 3: Evita vazamento de canais Realtime — remove canal antigo antes de criar novo
+            if (canalAtivo) sbClient.removeChannel(canalAtivo);
+
+            const channel = sbClient.channel('ito_' + salaAtual);
+            channel.on('postgres_changes', { event: '*', schema: 'public', table: 'salas', filter: `id=eq.${salaAtual}` }, () => carregarEstadoSala());
+            channel.on('postgres_changes', { event: '*', schema: 'public', table: 'jogadores', filter: `sala_id=eq.${salaAtual}` }, () => carregarEstadoSala());
+            channel.subscribe();
+            canalAtivo = channel;
+            carregarEstadoSala();
+        }
+
+        async function carregarEstadoSala() {
+            const { data: salaData } = await sbClient.from('salas').select('*').eq('id', salaAtual).single();
+            const { data: jogadoresData } = await sbClient.from('jogadores').select('*').eq('sala_id', salaAtual).order('created_at', { ascending: true });
+            if(salaData && jogadoresData) atualizarInterface(salaData, jogadoresData);
+        }
+
+        function atualizarInterface(salaData, jogadoresData) {
+            if (!jogadoresData.find(j => j.id === meuIdBD)) { 
+                localStorage.removeItem(`host_${salaAtual}`);
+                window.location.href = window.location.pathname; return; 
+            }
+
+            globalStatus = salaData.status;
+            const listaUl = document.getElementById('lista-jogadores');
+            const newIds = jogadoresData.map(j => j.id);
+            
+            Array.from(listaUl.children).forEach(li => { if(!newIds.includes(li.dataset.id)) li.remove(); });
+            
+            jogadoresData.forEach((j, index) => {
+                let li = listaUl.querySelector(`li[data-id="${j.id}"]`);
+                const isMe = j.id === meuIdBD;
+                if(!li) {
+                    li = document.createElement('li');
+                    li.className = 'jogador-item';
+                    li.dataset.id = j.id;
+                    listaUl.appendChild(li);
+                }
+                let content = `<span>${sanitize(j.nome || `JOGADOR ${index + 1}`)} ${isMe ? '<span class="voce">(VOCÊ)</span>' : ''}</span>`;
+                if (souHost && !isMe) content += `<button class="btn-kick" onclick="kick('${j.id}')">Remover</button>`;
+                li.innerHTML = content;
+            });
+
+            const eu = jogadoresData.find(j => j.id === meuIdBD);
+            document.getElementById('meu-numero').innerText = eu.numero || "";
+
+            const isEsperando = globalStatus === 'esperando';
+            
+            document.getElementById('lobby-area').classList.toggle('escondido', !isEsperando);
+            document.getElementById('game-section').classList.toggle('escondido', isEsperando);
+            document.getElementById('card-principal').classList.toggle('active', globalStatus === 'revelado');
+            
+            // Ocultar FAB de Ajuda na partida
+            document.getElementById('btn-ajuda').classList.toggle('escondido', !isEsperando);
+            
+            if (globalStatus === 'revelado') isHolding = false;
+            
+            if (isEsperando) {
+                document.getElementById('lobby-host-controls').classList.toggle('escondido', !souHost);
+                document.getElementById('wait-message-lobby').classList.toggle('escondido', souHost);
+            } else if (souHost) {
+                document.getElementById('btn-revelar').classList.toggle('escondido', globalStatus !== 'sorteado');
+                document.getElementById('btn-reset').classList.toggle('escondido', globalStatus !== 'revelado');
+            }
+        }
+
+        function abrirModalConfirmacao(titulo, texto, acaoConfirmar) {
+            document.getElementById('modal-title').innerText = titulo;
+            document.getElementById('modal-msg').innerText = texto;
+            document.getElementById('modal-confirm-btn').onclick = acaoConfirmar; 
+            document.getElementById('confirm-modal').classList.remove('escondido');
+        }
+
+        function fecharModal() { document.getElementById('confirm-modal').classList.add('escondido'); }
+
+        function confirmExit(target) {
+            if(target === 'home') {
+                abrirModalConfirmacao("SAIR DO GRUPO", souHost ? "Você é o host. Sair agora desfará a mesa. Confirmar?" : "Você abandonará o grupo. Confirmar?", () => window.location.href = window.location.pathname);
+            } else if (target === 'lobby') {
+                abrirModalConfirmacao("SAIR DA PARTIDA", "Partida em andamento. Deseja abandonar e voltar ao menu inicial?", () => window.location.href = window.location.pathname);
+            }
+        }
+
+        function acionarRevelarMesa() {
+            abrirModalConfirmacao("REVELAR CARTAS?", "Todos os números da mesa ficarão visíveis. Essa ação não pode ser desfeita.", async () => {
+                await sbClient.from('salas').update({ status: 'revelado' }).eq('id', salaAtual);
+                fecharModal();
+            });
+        }
+
+        const passosTutorial = [
+            "O objetivo do jogo é colocar todas as cartas da mesa em ordem crescente.",
+            "A pegadinha? Vocês NÃO podem falar os números que tiraram!",
+            "O Host define um TEMA (Ex: Coisas úteis em um apocalipse zumbi).",
+            "Dê um palpite baseado no seu número. Se tirou 1, diga algo inútil. Se tirou 99, diga a melhor coisa possível. Deduzam a ordem juntos!"
+        ];
+        let passoAtual = 0;
+
+        function abrirTutorial() {
+            passoAtual = 0;
+            atualizarTelaTutorial();
+            document.getElementById('modal-tutorial').classList.remove('escondido');
+        }
+
+        function fecharTutorial() { document.getElementById('modal-tutorial').classList.add('escondido'); }
+
+        function mudarPassoTutorial(direcao) {
+            passoAtual = Math.max(0, Math.min(passosTutorial.length - 1, passoAtual + direcao));
+            atualizarTelaTutorial();
+        }
+
+        function atualizarTelaTutorial() {
+            document.getElementById('tutorial-texto').innerText = passosTutorial[passoAtual];
+            document.getElementById('tutorial-passo').innerText = `${passoAtual + 1} / ${passosTutorial.length}`;
+        }
+
+        window.onload = () => {
+            const s = new URLSearchParams(window.location.search).get('sala');
+            if(s) { document.getElementById('input-sala').value = s; entrarSala(); }
+
+            // REGISTRO DO SERVICE WORKER (PWA / OFFLINE)
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(() => console.log('Service Worker Registrado!'))
+                    .catch(err => console.error('Erro no SW:', err));
+            }
+        };
+    </script>
+</body>
+</html>
