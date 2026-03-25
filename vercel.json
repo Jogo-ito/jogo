@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/Versões/v1.6/$1" }
+  ]
+}
