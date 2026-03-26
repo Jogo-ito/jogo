@@ -248,7 +248,16 @@
             <p class="tema-label">Tema da Partida</p>
             <div class="tema-input-row">
                 <input type="text" id="input-tema" placeholder="Digite o tema..." autocomplete="off" maxlength="120" oninput="this.value = this.value" style="text-transform:none; letter-spacing:0;">
-                <button class="btn-dado" onclick="sortearTema()" title="Tema aleatório">🎲</button>
+                <button class="btn-dado" onclick="sortearTema()" title="Tema aleatório">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+                        <rect x="2" y="2" width="20" height="20" rx="4"/>
+                        <circle cx="8" cy="8" r="1.2" fill="currentColor"/>
+                        <circle cx="16" cy="8" r="1.2" fill="currentColor"/>
+                        <circle cx="8" cy="16" r="1.2" fill="currentColor"/>
+                        <circle cx="16" cy="16" r="1.2" fill="currentColor"/>
+                        <circle cx="12" cy="12" r="1.2" fill="currentColor"/>
+                    </svg>
+                </button>
             </div>
             <button class="btn-secondary btn-enviar-sugestao" onclick="definirTema()">DEFINIR TEMA</button>
             <p class="tema-label" style="margin-top:16px;">Sugestões dos jogadores</p>
@@ -261,7 +270,12 @@
             <p class="tema-atual" id="tema-display">Aguardando o host...</p>
             <div class="tema-input-row">
                 <input type="text" id="input-sugestao" placeholder="Sugira um tema..." autocomplete="off" maxlength="120" style="text-transform:none; letter-spacing:0;">
-                <button class="btn-dado" onclick="enviarSugestao()" title="Enviar sugestão" style="font-size:1rem; font-weight:900; letter-spacing:1px; width:auto; padding: 0 14px;">↑</button>
+                <button class="btn-dado" onclick="enviarSugestao()" title="Enviar sugestão">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+                        <line x1="12" y1="19" x2="12" y2="5"/>
+                        <polyline points="5 12 12 5 19 12"/>
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -630,7 +644,7 @@
             "O objetivo do jogo é colocar todas as cartas da mesa em ordem crescente — do menor para o maior número.",
             "A pegadinha? Vocês NÃO podem falar os números que tiraram!",
             "Antes de começar, o Host define um TEMA com dois extremos. Exemplo: '1 = Pior superpoder / 100 = Melhor superpoder'.",
-            "Convidados podem sugerir temas para o host escolher. O host também pode gerar um tema aleatório com o botão 🎲.",
+            "Convidados podem sugerir temas para o host escolher. O host também pode gerar um tema aleatório com o botão de dado.",
             "Dê uma pista baseada na intensidade do seu número dentro do tema. Se tirou 3, seu superpoder é quase inútil. Se tirou 97, é incrível!",
             "Debatam e ordenem os celulares na mesa — do menor para o maior. Ao revelar, descobrem se acertaram a ordem!"
         ];
