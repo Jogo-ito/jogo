@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/Versões/v1.7/$1" }
+    { "source": "/(.*)", "destination": "/Versões/v1.6/$1" }
   ]
 }
