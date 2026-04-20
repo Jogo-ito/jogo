@@ -397,6 +397,58 @@
                 themeTitle: 'Trocar Tema',
                 langBtn: 'EN',
             },
+            'es': {
+                yourName: 'TU NOMBRE',
+                createRoom: 'CREAR SALA',
+                orJoin: 'O UNIRME',
+                roomCode: 'CÓDIGO DE SALA',
+                enter: 'ENTRAR',
+                room: 'SALA',
+                editName: 'EDITAR NOMBRE',
+                copyLink: 'COPIAR ENLACE',
+                dealCards: 'REPARTIR CARTAS',
+                waitingHost: 'Esperando al Host...',
+                leaveGroup: 'Salir del Grupo',
+                revealTable: 'REVELAR MESA',
+                newRound: 'NUEVA RONDA',
+                attention: 'ATENCIÓN',
+                back: 'VOLVER',
+                confirm: 'CONFIRMAR',
+                howToPlay: 'CÓMO JUGAR',
+                understood: 'ENTENDIDO',
+                you: '(TÚ)',
+                remove: 'Eliminar',
+                playerDefault: 'JUGADOR',
+                linkCopied: '¡Enlace copiado!',
+                errCreate: 'Error al crear sala. Verifica tu conexión.',
+                errNotFound: '¡Sala no encontrada!',
+                errFull: 'Esta sala ya alcanzó el límite de 50 jugadores.',
+                errInProgress: 'Esta partida ya está en curso. Espera la próxima ronda.',
+                exitHostMsg: 'Eres el host. Salir cerrará la sala. ¿Confirmar?',
+                exitGuestMsg: 'Abandonarás el grupo. ¿Confirmar?',
+                leaveGroupTitle: 'SALIR DEL GRUPO',
+                leaveGameTitle: 'SALIR DE LA PARTIDA',
+                leaveGameMsg: 'Partida en curso. ¿Salir y volver al menú?',
+                revealTitle: '¿REVELAR CARTAS?',
+                revealMsg: 'Todos los números de la mesa serán visibles. Esta acción no se puede deshacer.',
+                tutorial: [
+                    'El objetivo es colocar todas las cartas de la mesa en orden ascendente.',
+                    '¿El truco? ¡NO pueden decir sus números en voz alta!',
+                    'El Host elige un TEMA (ej: Cosas más útiles en un apocalipsis zombie).',
+                    'Da una pista según tu número. Si tienes 1, di algo inútil. Si tienes 99, di lo mejor posible. ¡Deduzcan el orden juntos!'
+                ],
+                themeSection: 'Tema de la Partida',
+                themePlaceholder: 'Escribe el tema...',
+                defineTheme: 'DEFINIR TEMA',
+                suggestions: 'Sugerencias de jugadores',
+                guestThemePlaceholder: 'Sugiere un tema...',
+                waitingTheme: 'Esperando al host...',
+                noSuggestions: 'Sin sugerencias aún.',
+                use: 'USAR',
+                leaveGame: 'Salir de la Partida',
+                themeTitle: 'Cambiar Tema',
+                langBtn: 'PT',
+            },
             'en': {
                 yourName: 'YOUR NAME',
                 createRoom: 'CREATE ROOM',
@@ -447,22 +499,26 @@
                 use: 'USE',
                 leaveGame: 'Leave Game',
                 themeTitle: 'Toggle Theme',
-                langBtn: 'PT',
+                langBtn: 'ES',
             }
         };
 
+        const LANG_CYCLE = ['pt', 'en', 'es'];
         let currentLang = 'pt';
 
         function detectLang() {
             const saved = localStorage.getItem('ito_lang');
-            if (saved) return saved;
+            if (saved && I18N[saved]) return saved;
             const nav = (navigator.language || navigator.userLanguage || 'pt').toLowerCase();
-            return nav.startsWith('pt') ? 'pt' : 'en';
+            if (nav.startsWith('pt')) return 'pt';
+            if (nav.startsWith('es')) return 'es';
+            return 'en';
         }
 
         function applyLang(lang) {
             currentLang = lang;
             localStorage.setItem('ito_lang', lang);
+            document.documentElement.lang = lang === 'pt' ? 'pt-BR' : lang;
             const t = I18N[lang];
             document.getElementById('btn-lang').textContent = t.langBtn;
             document.getElementById('input-nome').placeholder = t.yourName;
@@ -531,7 +587,8 @@
         }
 
         function toggleLang() {
-            applyLang(currentLang === 'pt' ? 'en' : 'pt');
+            const next = LANG_CYCLE[(LANG_CYCLE.indexOf(currentLang) + 1) % LANG_CYCLE.length];
+            applyLang(next);
         }
         // ── FIM I18N ──────────────────────────────────────────────────────────
 
@@ -865,7 +922,8 @@
         // ── TEMAS ──────────────────────────────────────────────
 
         function sortearTema() {
-            const arr = typeof TEMAS_GENERICOS !== 'undefined' ? TEMAS_GENERICOS : [];
+            const map = { pt: TEMAS_GENERICOS, en: TEMAS_GENERICOS_EN, es: TEMAS_GENERICOS_ES };
+            const arr = (map[currentLang] && map[currentLang].length) ? map[currentLang] : (TEMAS_GENERICOS || []);
             if (!arr.length) return;
             const buf = new Uint32Array(1);
             window.crypto.getRandomValues(buf);
