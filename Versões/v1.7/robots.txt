@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jogo-ito.github.io/jogo/sitemap.xml
