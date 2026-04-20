@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://jogo-ito.github.io/jogo/sitemap.xml
+Sitemap: https://jogo-ito.vercel.app/sitemap.xml
