@@ -235,7 +235,7 @@
     </div>
 
     <div id="lobby-area" class="container escondido">
-        <div class="sala-header">SALA: <strong id="display-id-sala"></strong></div>
+        <div class="sala-header"><span id="sala-label">SALA</span>: <strong id="display-id-sala"></strong></div>
         <input type="text" id="lobby-nome-input" class="input-lobby-name" placeholder="EDITAR NOME" maxlength="15" oninput="atualizarNomeLobby(this.value)">
 
         <div id="qrcode-container" class="escondido" style="text-align: center;">
@@ -247,10 +247,10 @@
 
         <!-- TEMA — HOST -->
         <div id="tema-host" class="tema-section escondido">
-            <p class="tema-label">Tema da Partida</p>
+            <p class="tema-label" id="tema-label-host">Tema da Partida</p>
             <div class="tema-input-row">
                 <input type="text" id="input-tema" placeholder="Digite o tema..." autocomplete="off" maxlength="120" oninput="this.value = this.value" style="text-transform:none; letter-spacing:0;">
-                <button class="btn-dado" onclick="sortearTema()" title="Tema aleatório">
+                <button class="btn-dado" id="btn-dado-tema" onclick="sortearTema()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
                         <rect x="2" y="2" width="20" height="20" rx="4"/>
                         <circle cx="8" cy="8" r="1.2"/>
@@ -261,18 +261,18 @@
                     </svg>
                 </button>
             </div>
-            <button class="btn-secondary btn-enviar-sugestao" onclick="definirTema()">DEFINIR TEMA</button>
-            <p class="tema-label" style="margin-top:16px;">Sugestões dos jogadores</p>
+            <button class="btn-secondary btn-enviar-sugestao" id="btn-definir-tema" onclick="definirTema()">DEFINIR TEMA</button>
+            <p class="tema-label" id="sugestoes-label" style="margin-top:16px;">Sugestões dos jogadores</p>
             <ul class="sugestoes-lista" id="lista-sugestoes"></ul>
         </div>
 
         <!-- TEMA — CONVIDADO -->
         <div id="tema-convidado" class="tema-section escondido">
-            <p class="tema-label">Tema da Partida</p>
-            <p class="tema-atual" id="tema-display">Aguardando o host...</p>
+            <p class="tema-label" id="tema-label-guest">Tema da Partida</p>
+            <p class="tema-atual" id="tema-display"></p>
             <div class="tema-input-row">
                 <input type="text" id="input-sugestao" placeholder="Sugira um tema..." autocomplete="off" maxlength="120" style="text-transform:none; letter-spacing:0;">
-                <button class="btn-dado" onclick="enviarSugestao()" title="Enviar sugestão">
+                <button class="btn-dado" id="btn-enviar-sugestao-icon" onclick="enviarSugestao()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
                         <line x1="12" y1="19" x2="12" y2="5"/>
                         <polyline points="5 12 12 5 19 12"/>
@@ -385,6 +385,15 @@
                     'O Host define um TEMA (Ex: Coisas úteis em um apocalipse zumbi).',
                     'Dê um palpite baseado no seu número. Se tirou 1, diga algo inútil. Se tirou 99, diga a melhor coisa possível. Deduzam a ordem juntos!'
                 ],
+                themeSection: 'Tema da Partida',
+                themePlaceholder: 'Digite o tema...',
+                defineTheme: 'DEFINIR TEMA',
+                suggestions: 'Sugestões dos jogadores',
+                guestThemePlaceholder: 'Sugira um tema...',
+                waitingTheme: 'Aguardando o host...',
+                noSuggestions: 'Nenhuma sugestão ainda.',
+                use: 'USAR',
+                leaveGame: 'Sair da Partida',
                 themeTitle: 'Trocar Tema',
                 langBtn: 'EN',
             },
@@ -428,6 +437,15 @@
                     'The Host picks a THEME (e.g. Most useful things in a zombie apocalypse).',
                     'Give a hint based on your number. If you got 1, say something useless. If you got 99, say the best thing possible. Figure out the order together!'
                 ],
+                themeSection: 'Game Theme',
+                themePlaceholder: 'Type the theme...',
+                defineTheme: 'SET THEME',
+                suggestions: 'Player suggestions',
+                guestThemePlaceholder: 'Suggest a theme...',
+                waitingTheme: 'Waiting for host...',
+                noSuggestions: 'No suggestions yet.',
+                use: 'USE',
+                leaveGame: 'Leave Game',
                 themeTitle: 'Toggle Theme',
                 langBtn: 'PT',
             }
@@ -477,6 +495,35 @@
             if (themeBtn) themeBtn.title = t.themeTitle;
             const leaveBtn = document.querySelector('#lobby-area > button[onclick*="home"]');
             if (leaveBtn) leaveBtn.textContent = t.leaveGroup;
+
+            const salaLabel = document.getElementById('sala-label');
+            if (salaLabel) salaLabel.textContent = t.room;
+
+            const temaLabelHost = document.getElementById('tema-label-host');
+            if (temaLabelHost) temaLabelHost.textContent = t.themeSection;
+            const temaLabelGuest = document.getElementById('tema-label-guest');
+            if (temaLabelGuest) temaLabelGuest.textContent = t.themeSection;
+
+            const inputTema = document.getElementById('input-tema');
+            if (inputTema) inputTema.placeholder = t.themePlaceholder;
+            const btnDefinirTema = document.getElementById('btn-definir-tema');
+            if (btnDefinirTema) btnDefinirTema.textContent = t.defineTheme;
+
+            const sugestoesLabel = document.getElementById('sugestoes-label');
+            if (sugestoesLabel) sugestoesLabel.textContent = t.suggestions;
+
+            const inputSugestao = document.getElementById('input-sugestao');
+            if (inputSugestao) inputSugestao.placeholder = t.guestThemePlaceholder;
+
+            const temaDisplay = document.getElementById('tema-display');
+            if (temaDisplay) temaDisplay.textContent = temaAtual || t.waitingTheme;
+
+            const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+            if (modalConfirmBtn) modalConfirmBtn.textContent = t.confirm;
+
+            const gameBackBtn = document.querySelector('#game-section .icon-btn');
+            if (gameBackBtn) gameBackBtn.title = t.leaveGame;
+
             // Re-render tutorial se estiver aberto
             if (!document.getElementById('modal-tutorial').classList.contains('escondido')) {
                 atualizarTelaTutorial();
@@ -553,11 +600,12 @@
         const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let salaAtual = "";
-        let meuIdBD = null; 
+        let meuIdBD = null;
         let souHost = false;
         let globalStatus = 'esperando';
         let debounceTimer;
         let canalAtivo = null;
+        let temaAtual = '';
 
         // [v1.6] FIX 1: Anti-XSS — escapa HTML antes de renderizar nomes
         function sanitize(str) {
@@ -842,7 +890,7 @@
             const input = document.getElementById('input-sugestao');
             const texto = input.value.trim();
             if (!texto) return;
-            const nome = localStorage.getItem('ito_player_name') || 'Jogador';
+            const nome = localStorage.getItem('ito_player_name') || I18N[currentLang].playerDefault;
             await sbClient.from('sugestoes_tema').insert([{ sala_id: salaAtual, jogador_nome: nome, texto }]);
             input.value = '';
         }
@@ -853,20 +901,23 @@
             const lista = document.getElementById('lista-sugestoes');
             lista.innerHTML = '';
             if (!data || !data.length) {
-                lista.innerHTML = '<li style="color:var(--muted-text);font-size:0.8rem;padding:6px 0;">Nenhuma sugestão ainda.</li>';
+                const t = I18N[currentLang];
+                lista.innerHTML = `<li style="color:var(--muted-text);font-size:0.8rem;padding:6px 0;">${t.noSuggestions}</li>`;
                 return;
             }
             data.forEach(s => {
+                const t = I18N[currentLang];
                 const li = document.createElement('li');
                 li.className = 'sugestao-item';
-                li.innerHTML = `<span>${sanitize(s.texto)}</span><small>${sanitize(s.jogador_nome)}</small><button class="btn-usar" onclick="usarSugestao('${sanitize(s.texto).replace(/'/g, "\\'")}')">USAR</button>`;
+                li.innerHTML = `<span>${sanitize(s.texto)}</span><small>${sanitize(s.jogador_nome)}</small><button class="btn-usar" onclick="usarSugestao('${sanitize(s.texto).replace(/'/g, "\\'")}'">${t.use}</button>`;
                 lista.appendChild(li);
             });
         }
 
         function atualizarTema(tema) {
+            temaAtual = tema || '';
             const display = document.getElementById('tema-display');
-            if (display) display.innerText = tema || 'Aguardando o host...';
+            if (display) display.innerText = temaAtual || I18N[currentLang].waitingTheme;
             const inputTema = document.getElementById('input-tema');
             if (inputTema && tema && !inputTema.matches(':focus')) inputTema.value = tema;
         }
