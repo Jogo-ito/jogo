@@ -50,8 +50,9 @@
             -webkit-user-select: none; user-select: none;
         }
 
-        .top-bar-right { position: absolute; top: 20px; right: 20px; z-index: 1000; }
+        .top-bar-right { position: absolute; top: 20px; right: 20px; z-index: 1000; display: flex; align-items: center; gap: 4px; }
         .top-bar-left { position: absolute; top: 20px; left: 20px; z-index: 1000; }
+        #btn-lang { font-size: 0.7rem; font-weight: 900; letter-spacing: 1px; padding: 6px 8px; opacity: 0.5; }
         
         .icon-btn { 
             background: transparent; border: none; cursor: pointer; 
@@ -205,6 +206,7 @@
 <body>
 
     <div class="top-bar-right">
+        <button id="btn-lang" class="icon-btn" onclick="toggleLang()"></button>
         <button class="icon-btn" onclick="toggleTheme()" title="Trocar Tema">
             <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="escondido">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
@@ -341,6 +343,151 @@
         const iconSun = document.getElementById('icon-sun');
         const body = document.body;
 
+        // ── I18N ──────────────────────────────────────────────────────────────
+        const I18N = {
+            'pt': {
+                yourName: 'SEU NOME',
+                createRoom: 'CRIAR SALA',
+                orJoin: 'OU INGRESSAR',
+                roomCode: 'CÓDIGO DA SALA',
+                enter: 'ENTRAR',
+                room: 'SALA',
+                editName: 'EDITAR NOME',
+                copyLink: 'COPIAR LINK DA SALA',
+                dealCards: 'SORTEAR CARTAS',
+                waitingHost: 'Aguardando Host...',
+                leaveGroup: 'Sair do Grupo',
+                revealTable: 'REVELAR MESA',
+                newRound: 'NOVA RODADA',
+                attention: 'ATENÇÃO',
+                back: 'VOLTAR',
+                confirm: 'CONFIRMAR',
+                howToPlay: 'COMO JOGAR',
+                understood: 'ENTENDI',
+                you: '(VOCÊ)',
+                remove: 'Remover',
+                playerDefault: 'JOGADOR',
+                linkCopied: 'Link copiado!',
+                errCreate: 'Erro ao criar sala. Verifique a conexão.',
+                errNotFound: 'Sala não encontrada!',
+                errFull: 'Esta sala já atingiu o limite máximo de 50 jogadores.',
+                errInProgress: 'Esta partida já está em andamento. Aguarde a próxima rodada.',
+                exitHostMsg: 'Você é o host. Sair agora desfará a mesa. Confirmar?',
+                exitGuestMsg: 'Você abandonará o grupo. Confirmar?',
+                leaveGroupTitle: 'SAIR DO GRUPO',
+                leaveGameTitle: 'SAIR DA PARTIDA',
+                leaveGameMsg: 'Partida em andamento. Deseja abandonar e voltar ao menu inicial?',
+                revealTitle: 'REVELAR CARTAS?',
+                revealMsg: 'Todos os números da mesa ficarão visíveis. Essa ação não pode ser desfeita.',
+                tutorial: [
+                    'O objetivo do jogo é colocar todas as cartas da mesa em ordem crescente.',
+                    'A pegadinha? Vocês NÃO podem falar os números que tiraram!',
+                    'O Host define um TEMA (Ex: Coisas úteis em um apocalipse zumbi).',
+                    'Dê um palpite baseado no seu número. Se tirou 1, diga algo inútil. Se tirou 99, diga a melhor coisa possível. Deduzam a ordem juntos!'
+                ],
+                themeTitle: 'Trocar Tema',
+                langBtn: 'EN',
+            },
+            'en': {
+                yourName: 'YOUR NAME',
+                createRoom: 'CREATE ROOM',
+                orJoin: 'OR JOIN',
+                roomCode: 'ROOM CODE',
+                enter: 'JOIN',
+                room: 'ROOM',
+                editName: 'EDIT NAME',
+                copyLink: 'COPY ROOM LINK',
+                dealCards: 'DEAL CARDS',
+                waitingHost: 'Waiting for Host...',
+                leaveGroup: 'Leave Group',
+                revealTable: 'REVEAL TABLE',
+                newRound: 'NEW ROUND',
+                attention: 'ATTENTION',
+                back: 'BACK',
+                confirm: 'CONFIRM',
+                howToPlay: 'HOW TO PLAY',
+                understood: 'GOT IT',
+                you: '(YOU)',
+                remove: 'Remove',
+                playerDefault: 'PLAYER',
+                linkCopied: 'Link copied!',
+                errCreate: 'Error creating room. Check your connection.',
+                errNotFound: 'Room not found!',
+                errFull: 'This room has reached the maximum of 50 players.',
+                errInProgress: 'This game is already in progress. Wait for the next round.',
+                exitHostMsg: 'You are the host. Leaving now will end the session. Confirm?',
+                exitGuestMsg: 'You will leave the group. Confirm?',
+                leaveGroupTitle: 'LEAVE GROUP',
+                leaveGameTitle: 'LEAVE GAME',
+                leaveGameMsg: 'Game in progress. Leave and return to main menu?',
+                revealTitle: 'REVEAL CARDS?',
+                revealMsg: 'All numbers on the table will be visible. This cannot be undone.',
+                tutorial: [
+                    'The goal is to arrange all cards on the table in ascending order.',
+                    'The catch? You CANNOT say your number out loud!',
+                    'The Host picks a THEME (e.g. Most useful things in a zombie apocalypse).',
+                    'Give a hint based on your number. If you got 1, say something useless. If you got 99, say the best thing possible. Figure out the order together!'
+                ],
+                themeTitle: 'Toggle Theme',
+                langBtn: 'PT',
+            }
+        };
+
+        let currentLang = 'pt';
+
+        function detectLang() {
+            const saved = localStorage.getItem('ito_lang');
+            if (saved) return saved;
+            const nav = (navigator.language || navigator.userLanguage || 'pt').toLowerCase();
+            return nav.startsWith('pt') ? 'pt' : 'en';
+        }
+
+        function applyLang(lang) {
+            currentLang = lang;
+            localStorage.setItem('ito_lang', lang);
+            const t = I18N[lang];
+            document.getElementById('btn-lang').textContent = t.langBtn;
+            document.getElementById('input-nome').placeholder = t.yourName;
+            const btnCriar = document.querySelector('#setup-section .btn-primary');
+            if (btnCriar) btnCriar.textContent = t.createRoom;
+            const divider = document.querySelector('.divider');
+            if (divider) divider.textContent = t.orJoin;
+            document.getElementById('input-sala').placeholder = t.roomCode;
+            const btnEntrar = document.querySelector('#setup-section .btn-secondary');
+            if (btnEntrar) btnEntrar.textContent = t.enter;
+            const copyBtn = document.querySelector('#qrcode-container .btn-secondary');
+            if (copyBtn) copyBtn.textContent = t.copyLink;
+            const lobbyInput = document.getElementById('lobby-nome-input');
+            if (lobbyInput) lobbyInput.placeholder = t.editName;
+            const btnSortear = document.getElementById('btn-sortear');
+            if (btnSortear) btnSortear.textContent = t.dealCards;
+            const waitMsg = document.getElementById('wait-message-lobby');
+            if (waitMsg) waitMsg.textContent = t.waitingHost;
+            const btnRevelar = document.getElementById('btn-revelar');
+            if (btnRevelar) btnRevelar.textContent = t.revealTable;
+            const btnReset = document.getElementById('btn-reset');
+            if (btnReset) btnReset.textContent = t.newRound;
+            const btnFecharTut = document.querySelector('#modal-tutorial .btn-primary');
+            if (btnFecharTut) btnFecharTut.textContent = t.understood;
+            const tutTitle = document.querySelector('#modal-tutorial h3');
+            if (tutTitle) tutTitle.textContent = t.howToPlay;
+            const cancelBtn = document.querySelector('.btn-cancel');
+            if (cancelBtn) cancelBtn.textContent = t.back;
+            const themeBtn = document.querySelector('.icon-btn[onclick="toggleTheme()"]');
+            if (themeBtn) themeBtn.title = t.themeTitle;
+            const leaveBtn = document.querySelector('#lobby-area > button[onclick*="home"]');
+            if (leaveBtn) leaveBtn.textContent = t.leaveGroup;
+            // Re-render tutorial se estiver aberto
+            if (!document.getElementById('modal-tutorial').classList.contains('escondido')) {
+                atualizarTelaTutorial();
+            }
+        }
+
+        function toggleLang() {
+            applyLang(currentLang === 'pt' ? 'en' : 'pt');
+        }
+        // ── FIM I18N ──────────────────────────────────────────────────────────
+
         function toggleTheme() {
             const isDark = body.classList.toggle('dark-theme');
             localStorage.setItem('ito_theme', isDark ? 'dark' : 'light');
@@ -352,13 +499,15 @@
             const savedTheme = localStorage.getItem('ito_theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-            
+
             body.classList.toggle('dark-theme', isDark);
             iconMoon.classList.toggle('escondido', isDark);
             iconSun.classList.toggle('escondido', !isDark);
 
             const savedName = localStorage.getItem('ito_player_name');
             if (savedName) document.getElementById('input-nome').value = savedName;
+
+            applyLang(detectLang());
         });
 
         // ONDA FÍSICA CLÁSSICA (V1.3 EXATA RESTAURADA)
@@ -419,7 +568,7 @@
 
         function getPlayerName() {
             let inputVal = document.getElementById('input-nome').value.trim();
-            if (!inputVal) inputVal = "Jogador " + Math.floor(Math.random() * 1000);
+            if (!inputVal) inputVal = I18N[currentLang].playerDefault + " " + Math.floor(Math.random() * 1000);
             localStorage.setItem('ito_player_name', inputVal);
             return inputVal.toUpperCase();
         }
@@ -431,7 +580,7 @@
                 
                 const { error: errSala } = await sbClient.from('salas').insert([{ id: id, status: 'esperando' }]);
                 if(errSala) throw errSala;
-                
+
                 const { data: hostData, error: errHost } = await sbClient.from('jogadores').insert([{
                     sala_id: id, nome: nomeJogador, is_host: true
                 }]).select().single();
@@ -449,7 +598,7 @@
                 document.getElementById("qrcode").innerHTML = "";
                 new QRCode(document.getElementById("qrcode"), { text: urlSala, width: 140, height: 140, colorDark: "#000000", colorLight: "#ffffff" });
                 document.getElementById('qrcode-container').classList.remove('escondido');
-            } catch (err) { alert("Erro ao criar sala. Verifique a conexão."); }
+            } catch (err) { alert(I18N[currentLang].errCreate); }
         }
 
         async function entrarSala() {
@@ -459,10 +608,10 @@
                 
                 const nomeJogador = getPlayerName();
                 const { data: salaData, error } = await sbClient.from('salas').select('*').eq('id', id).single();
-                if (error || !salaData) throw new Error("Sala não encontrada!");
-                
+                if (error || !salaData) throw new Error(I18N[currentLang].errNotFound);
+
                 const { count } = await sbClient.from('jogadores').select('*', { count: 'exact', head: true }).eq('sala_id', id);
-                if(count >= 50) throw new Error("Esta sala já atingiu o limite máximo de 50 jogadores.");
+                if(count >= 50) throw new Error(I18N[currentLang].errFull);
 
                 let storedId = localStorage.getItem(`ito_uuid_${id}`);
                 if (storedId) {
@@ -472,7 +621,7 @@
                 
                 // [v1.6] FIX 2: Trava de penetras — bloqueia novos jogadores se partida em andamento
                 if (salaData.status !== 'esperando' && !meuIdBD) {
-                    throw new Error("Esta partida já está em andamento. Aguarde a próxima rodada.");
+                    throw new Error(I18N[currentLang].errInProgress);
                 }
 
                 if(!meuIdBD) {
@@ -541,7 +690,7 @@
         function copiarLink() {
             const urlSala = window.location.origin + window.location.pathname + "?sala=" + salaAtual;
             navigator.clipboard.writeText(urlSala);
-            alert("Link copiado!");
+            alert(I18N[currentLang].linkCopied);
         }
 
         function inscreverNoJogo() {
@@ -586,8 +735,9 @@
                     li.dataset.id = j.id;
                     listaUl.appendChild(li);
                 }
-                let content = `<span>${sanitize(j.nome || `JOGADOR ${index + 1}`)} ${isMe ? '<span class="voce">(VOCÊ)</span>' : ''}</span>`;
-                if (souHost && !isMe) content += `<button class="btn-kick" onclick="kick('${j.id}')">Remover</button>`;
+                const t = I18N[currentLang];
+                let content = `<span>${sanitize(j.nome || `${t.playerDefault} ${index + 1}`)} ${isMe ? `<span class="voce">${t.you}</span>` : ''}</span>`;
+                if (souHost && !isMe) content += `<button class="btn-kick" onclick="kick('${j.id}')">${t.remove}</button>`;
                 li.innerHTML = content;
             });
 
@@ -626,28 +776,22 @@
         function fecharModal() { document.getElementById('confirm-modal').classList.add('escondido'); }
 
         function confirmExit(target) {
+            const t = I18N[currentLang];
             if(target === 'home') {
-                abrirModalConfirmacao("SAIR DO GRUPO", souHost ? "Você é o host. Sair agora desfará a mesa. Confirmar?" : "Você abandonará o grupo. Confirmar?", () => window.location.href = window.location.pathname);
+                abrirModalConfirmacao(t.leaveGroupTitle, souHost ? t.exitHostMsg : t.exitGuestMsg, () => window.location.href = window.location.pathname);
             } else if (target === 'lobby') {
-                abrirModalConfirmacao("SAIR DA PARTIDA", "Partida em andamento. Deseja abandonar e voltar ao menu inicial?", () => window.location.href = window.location.pathname);
+                abrirModalConfirmacao(t.leaveGameTitle, t.leaveGameMsg, () => window.location.href = window.location.pathname);
             }
         }
 
         function acionarRevelarMesa() {
-            abrirModalConfirmacao("REVELAR CARTAS?", "Todos os números da mesa ficarão visíveis. Essa ação não pode ser desfeita.", async () => {
+            const t = I18N[currentLang];
+            abrirModalConfirmacao(t.revealTitle, t.revealMsg, async () => {
                 await sbClient.from('salas').update({ status: 'revelado' }).eq('id', salaAtual);
                 fecharModal();
             });
         }
 
-        const passosTutorial = [
-            "O objetivo do jogo é colocar todas as cartas da mesa em ordem crescente — do menor para o maior número.",
-            "A pegadinha? Vocês NÃO podem falar os números que tiraram!",
-            "Antes de começar, o Host define um TEMA com dois extremos. Exemplo: '1 = Pior superpoder / 100 = Melhor superpoder'.",
-            "Convidados podem sugerir temas para o host escolher. O host também pode gerar um tema aleatório com o botão de dado.",
-            "Dê uma pista baseada na intensidade do seu número dentro do tema. Se tirou 3, seu superpoder é quase inútil. Se tirou 97, é incrível!",
-            "Debatam e ordenem os celulares na mesa — do menor para o maior. Ao revelar, descobrem se acertaram a ordem!"
-        ];
         let passoAtual = 0;
 
         function abrirTutorial() {
@@ -659,13 +803,15 @@
         function fecharTutorial() { document.getElementById('modal-tutorial').classList.add('escondido'); }
 
         function mudarPassoTutorial(direcao) {
-            passoAtual = Math.max(0, Math.min(passosTutorial.length - 1, passoAtual + direcao));
+            const steps = I18N[currentLang].tutorial;
+            passoAtual = Math.max(0, Math.min(steps.length - 1, passoAtual + direcao));
             atualizarTelaTutorial();
         }
 
         function atualizarTelaTutorial() {
-            document.getElementById('tutorial-texto').innerText = passosTutorial[passoAtual];
-            document.getElementById('tutorial-passo').innerText = `${passoAtual + 1} / ${passosTutorial.length}`;
+            const steps = I18N[currentLang].tutorial;
+            document.getElementById('tutorial-texto').innerText = steps[passoAtual];
+            document.getElementById('tutorial-passo').innerText = `${passoAtual + 1} / ${steps.length}`;
         }
 
         // ── TEMAS ──────────────────────────────────────────────
