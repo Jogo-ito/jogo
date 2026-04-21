@@ -179,6 +179,12 @@
     .reddit-stat-val { font-size: 22px; font-weight: 900; }
     .reddit-stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
     .reddit-ratio { font-size: 11px; color: var(--text-muted); }
+    .reddit-comments { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; display: flex; flex-direction: column; gap: 7px; }
+    .reddit-comment { font-size: 11px; line-height: 1.4; }
+    .rc-author { color: var(--accent); font-weight: 700; margin-right: 4px; }
+    .rc-author.rc-op { color: #3498db; }
+    .rc-ups { color: var(--text-muted); font-size: 10px; }
+    .rc-body { color: rgba(240,240,240,0.65); margin-top: 2px; }
     .ratio-bar { height: 4px; background: var(--surface); border-radius: 2px; margin-top: 4px; overflow: hidden; }
     .ratio-fill { height: 100%; border-radius: 2px; transition: width 0.8s; }
 
@@ -499,11 +505,15 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Config ──────────────────────────────────────────────────────────────────────
 const REDDIT_POSTS = [
-  { sub: 'r/SideProject',   id: '1sqzibp', members: '690k', lang: 'EN' },
-  { sub: 'r/boardgames',    id: '1sqzio2', members: '5.4M', lang: 'EN' },
-  { sub: 'r/IndieGaming',   id: '1sqzkkb', members: '474k', lang: 'EN' },
-  { sub: 'r/partygames',    id: '1sqzl92', members: '2.8k', lang: 'EN' },
-  { sub: 'r/gamesEcultura', id: '1sr0shq', members: '580k', lang: 'PT' },
+  { sub: 'r/SideProject',         id: '1sqzibp', members: '690k',  lang: 'EN' },
+  { sub: 'r/boardgames',          id: '1sqzio2', members: '5.4M',  lang: 'EN' },
+  { sub: 'r/IndieGaming',         id: '1sqzkkb', members: '474k',  lang: 'EN' },
+  { sub: 'r/partygames',          id: '1sqzl92', members: '2.8k',  lang: 'EN' },
+  { sub: 'r/gamesEcultura',       id: '1sr0shq', members: '580k',  lang: 'PT' },
+  { sub: 'r/Brettspiele',         id: '1srh1cp', members: '30.7k', lang: 'DE' },
+  { sub: 'r/giochidatavolo',      id: '1srh1ty', members: '13.6k', lang: 'IT' },
+  { sub: 'r/InternetIsBeautiful', id: '1srh2bg', members: '16.6M', lang: 'EN' },
+  { sub: 'r/portugal',            id: '1srh30z', members: '430k',  lang: 'PT' },
 ];
 const MARKETING_DATE = '2026-04-20';
 const REFRESH_INTERVAL = 30;
@@ -672,23 +682,47 @@ function renderFeed() {
 // ── Reddit stats ────────────────────────────────────────────────────────────────
 async function loadRedditStats() {
   const ids = REDDIT_POSTS.map(p => 't3_' + p.id).join(',');
+  const UA = { 'User-Agent': 'ITO-Dashboard/1.0' };
   try {
-    const res = await fetch(`https://www.reddit.com/api/info.json?id=${ids}`, {
-      headers: { 'User-Agent': 'ITO-Dashboard/1.0' }
-    });
-    const json = await res.json();
+    // Batch stats + per-post top comments in parallel
+    const [statsJson, ...commentResults] = await Promise.all([
+      fetch(`https://www.reddit.com/api/info.json?id=${ids}`, { headers: UA }).then(r => r.json()),
+      ...REDDIT_POSTS.map(p =>
+        fetch(`https://www.reddit.com/r/${p.sub.replace('r/','')}/comments/${p.id}.json?limit=8&depth=1&sort=top`, { headers: UA })
+          .then(r => r.json()).catch(() => null)
+      )
+    ]);
+
     const byId = {};
-    (json.data?.children || []).forEach(c => { byId[c.data.id] = c.data; });
-    renderReddit(byId);
+    (statsJson.data?.children || []).forEach(c => { byId[c.data.id] = c.data; });
+
+    const commentsByPost = {};
+    REDDIT_POSTS.forEach((p, i) => {
+      const data = commentResults[i];
+      if (!Array.isArray(data)) return;
+      const children = data[1]?.data?.children || [];
+      commentsByPost[p.id] = children
+        .filter(c => c.kind === 't1' && c.data.author !== 'AutoModerator')
+        .slice(0, 3)
+        .map(c => ({
+          author: c.data.author,
+          body: (c.data.body || '').slice(0, 160).replace(/\n+/g, ' '),
+          ups: c.data.ups,
+          is_op: c.data.is_submitter,
+          permalink: c.data.permalink
+        }));
+    });
+
+    renderReddit(byId, commentsByPost);
   } catch(e) {
     document.getElementById('reddit-grid').innerHTML =
       '<div style="color:var(--text-muted);font-size:13px">Não foi possível carregar dados do Reddit (CORS — abra localmente).</div>';
   }
 }
 
-function renderReddit(byId) {
+function renderReddit(byId, commentsByPost = {}) {
   const grid = document.getElementById('reddit-grid');
-  let totalViews = 0, totalUps = 0, totalComments = 0;
+  let totalUps = 0, totalComments = 0;
 
   const cards = REDDIT_POSTS.map(p => {
     const d = byId[p.id] || {};
@@ -696,12 +730,23 @@ function renderReddit(byId) {
     const comms = d.num_comments || 0;
     const ratio = Math.round((d.upvote_ratio || 0) * 100);
     const views = d.view_count || null;
-    totalViews += views || 0;
     totalUps += ups;
     totalComments += comms;
 
     const ratioColor = ratio >= 80 ? '#2ecc71' : ratio >= 50 ? '#e67e22' : '#e74c3c';
-    const langBadge = `<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(255,255,255,0.08);color:var(--text-muted)">${p.lang}</span>`;
+    const langColors = { EN: '#3498db', PT: '#2ecc71', DE: '#f1c40f', IT: '#e74c3c', ES: '#e67e22' };
+    const langBadge = `<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:${langColors[p.lang] || '#888'}22;color:${langColors[p.lang] || '#888'};font-weight:700">${p.lang}</span>`;
+
+    const topComments = (commentsByPost[p.id] || []);
+    const commentsHtml = topComments.length ? `
+      <div class="reddit-comments">
+        ${topComments.map(c => `
+          <div class="reddit-comment">
+            <span class="rc-author${c.is_op ? ' rc-op' : ''}">${c.is_op ? '[OP] ' : ''}u/${c.author}</span>
+            <span class="rc-ups">▲${c.ups}</span>
+            <div class="rc-body">${c.body}${(c.body || '').length >= 160 ? '…' : ''}</div>
+          </div>`).join('')}
+      </div>` : '';
 
     return `<div class="reddit-card">
       <div class="reddit-card-top">
@@ -709,7 +754,7 @@ function renderReddit(byId) {
           <div class="reddit-sub">${p.sub} ${langBadge}</div>
           <div class="reddit-members">${p.members} membros</div>
         </div>
-        ${d.url ? `<a href="https://reddit.com${d.permalink || ''}" target="_blank" style="font-size:11px;color:var(--text-muted);text-decoration:none">↗ ver post</a>` : ''}
+        ${d.permalink ? `<a href="https://reddit.com${d.permalink}" target="_blank" style="font-size:11px;color:var(--text-muted);text-decoration:none;white-space:nowrap">↗ ver post</a>` : ''}
       </div>
       <div class="reddit-stats">
         <div class="reddit-stat">
@@ -727,12 +772,13 @@ function renderReddit(byId) {
       </div>
       <div class="reddit-ratio" style="color:${ratioColor}">Aprovação: ${ratio}%</div>
       <div class="ratio-bar"><div class="ratio-fill" style="width:${ratio}%;background:${ratioColor}"></div></div>
+      ${commentsHtml}
     </div>`;
   }).join('');
 
   const totalsCard = `<div class="reddit-card" style="border-color:rgba(193,154,107,0.3)">
     <div class="reddit-sub" style="color:var(--text)">Total Geral</div>
-    <div class="reddit-members">5 posts · 2 idiomas</div>
+    <div class="reddit-members">9 posts · 4 idiomas</div>
     <div class="reddit-stats">
       <div class="reddit-stat">
         <div class="reddit-stat-val c-accent">▲${fmt(totalUps)}</div>
@@ -743,7 +789,7 @@ function renderReddit(byId) {
         <div class="reddit-stat-lbl">comentários</div>
       </div>
     </div>
-    <div class="reddit-ratio" style="color:var(--text-muted)">Alcance combinado: ~7.1M membros</div>
+    <div class="reddit-ratio" style="color:var(--text-muted)">Alcance combinado: ~24.2M membros</div>
   </div>`;
 
   grid.innerHTML = cards + totalsCard;
