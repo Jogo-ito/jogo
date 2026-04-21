@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITO — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --surface: #161616;
+      --surface2: #1f1f1f;
+      --text: #f0f0f0;
+      --text-muted: #666;
+      --accent: #C19A6B;
+      --accent2: #7c0229;
+      --green: #2ecc71;
+      --blue: #3498db;
+      --orange: #e67e22;
+      --border: rgba(255,255,255,0.08);
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* HEADER */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-badge {
+      font-size: 18px; font-weight: 900;
+      background: var(--accent); color: #fff;
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-text { font-size: 16px; font-weight: 700; }
+    .logo-text small { color: var(--text-muted); font-weight: 400; font-size: 12px; display: block; margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+
+    .live-dot {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; color: var(--green);
+    }
+    .live-dot::before {
+      content: '';
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green);
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+    .live-dot.stale { color: var(--text-muted); }
+    .live-dot.stale::before { background: var(--text-muted); animation: none; }
+
+    #countdown { font-size: 12px; color: var(--text-muted); }
+    #refresh-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px; padding: 7px 14px;
+      font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: border-color 0.2s;
+    }
+    #refresh-btn:hover { border-color: var(--accent); }
+
+    /* FILTER BAR */
+    #filter-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 28px;
+      display: flex; align-items: center; gap: 14px;
+      position: sticky; top: 73px; z-index: 99;
+      flex-wrap: wrap;
+    }
+    .filter-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted); white-space: nowrap;
+    }
+    .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-pill {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 20px; padding: 5px 14px;
+      font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .filter-pill:hover { border-color: var(--accent); color: var(--text); }
+    .filter-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    #custom-range {
+      display: none; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--text-muted);
+    }
+    #custom-range input[type="date"] {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px; padding: 5px 10px;
+      font-family: 'Jost', sans-serif; font-size: 12px;
+      cursor: pointer; color-scheme: dark;
+    }
+    #custom-range input[type="date"]:focus { outline: none; border-color: var(--accent); }
+    #apply-custom {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px; padding: 5px 12px;
+      font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: border-color 0.2s;
+    }
+    #apply-custom:hover { border-color: var(--accent); }
+    #filter-active-label { font-size: 11px; color: var(--accent); font-weight: 600; margin-left: 4px; }
+
+    /* MAIN */
+    main { padding: 28px; max-width: 1440px; margin: 0 auto; }
+
+    /* SECTION TITLES */
+    .section-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--text-muted);
+      margin-bottom: 14px; margin-top: 32px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* KPI GRID */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-bottom: 8px; }
+    .kpi-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px;
+      transition: border-color 0.3s, transform 0.2s;
+    }
+    .kpi-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
+    .kpi-card.highlight { border-color: var(--accent); }
+    .kpi-card.live-only { border-style: dashed; }
+    .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+    .kpi-value { font-size: 32px; font-weight: 900; line-height: 1; }
+    .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+    .kpi-delta { font-size: 11px; margin-top: 4px; font-weight: 700; }
+    .kpi-delta.up { color: var(--green); }
+    .kpi-delta.neutral { color: var(--text-muted); }
+    .c-accent { color: var(--accent); }
+    .c-green { color: var(--green); }
+    .c-blue { color: var(--blue); }
+    .c-orange { color: var(--orange); }
+    .c-red { color: #e74c3c; }
+
+    /* CHARTS GRID */
+    .charts-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px;
+    }
+    .card.col-8 { grid-column: span 8; }
+    .card.col-6 { grid-column: span 6; }
+    .card.col-4 { grid-column: span 4; }
+    .card.col-3 { grid-column: span 3; }
+    .card.col-12 { grid-column: span 12; }
+    .card-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .card-sub { font-size: 11px; color: var(--text-muted); margin-bottom: 18px; }
+    canvas { max-height: 260px; }
+    canvas.tall { max-height: 320px; }
+    canvas.short { max-height: 180px; }
+
+    /* REDDIT PANEL */
+    .reddit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+    .reddit-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 18px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .reddit-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .reddit-sub { font-size: 13px; font-weight: 700; color: var(--accent); }
+    .reddit-members { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .reddit-stats { display: flex; gap: 16px; }
+    .reddit-stat { text-align: center; }
+    .reddit-stat-val { font-size: 22px; font-weight: 900; }
+    .reddit-stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .reddit-ratio { font-size: 11px; color: var(--text-muted); }
+    .reddit-comments { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; display: flex; flex-direction: column; gap: 7px; }
+    .reddit-comment { font-size: 11px; line-height: 1.4; }
+    .rc-author { color: var(--accent); font-weight: 700; margin-right: 4px; }
+    .rc-author.rc-op { color: #3498db; }
+    .rc-ups { color: var(--text-muted); font-size: 10px; }
+    .rc-body { color: rgba(240,240,240,0.65); margin-top: 2px; }
+    .ratio-bar { height: 4px; background: var(--surface); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+    .ratio-fill { height: 100%; border-radius: 2px; transition: width 0.8s; }
+
+    /* ACTIVITY FEED */
+    #feed-list { list-style: none; max-height: 280px; overflow-y: auto; }
+    #feed-list li {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 0; border-bottom: 1px solid var(--border);
+      font-size: 13px; animation: fadein 0.4s;
+    }
+    @keyframes fadein { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; } }
+    #feed-list li:last-child { border-bottom: none; }
+    .feed-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .feed-dot.sala { background: var(--accent); }
+    .feed-dot.jogador { background: var(--blue); }
+    .feed-time { font-size: 11px; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+
+    /* TABLE */
+    .table-wrap { overflow-x: auto; max-height: 320px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 8px 12px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+    .badge-esperando { background: rgba(243,156,18,0.15); color: #f39c12; }
+    .badge-sorteado  { background: rgba(52,152,219,0.15);  color: #3498db; }
+    .badge-revelado  { background: rgba(46,204,113,0.15);  color: #2ecc71; }
+    .badge-expirado  { background: rgba(102,102,102,0.15); color: #777; }
+
+    /* RESPONSIVE */
+    @media (max-width: 960px) {
+      .card.col-8, .card.col-6, .card.col-4, .card.col-3 { grid-column: span 12; }
+      main { padding: 16px; }
+      #filter-bar { top: 73px; }
+    }
+
+    /* SCROLL */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-badge">ITO</div>
+    <div class="logo-text">Dashboard <small>Indicadores em Tempo Real</small></div>
+  </div>
+  <div class="header-right">
+    <span class="live-dot" id="live-indicator">AO VIVO</span>
+    <span id="countdown"></span>
+    <button id="refresh-btn" onclick="loadAll(true)">↻ Agora</button>
+  </div>
+</header>
+
+<div id="filter-bar">
+  <span class="filter-label">Período</span>
+  <div class="filter-pills">
+    <button class="filter-pill active" data-filter="all">Tudo</button>
+    <button class="filter-pill" data-filter="today">Hoje</button>
+    <button class="filter-pill" data-filter="yesterday">Ontem</button>
+    <button class="filter-pill" data-filter="7d">7 dias</button>
+    <button class="filter-pill" data-filter="30d">30 dias</button>
+    <button class="filter-pill" data-filter="custom">Personalizado</button>
+  </div>
+  <div id="custom-range">
+    <input type="date" id="date-from">
+    <span>até</span>
+    <input type="date" id="date-to">
+    <button id="apply-custom">Aplicar</button>
+  </div>
+  <span id="filter-active-label"></span>
+</div>
+
+<main>
+
+  <!-- KPIs GERAIS -->
+  <div class="section-title">Visão Geral <span id="kpi-period-badge" style="font-size:10px;font-weight:600;color:var(--accent);text-transform:none;letter-spacing:0"></span></div>
+  <div class="kpi-grid">
+    <div class="kpi-card highlight">
+      <div class="kpi-label">Total de Salas</div>
+      <div class="kpi-value c-accent" id="kpi-salas">—</div>
+      <div class="kpi-sub" id="kpi-salas-sub">desde o início</div>
+      <div class="kpi-delta up" id="kpi-salas-hoje"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total de Jogadores</div>
+      <div class="kpi-value c-blue" id="kpi-jogadores">—</div>
+      <div class="kpi-sub" id="kpi-jogs-sub">entradas únicas</div>
+      <div class="kpi-delta up" id="kpi-jogs-hoje"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Média por Sala</div>
+      <div class="kpi-value c-green" id="kpi-media">—</div>
+      <div class="kpi-sub">jogadores/sala</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Partidas Concluídas</div>
+      <div class="kpi-value" id="kpi-reveladas">—</div>
+      <div class="kpi-sub">status revelado</div>
+    </div>
+    <div class="kpi-card live-only">
+      <div class="kpi-label">Em Andamento Agora</div>
+      <div class="kpi-value c-blue" id="kpi-ativas">—</div>
+      <div class="kpi-sub">ao vivo · status sorteado</div>
+    </div>
+    <div class="kpi-card live-only">
+      <div class="kpi-label">Aguardando Jogadores</div>
+      <div class="kpi-value c-orange" id="kpi-esperando">—</div>
+      <div class="kpi-sub">ao vivo · lobbies abertos</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Expiradas</div>
+      <div class="kpi-value" id="kpi-expiradas" style="color:var(--text-muted)">—</div>
+      <div class="kpi-sub">encerradas por inatividade</div>
+    </div>
+    <div class="kpi-card highlight">
+      <div class="kpi-label">Taxa de Conclusão</div>
+      <div class="kpi-value c-green" id="kpi-taxa">—</div>
+      <div class="kpi-sub">revelado / (revelado + expirado)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Duração Média</div>
+      <div class="kpi-value c-blue" id="kpi-duracao">—</div>
+      <div class="kpi-sub">minutos por partida concluída</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Salas Hoje</div>
+      <div class="kpi-value c-accent" id="kpi-hoje-salas">—</div>
+      <div class="kpi-sub" id="kpi-hoje-data">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Jogadores Hoje</div>
+      <div class="kpi-value c-blue" id="kpi-hoje-jogs">—</div>
+      <div class="kpi-sub">entradas hoje</div>
+    </div>
+  </div>
+
+  <!-- GRÁFICOS PRINCIPAIS -->
+  <div class="section-title">Atividade</div>
+  <div class="charts-grid">
+
+    <div class="card col-8">
+      <div class="card-title">Salas Criadas por Dia</div>
+      <div class="card-sub" id="chart-dia-sub">Últimos 30 dias — pico no dia de marketing destacado</div>
+      <canvas id="chart-dia" class="tall"></canvas>
+    </div>
+
+    <div class="card col-4">
+      <div class="card-title">Status das Salas</div>
+      <div class="card-sub">Distribuição no período</div>
+      <canvas id="chart-status" class="tall"></canvas>
+    </div>
+
+    <div class="card col-6">
+      <div class="card-title">Horário de Pico</div>
+      <div class="card-sub">Partidas por hora do dia (Horário de Brasília, UTC-3)</div>
+      <canvas id="chart-hora"></canvas>
+    </div>
+
+    <div class="card col-6">
+      <div class="card-title">Jogadores por Sala</div>
+      <div class="card-sub">Quantas salas tiveram N jogadores</div>
+      <canvas id="chart-jogs-sala"></canvas>
+    </div>
+
+    <div class="card col-8">
+      <div class="card-title">Distribuição dos Números</div>
+      <div class="card-sub">Frequência por faixa 1–100 — todos os sorteios</div>
+      <canvas id="chart-numeros"></canvas>
+    </div>
+
+    <div class="card col-4">
+      <div class="card-title">Feed de Atividade</div>
+      <div class="card-sub">Eventos recentes em tempo real</div>
+      <ul id="feed-list"><li style="color:var(--text-muted);padding:12px 0;font-size:13px">Aguardando eventos…</li></ul>
+    </div>
+
+    <div class="card col-6">
+      <div class="card-title">Top 10 Temas Usados</div>
+      <div class="card-sub">Temas definidos pelo host</div>
+      <canvas id="chart-temas"></canvas>
+    </div>
+
+    <div class="card col-6">
+      <div class="card-title">Número Médio por Posição</div>
+      <div class="card-sub">1º jogador a entrar, 2º, 3º… qual o número médio</div>
+      <canvas id="chart-posicao"></canvas>
+    </div>
+
+  </div>
+
+  <!-- LINHA DO TEMPO -->
+  <div class="section-title">Linha do Tempo — Acessos por Hora</div>
+  <div class="charts-grid">
+    <div class="card col-12">
+      <div class="card-title">Acessos por Hora desde o Lançamento</div>
+      <div class="card-sub">Jogadores que entraram em alguma sala — agrupados por hora (Horário de Brasília, UTC-3)</div>
+      <canvas id="chart-timeline" class="tall"></canvas>
+    </div>
+  </div>
+
+  <!-- BRIEFING DE PUBLICIDADE -->
+  <div class="section-title">Briefing de Publicidade — Público-Alvo</div>
+  <div class="card col-12" id="briefing-card" style="margin-top:0">
+    <div style="display:flex;gap:32px;flex-wrap:wrap">
+
+      <div style="flex:1;min-width:260px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:12px">Perfil do Público</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.5">
+          <li>🎲 Conhece o ITO físico (Grail Games) ou ouviu falar</li>
+          <li>🏠 Joga presencialmente em festas/reuniões de amigos</li>
+          <li>📱 Não tem as cartas em mãos — usa o celular como substituto</li>
+          <li>💸 Não quer comprar o jogo agora, mas quer jogar</li>
+          <li>🌐 Descobre via coleções de outros no Reddit (r/tabuleiros, r/boardgames)</li>
+        </ul>
+      </div>
+
+      <div style="flex:1;min-width:260px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:12px">Canais de Entrada Validados</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px">
+          <li><span style="color:var(--green)">✅</span> r/tabuleiros — comunidade BR, alta afinidade com o jogo físico</li>
+          <li><span style="color:var(--green)">✅</span> r/jogatina — BR casual, aceita bem recomendações</li>
+          <li><span style="color:var(--orange)">⚡</span> r/boardgames — alto alcance, mas exige 10:1 e histórico</li>
+          <li><span style="color:var(--orange)">⚡</span> r/partygames — removeu comentários recentes (filtro de spam)</li>
+          <li><span style="color:var(--accent2)">❌</span> r/AndroidGaming — automod agressivo, 3/3 comentários removidos</li>
+        </ul>
+      </div>
+
+      <div style="flex:1;min-width:260px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:12px">Insights da Pesquisa (2026-04-20)</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.5">
+          <li>🔍 ITO físico tem presença quase zero no Reddit — ninguém busca ativamente</li>
+          <li>💬 Encontrado: <em>"O Ito é bom mesmo?"</em> — pergunta orgânica em r/tabuleiros (coleção alheia)</li>
+          <li>🌊 Wavelength é o jogo mais comparável — mesma audiência, sem versão web gratuita</li>
+          <li>📋 Daily Rec Thread no r/boardgames (85 replies) é ponto de entrada ideal</li>
+          <li>🚫 Domínios vercel.app e github.io sofrem filtro em subs EN — não linkar no corpo</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:14px">🎯 Leads Quentes — Prontos para Disparar</div>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+        <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>
+            <span style="color:var(--green);font-weight:700">🔥 URGENTE</span>
+            <span style="margin-left:8px">r/tabuleiros · <code style="font-size:12px;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px">1s8qkvv</code> "2 anos de Hobby"</span>
+          </div>
+          <div style="color:var(--text-muted);font-size:12px">Alguém perguntou "O Ito é bom mesmo?" → responder diretamente ao comentário</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>
+            <span style="color:var(--accent);font-weight:700">⭐ TOP</span>
+            <span style="margin-left:8px">r/boardgames · <code style="font-size:12px;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px">1sqfop2</code> Daily Recommendations Thread</span>
+          </div>
+          <div style="color:var(--text-muted);font-size:12px">85 respostas · recomendar ITO como social/party light game</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>
+            <span style="color:var(--blue);font-weight:700">📌 BOA</span>
+            <span style="margin-left:8px">r/tabuleiros · <code style="font-size:12px;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px">1pgwo64</code> "Tentando ampliar a coleção"</span>
+          </div>
+          <div style="color:var(--text-muted);font-size:12px">25 respostas · sugerir ITO como opção acessível na coleção</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>
+            <span style="color:var(--blue);font-weight:700">📌 BOA</span>
+            <span style="margin-left:8px">r/tabuleiros · <code style="font-size:12px;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px">1so9dg5</code> "Jogos para crianças 7–12 anos"</span>
+          </div>
+          <div style="color:var(--text-muted);font-size:12px">18 respostas · ITO como opção cooperativa e simples para família</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>
+            <span style="color:var(--blue);font-weight:700">📌 BOA</span>
+            <span style="margin-left:8px">r/partygames · <code style="font-size:12px;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px">1sfgah1</code> "Party games para festa temática"</span>
+          </div>
+          <div style="color:var(--text-muted);font-size:12px">13 respostas · ITO para o tema "light & color" da festa (espectro)</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;font-size:11px;color:var(--text-muted)">
+      Atualizado em: 2026-04-20 · Próxima pesquisa: agente diário 3h BRT · Links: PT → jogo-ito.vercel.app | EN → game-ito.vercel.app
+    </div>
+  </div>
+
+  <!-- REDDIT -->
+  <div class="section-title">Marketing — Reddit</div>
+  <div class="reddit-grid" id="reddit-grid">
+    <div style="color:var(--text-muted);font-size:13px;padding:8px">Carregando stats do Reddit…</div>
+  </div>
+
+  <!-- TABELA RECENTES -->
+  <div class="section-title" style="margin-top:32px">Partidas Recentes</div>
+  <div class="card col-12" style="margin-top:0">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Sala</th><th>Status</th><th>Tema</th>
+            <th style="text-align:center">Jogadores</th><th>Criada em</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const SUPABASE_URL = 'https://zatuzblawpfumwxzkfpu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphdHV6Ymxhd3BmdW13eHprZnB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NDE4NzEsImV4cCI6MjA4ODUxNzg3MX0.jKkfclscnkGk2SocjfCI9q5QVGBpSjxEzR07PXhdeHo';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── Config ──────────────────────────────────────────────────────────────────────
+const REDDIT_POSTS = [
+  { sub: 'r/SideProject',         id: '1sqzibp', members: '690k',  lang: 'EN' },
+  { sub: 'r/boardgames',          id: '1sqzio2', members: '5.4M',  lang: 'EN' },
+  { sub: 'r/IndieGaming',         id: '1sqzkkb', members: '474k',  lang: 'EN' },
+  { sub: 'r/partygames',          id: '1sqzl92', members: '2.8k',  lang: 'EN' },
+  { sub: 'r/gamesEcultura',       id: '1sr0shq', members: '580k',  lang: 'PT' },
+  { sub: 'r/Brettspiele',         id: '1srh1cp', members: '30.7k', lang: 'DE' },
+  { sub: 'r/giochidatavolo',      id: '1srh1ty', members: '13.6k', lang: 'IT' },
+  { sub: 'r/InternetIsBeautiful', id: '1srh2bg', members: '16.6M', lang: 'EN' },
+  { sub: 'r/portugal',            id: '1srh30z', members: '430k',  lang: 'PT' },
+];
+const MARKETING_DATE = '2026-04-20';
+const REFRESH_INTERVAL = 30;
+
+// ── Estado ──────────────────────────────────────────────────────────────────────
+let charts = {};
+let countdownVal = REFRESH_INTERVAL;
+let countdownTimer = null;
+let feedEvents = [];
+let rawSalas = [];
+let rawJogs = [];
+let activeFilter = { type: 'all' };
+
+// ── Helpers ─────────────────────────────────────────────────────────────────────
+const COLORS = ['#C19A6B','#3498db','#2ecc71','#e67e22','#9b59b6','#1abc9c','#e74c3c','#f39c12'];
+
+function hex2rgba(hex, a) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function chartDefaults() {
+  return {
+    color: '#888',
+    gridColor: 'rgba(255,255,255,0.06)',
+    tooltipBg: '#1f1f1f',
+    tooltipColor: '#f0f0f0',
+  };
+}
+
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function fmt(n) { return n == null ? '—' : n.toLocaleString('pt-BR'); }
+
+function timeAgo(iso) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'agora';
+  if (m < 60) return `${m}min atrás`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h atrás`;
+  return `${Math.floor(h/24)}d atrás`;
+}
+
+function todayBR() {
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const br = new Date(utcMs - 3 * 3600000);
+  return br.toISOString().slice(0, 10);
+}
+
+// ── Filtro ───────────────────────────────────────────────────────────────────────
+function getFilterRange() {
+  const { type, from, to } = activeFilter;
+  if (type === 'all') return { from: 0, to: Infinity };
+
+  if (type === 'today') {
+    const brt = new Date(Date.now() - 3 * 3600000);
+    brt.setUTCHours(0, 0, 0, 0);
+    return { from: brt.getTime() + 3 * 3600000, to: Infinity };
+  }
+  if (type === 'yesterday') {
+    const brt = new Date(Date.now() - 3 * 3600000);
+    brt.setUTCHours(0, 0, 0, 0);
+    const todayStart = brt.getTime() + 3 * 3600000;
+    return { from: todayStart - 86400000, to: todayStart };
+  }
+  if (type === '7d') return { from: Date.now() - 7 * 86400000, to: Infinity };
+  if (type === '30d') return { from: Date.now() - 30 * 86400000, to: Infinity };
+  if (type === 'custom') {
+    const f = from ? new Date(from + 'T03:00:00Z').getTime() : 0;
+    const t = to   ? new Date(to   + 'T03:00:00Z').getTime() + 86400000 : Infinity;
+    return { from: f, to: t };
+  }
+  return { from: 0, to: Infinity };
+}
+
+function applyFilterAndRender() {
+  const { from, to } = getFilterRange();
+  const salas = rawSalas.filter(s => { const t = new Date(s.created_at).getTime(); return t >= from && t < to; });
+  const jogs  = rawJogs.filter(j  => { const t = new Date(j.created_at).getTime(); return t >= from && t < to; });
+  renderAll(salas, jogs);
+  updateFilterUI();
+}
+
+function updateFilterUI() {
+  document.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === activeFilter.type);
+  });
+  const customRange = document.getElementById('custom-range');
+  customRange.style.display = activeFilter.type === 'custom' ? 'flex' : 'none';
+
+  const names = { all: '', today: 'Hoje', yesterday: 'Ontem', '7d': 'Últimos 7 dias', '30d': 'Últimos 30 dias' };
+  let label = names[activeFilter.type] || '';
+  if (activeFilter.type === 'custom' && activeFilter.from && activeFilter.to) {
+    label = `${activeFilter.from} → ${activeFilter.to}`;
+  }
+  document.getElementById('filter-active-label').textContent = label ? `· ${label}` : '';
+
+  // Update period badge in section title
+  const badge = document.getElementById('kpi-period-badge');
+  if (badge) badge.textContent = label;
+
+  // Adapt "desde o início" label in KPIs
+  const subLabel = label || 'desde o início';
+  const kpiSalasSub = document.getElementById('kpi-salas-sub');
+  const kpiJogsSub  = document.getElementById('kpi-jogs-sub');
+  if (kpiSalasSub) kpiSalasSub.textContent = subLabel;
+  if (kpiJogsSub)  kpiJogsSub.textContent  = subLabel;
+}
+
+// ── Countdown e auto-refresh ────────────────────────────────────────────────────
+function startCountdown() {
+  clearInterval(countdownTimer);
+  countdownVal = REFRESH_INTERVAL;
+  const el = document.getElementById('countdown');
+  countdownTimer = setInterval(() => {
+    countdownVal--;
+    if (el) el.textContent = `atualiza em ${countdownVal}s`;
+    if (countdownVal <= 0) {
+      clearInterval(countdownTimer);
+      loadAll(false);
+    }
+  }, 1000);
+}
+
+// ── Supabase Realtime ───────────────────────────────────────────────────────────
+function setupRealtime() {
+  sb.channel('dashboard-live')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'salas' }, (payload) => {
+      addFeedEvent('sala', `Nova sala criada: ${payload.new.id}`);
+      loadAll(false);
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'jogadores' }, (payload) => {
+      addFeedEvent('jogador', `${payload.new.nome || 'Jogador'} entrou na sala ${payload.new.sala_id}`);
+    })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'salas' }, (payload) => {
+      const s = payload.new.status;
+      const label = s === 'sorteado' ? 'Partida iniciada' : s === 'revelado' ? 'Mesa revelada' : 'Lobby reaberto';
+      addFeedEvent('sala', `${label} — sala ${payload.new.id}`);
+      loadAll(false);
+    })
+    .subscribe();
+}
+
+function addFeedEvent(type, msg) {
+  feedEvents.unshift({ type, msg, ts: new Date().toISOString() });
+  if (feedEvents.length > 50) feedEvents.pop();
+  renderFeed();
+  const dot = document.getElementById('live-indicator');
+  dot.style.color = '#fff';
+  setTimeout(() => { dot.style.color = ''; }, 600);
+}
+
+function renderFeed() {
+  const ul = document.getElementById('feed-list');
+  if (!feedEvents.length) return;
+  ul.innerHTML = feedEvents.slice(0, 20).map(e => `
+    <li>
+      <span class="feed-dot ${e.type}"></span>
+      <span>${e.msg}</span>
+      <span class="feed-time">${timeAgo(e.ts)}</span>
+    </li>`).join('');
+}
+
+// ── Reddit stats ────────────────────────────────────────────────────────────────
+async function loadRedditStats() {
+  const ids = REDDIT_POSTS.map(p => 't3_' + p.id).join(',');
+  const UA = { 'User-Agent': 'ITO-Dashboard/1.0' };
+  try {
+    // Batch stats + per-post top comments in parallel
+    const [statsJson, ...commentResults] = await Promise.all([
+      fetch(`https://www.reddit.com/api/info.json?id=${ids}`, { headers: UA }).then(r => r.json()),
+      ...REDDIT_POSTS.map(p =>
+        fetch(`https://www.reddit.com/r/${p.sub.replace('r/','')}/comments/${p.id}.json?limit=8&depth=1&sort=top`, { headers: UA })
+          .then(r => r.json()).catch(() => null)
+      )
+    ]);
+
+    const byId = {};
+    (statsJson.data?.children || []).forEach(c => { byId[c.data.id] = c.data; });
+
+    const commentsByPost = {};
+    REDDIT_POSTS.forEach((p, i) => {
+      const data = commentResults[i];
+      if (!Array.isArray(data)) return;
+      const children = data[1]?.data?.children || [];
+      commentsByPost[p.id] = children
+        .filter(c => c.kind === 't1' && c.data.author !== 'AutoModerator')
+        .slice(0, 3)
+        .map(c => ({
+          author: c.data.author,
+          body: (c.data.body || '').slice(0, 160).replace(/\n+/g, ' '),
+          ups: c.data.ups,
+          is_op: c.data.is_submitter,
+          permalink: c.data.permalink
+        }));
+    });
+
+    renderReddit(byId, commentsByPost);
+  } catch(e) {
+    document.getElementById('reddit-grid').innerHTML =
+      '<div style="color:var(--text-muted);font-size:13px">Não foi possível carregar dados do Reddit (CORS — abra localmente).</div>';
+  }
+}
+
+function renderReddit(byId, commentsByPost = {}) {
+  const grid = document.getElementById('reddit-grid');
+  let totalUps = 0, totalComments = 0;
+
+  const cards = REDDIT_POSTS.map(p => {
+    const d = byId[p.id] || {};
+    const ups = d.ups || 0;
+    const comms = d.num_comments || 0;
+    const ratio = Math.round((d.upvote_ratio || 0) * 100);
+    const views = d.view_count || null;
+    totalUps += ups;
+    totalComments += comms;
+
+    const ratioColor = ratio >= 80 ? '#2ecc71' : ratio >= 50 ? '#e67e22' : '#e74c3c';
+    const langColors = { EN: '#3498db', PT: '#2ecc71', DE: '#f1c40f', IT: '#e74c3c', ES: '#e67e22' };
+    const langBadge = `<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:${langColors[p.lang] || '#888'}22;color:${langColors[p.lang] || '#888'};font-weight:700">${p.lang}</span>`;
+
+    const topComments = (commentsByPost[p.id] || []);
+    const commentsHtml = topComments.length ? `
+      <div class="reddit-comments">
+        ${topComments.map(c => `
+          <div class="reddit-comment">
+            <span class="rc-author${c.is_op ? ' rc-op' : ''}">${c.is_op ? '[OP] ' : ''}u/${c.author}</span>
+            <span class="rc-ups">▲${c.ups}</span>
+            <div class="rc-body">${c.body}${(c.body || '').length >= 160 ? '…' : ''}</div>
+          </div>`).join('')}
+      </div>` : '';
+
+    return `<div class="reddit-card">
+      <div class="reddit-card-top">
+        <div>
+          <div class="reddit-sub">${p.sub} ${langBadge}</div>
+          <div class="reddit-members">${p.members} membros</div>
+        </div>
+        ${d.permalink ? `<a href="https://reddit.com${d.permalink}" target="_blank" style="font-size:11px;color:var(--text-muted);text-decoration:none;white-space:nowrap">↗ ver post</a>` : ''}
+      </div>
+      <div class="reddit-stats">
+        <div class="reddit-stat">
+          <div class="reddit-stat-val c-accent">▲${fmt(ups)}</div>
+          <div class="reddit-stat-lbl">upvotes</div>
+        </div>
+        <div class="reddit-stat">
+          <div class="reddit-stat-val">${fmt(comms)}</div>
+          <div class="reddit-stat-lbl">comentários</div>
+        </div>
+        ${views ? `<div class="reddit-stat">
+          <div class="reddit-stat-val c-blue">${views >= 1000 ? (views/1000).toFixed(1)+'k' : views}</div>
+          <div class="reddit-stat-lbl">views</div>
+        </div>` : ''}
+      </div>
+      <div class="reddit-ratio" style="color:${ratioColor}">Aprovação: ${ratio}%</div>
+      <div class="ratio-bar"><div class="ratio-fill" style="width:${ratio}%;background:${ratioColor}"></div></div>
+      ${commentsHtml}
+    </div>`;
+  }).join('');
+
+  const totalsCard = `<div class="reddit-card" style="border-color:rgba(193,154,107,0.3)">
+    <div class="reddit-sub" style="color:var(--text)">Total Geral</div>
+    <div class="reddit-members">9 posts · 4 idiomas</div>
+    <div class="reddit-stats">
+      <div class="reddit-stat">
+        <div class="reddit-stat-val c-accent">▲${fmt(totalUps)}</div>
+        <div class="reddit-stat-lbl">upvotes</div>
+      </div>
+      <div class="reddit-stat">
+        <div class="reddit-stat-val">${fmt(totalComments)}</div>
+        <div class="reddit-stat-lbl">comentários</div>
+      </div>
+    </div>
+    <div class="reddit-ratio" style="color:var(--text-muted)">Alcance combinado: ~24.2M membros</div>
+  </div>`;
+
+  grid.innerHTML = cards + totalsCard;
+}
+
+// ── Carregar todos os dados ──────────────────────────────────────────────────────
+async function loadAll(showLoading = true) {
+  clearInterval(countdownTimer);
+
+  const btn = document.getElementById('refresh-btn');
+  const live = document.getElementById('live-indicator');
+  btn.disabled = true;
+  live.classList.add('stale');
+
+  try {
+    await sb.rpc('expire_stale_rooms');
+
+    const [salasRes, jogsRes] = await Promise.all([
+      sb.from('salas').select('*').order('created_at', { ascending: false }),
+      sb.from('jogadores').select('id,sala_id,nome,numero,created_at').order('created_at', { ascending: true }),
+    ]);
+
+    if (salasRes.error || jogsRes.error) throw salasRes.error || jogsRes.error;
+
+    rawSalas = salasRes.data || [];
+    rawJogs  = jogsRes.data  || [];
+
+    applyFilterAndRender();
+
+    const now = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    document.getElementById('countdown').textContent = `atualizado às ${now}`;
+    live.classList.remove('stale');
+
+  } catch(e) {
+    document.getElementById('countdown').textContent = 'Erro: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    startCountdown();
+  }
+}
+
+function renderAll(salas, jogs) {
+  const hoje = todayBR();
+
+  // Live status: sempre do rawSalas (estado atual, independente do filtro)
+  const esperando = rawSalas.filter(s => s.status === 'esperando').length;
+  const sorteado  = rawSalas.filter(s => s.status === 'sorteado').length;
+
+  // Métricas do período filtrado
+  const revelado  = salas.filter(s => s.status === 'revelado').length;
+  const expirado  = salas.filter(s => s.status === 'expirado').length;
+  const media = salas.length > 0 ? (jogs.length / salas.length).toFixed(1) : '—';
+
+  // "Hoje" sempre do raw (independente do filtro)
+  const salaHoje = rawSalas.filter(s => s.created_at.slice(0,10) === hoje).length;
+  const jogsHoje = rawJogs.filter(j => j.created_at.slice(0,10) === hoje).length;
+
+  document.getElementById('kpi-salas').textContent      = fmt(salas.length);
+  document.getElementById('kpi-jogadores').textContent  = fmt(jogs.length);
+  document.getElementById('kpi-media').textContent      = media;
+  document.getElementById('kpi-reveladas').textContent  = fmt(revelado);
+  document.getElementById('kpi-expiradas').textContent  = fmt(expirado);
+  document.getElementById('kpi-ativas').textContent     = fmt(sorteado);
+  document.getElementById('kpi-esperando').textContent  = fmt(esperando);
+
+  const totalEncerradas = revelado + expirado;
+  const taxa = totalEncerradas > 0 ? Math.round((revelado / totalEncerradas) * 100) : null;
+  document.getElementById('kpi-taxa').textContent = taxa != null ? taxa + '%' : '—';
+
+  const duracoes = salas
+    .filter(s => s.status === 'revelado' && s.updated_at)
+    .map(s => (new Date(s.updated_at) - new Date(s.created_at)) / 60000);
+  const duracaoMedia = duracoes.length > 0
+    ? Math.round(duracoes.reduce((a, b) => a + b, 0) / duracoes.length)
+    : null;
+  document.getElementById('kpi-duracao').textContent = duracaoMedia != null ? duracaoMedia + 'min' : '—';
+  document.getElementById('kpi-hoje-salas').textContent = fmt(salaHoje);
+  document.getElementById('kpi-hoje-jogs').textContent  = fmt(jogsHoje);
+  document.getElementById('kpi-hoje-data').textContent  = hoje;
+
+  if (salaHoje > 0) {
+    document.getElementById('kpi-salas-hoje').textContent = `+${salaHoje} hoje`;
+    document.getElementById('kpi-jogs-hoje').textContent  = `+${jogsHoje} hoje`;
+  } else {
+    document.getElementById('kpi-salas-hoje').textContent = '';
+    document.getElementById('kpi-jogs-hoje').textContent  = '';
+  }
+
+  renderDia(salas);
+  renderStatus(esperando, sorteado, revelado, expirado);
+  renderHora(salas);
+  renderJogsSala(salas, jogs);
+  renderNumeros(jogs);
+  renderTemas(salas);
+  renderPosicao(salas, jogs);
+  renderTabela(salas, jogs);
+  renderTimeline(jogs);
+}
+
+// ── Gráfico: salas por dia (stacked: revelado / expirado / em aberto) ────────────
+function renderDia(salas) {
+  const { type } = activeFilter;
+
+  let windowDays = 30;
+  if (type === 'today' || type === 'yesterday') windowDays = 1;
+  else if (type === '7d') windowDays = 7;
+  else if (type === 'custom' && activeFilter.from && activeFilter.to) {
+    const diff = (new Date(activeFilter.to) - new Date(activeFilter.from)) / 86400000;
+    windowDays = Math.max(1, Math.ceil(diff) + 1);
+  }
+
+  const dateKeys = [];
+  if (type === 'yesterday') {
+    dateKeys.push(new Date(Date.now() - 86400000).toISOString().slice(0, 10));
+  } else {
+    for (let i = windowDays - 1; i >= 0; i--) {
+      dateKeys.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
+    }
+  }
+
+  const revealed = {}, expired = {}, open = {};
+  dateKeys.forEach(d => { revealed[d] = 0; expired[d] = 0; open[d] = 0; });
+
+  salas.forEach(s => {
+    const d = s.created_at.slice(0, 10);
+    if (!(d in revealed)) return;
+    if (s.status === 'revelado') revealed[d]++;
+    else if (s.status === 'expirado') expired[d]++;
+    else open[d]++;
+  });
+
+  const labels = dateKeys.map(d => { const [, m, day] = d.split('-'); return `${day}/${m}`; });
+
+  const subEl = document.getElementById('chart-dia-sub');
+  if (subEl) {
+    const names = { today: 'Hoje', yesterday: 'Ontem', '7d': 'Últimos 7 dias', '30d': 'Últimos 30 dias', all: 'Últimos 30 dias', custom: 'Período selecionado' };
+    subEl.textContent = (names[type] || 'Últimos 30 dias') + ' — verde = concluída · cinza = expirada · bege = em aberto';
+  }
+
+  destroyChart('dia');
+  const def = chartDefaults();
+  charts['dia'] = new Chart(document.getElementById('chart-dia'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Concluída', data: dateKeys.map(d => revealed[d]), backgroundColor: 'rgba(46,204,113,0.75)', borderRadius: 0, borderSkipped: false, stack: 'status' },
+        { label: 'Expirada',  data: dateKeys.map(d => expired[d]),  backgroundColor: 'rgba(90,90,90,0.65)',    borderRadius: 0, borderSkipped: false, stack: 'status' },
+        { label: 'Em aberto', data: dateKeys.map(d => open[d]),     backgroundColor: dateKeys.map(d => d === MARKETING_DATE ? 'rgba(193,154,107,0.85)' : 'rgba(193,154,107,0.4)'), borderRadius: 4, borderSkipped: false, stack: 'status' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: { display: true, labels: { color: def.color, font: { size: 11 }, boxWidth: 12, padding: 14 } },
+        tooltip: {
+          backgroundColor: def.tooltipBg, titleColor: def.tooltipColor, bodyColor: def.tooltipColor,
+          callbacks: { label: c => ` ${c.dataset.label}: ${c.raw}` }
+        }
+      },
+      scales: {
+        x: { stacked: true, ticks: { color: def.color, font: { size: 10 }, maxTicksLimit: 10 }, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true, ticks: { color: def.color, precision: 0 }, grid: { color: def.gridColor } }
+      }
+    }
+  });
+}
+
+// ── Gráfico: status ───────────────────────────────────────────────────────────────
+function renderStatus(esp, sort, rev, exp) {
+  destroyChart('status');
+  const def = chartDefaults();
+  charts['status'] = new Chart(document.getElementById('chart-status'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Aguardando', 'Em Jogo', 'Concluída', 'Expirada'],
+      datasets: [{ data: [esp, sort, rev, exp || 0], backgroundColor: ['#e67e22','#3498db','#2ecc71','#555'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true, cutout: '68%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: def.color, padding: 14, font: {size: 12} } },
+        tooltip: { backgroundColor: def.tooltipBg, titleColor: def.tooltipColor, bodyColor: def.tooltipColor }
+      }
+    }
+  });
+}
+
+// ── Gráfico: hora do dia ──────────────────────────────────────────────────────────
+function renderHora(salas) {
+  const hours = Array(24).fill(0);
+  salas.forEach(s => {
+    const d = new Date(s.created_at);
+    hours[(d.getUTCHours() - 3 + 24) % 24]++;
+  });
+  const max = Math.max(...hours, 1);
+
+  destroyChart('hora');
+  const def = chartDefaults();
+  charts['hora'] = new Chart(document.getElementById('chart-hora'), {
+    type: 'bar',
+    data: {
+      labels: Array.from({length:24},(_,i) => `${i}h`),
+      datasets: [{ label: 'Partidas', data: hours, backgroundColor: hours.map(v => `rgba(52,152,219,${0.25 + (v/max)*0.7})`), borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: {display:false}, tooltip: { backgroundColor: def.tooltipBg, titleColor: def.tooltipColor, bodyColor: def.tooltipColor, callbacks: {label: c => ` ${c.raw} partida(s)`} } },
+      scales: {
+        x: { ticks: { color: def.color, font:{size:10}, maxTicksLimit: 12 }, grid: {display:false} },
+        y: { beginAtZero:true, ticks: { color: def.color, precision:0 }, grid: {color: def.gridColor} }
+      }
+    }
+  });
+}
+
+// ── Gráfico: jogadores por sala ───────────────────────────────────────────────────
+function renderJogsSala(salas, jogs) {
+  const contPorSala = {};
+  salas.forEach(s => contPorSala[s.id] = 0);
+  jogs.forEach(j => { if (j.sala_id in contPorSala) contPorSala[j.sala_id]++; });
+  const dist = {};
+  Object.values(contPorSala).forEach(n => { dist[n] = (dist[n] || 0) + 1; });
+  const maxN = Math.max(...Object.keys(dist).map(Number), 2);
+  const labels = Array.from({length: maxN}, (_, i) => `${i+1}`);
+  const data = labels.map((_, i) => dist[i+1] || 0);
+
+  destroyChart('jogs-sala');
+  const def = chartDefaults();
+  charts['jogs-sala'] = new Chart(document.getElementById('chart-jogs-sala'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Salas', data, backgroundColor: hex2rgba(COLORS[1], 0.75), borderRadius: 5, borderSkipped: false }] },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: {display:false}, tooltip: { backgroundColor: def.tooltipBg, titleColor: def.tooltipColor, bodyColor: def.tooltipColor, callbacks: {label: c => ` ${c.raw} sala(s)`, title: t => `${t[0].label} jogadores`} } },
+      scales: {
+        x: { ticks: {color: def.color}, grid: {display:false}, title: {display:true, text:'nº jogadores', color: def.color, font:{size:11}} },
+        y: { beginAtZero:true, ticks:{color: def.color, precision:0}, grid:{color: def.gridColor} }
+      }
+    }
+  });
+}
+
+// ── Gráfico: distribuição de números ─────────────────────────────────────────────
+function renderNumeros(jogs) {
+  const buckets = Array(10).fill(0);
+  const labels = ['1–10','11–20','21–30','31–40','41–50','51–60','61–70','71–80','81–90','91–100'];
+  let total = 0;
+  jogs.forEach(j => {
+    if (j.numero >= 1 && j.numero <= 100) { buckets[Math.min(Math.floor((j.numero-1)/10),9)]++; total++; }
+  });
+
+  destroyChart('numeros');
+  const def = chartDefaults();
+  charts['numeros'] = new Chart(document.getElementById('chart-numeros'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Frequência', data: buckets, backgroundColor: labels.map((_,i) => `hsla(${200+i*15},65%,58%,0.8)`), borderRadius: 5, borderSkipped: false }] },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend:{display:false}, tooltip: { backgroundColor: def.tooltipBg, titleColor: def.tooltipColor, bodyColor: def.tooltipColor, callbacks: {label: c => ` ${c.raw} sorteios (${total>0?((c.raw/total)*100).toFixed(1):0}%)`} } },
+      scales: {
+        x: { ticks:{color:def.color, font:{size:11}}, grid:{display:false} },
+        y: { beginAtZero:true, ticks:{color:def.color, precision:0}, grid:{color:def.gridColor} }
+      }
+    }
+  });
+}
+
+// ── Gráfico: temas ────────────────────────────────────────────────────────────────
+function renderTemas(salas) {
+  const cnt = {};
+  salas.forEach(s => { if (s.tema && s.tema.trim()) { const t = s.tema.trim(); cnt[t] = (cnt[t]||0)+1; } });
+  const sorted = Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+  destroyChart('temas');
+  const ctx = document.getElementById('chart-temas');
+  if (!sorted.length) { ctx.parentElement.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:20px 0">Nenhum tema registrado ainda.</div>'; return; }
+
+  const def = chartDefaults();
+  charts['temas'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(([t]) => t.length > 38 ? t.slice(0,35)+'…' : t),
+      datasets: [{ label: 'Usos', data: sorted.map(([,v])=>v), backgroundColor: hex2rgba(COLORS[3], 0.8), borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: true,
+      plugins: { legend:{display:false}, tooltip: { backgroundColor: def.tooltipBg, titleColor: def.tooltipColor, bodyColor: def.tooltipColor, callbacks:{label: c=>` usado ${c.raw}x`} } },
+      scales: {
+        x: { beginAtZero:true, ticks:{color:def.color, precision:0}, grid:{color:def.gridColor} },
+        y: { ticks:{color:def.color, font:{size:11}}, grid:{display:false} }
+      }
+    }
+  });
+}
+
+// ── Gráfico: número médio por posição ─────────────────────────────────────────────
+function renderPosicao(salas, jogs) {
+  const byPos = {};
+  salas.forEach(sala => {
+    const sjogs = jogs.filter(j => j.sala_id === sala.id && j.numero != null).sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
+    sjogs.forEach((j,i) => { const p = i+1; if(!byPos[p]) byPos[p]=[]; byPos[p].push(j.numero); });
+  });
+  const maxPos = Math.min(Math.max(...Object.keys(byPos).map(Number), 1), 12);
+  const labels = Array.from({length:maxPos},(_,i)=>`${i+1}º`);
+  const avgs = labels.map((_,i) => { const nums=byPos[i+1]; return nums ? +(nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(1) : null; });
+
+  destroyChart('posicao');
+  const def = chartDefaults();
+  charts['posicao'] = new Chart(document.getElementById('chart-posicao'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Número médio', data: avgs,
+        borderColor: COLORS[2], backgroundColor: hex2rgba(COLORS[2], 0.12),
+        borderWidth: 2, tension: 0.4, fill: true, pointRadius: 4, pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend:{display:false}, tooltip:{ backgroundColor:def.tooltipBg, titleColor:def.tooltipColor, bodyColor:def.tooltipColor } },
+      scales: {
+        x: { ticks:{color:def.color}, grid:{display:false} },
+        y: { min:0, max:100, ticks:{color:def.color, stepSize:20}, grid:{color:def.gridColor} }
+      }
+    }
+  });
+}
+
+// ── Gráfico: linha do tempo de acessos por hora ───────────────────────────────────
+function renderTimeline(jogs) {
+  const ctx = document.getElementById('chart-timeline');
+  if (!jogs.length) {
+    ctx.parentElement.querySelector('.card-sub').textContent = 'Nenhum acesso registrado ainda.';
+    return;
+  }
+
+  const firstMs = new Date(jogs[0].created_at).getTime() - 3 * 3600000;
+  const start = new Date(firstMs);
+  start.setUTCMinutes(0, 0, 0);
+
+  const nowUTC3 = new Date(Date.now() - 3 * 3600000);
+  nowUTC3.setUTCMinutes(0, 0, 0);
+
+  const buckets = {};
+  for (let t = new Date(start); t <= nowUTC3; t = new Date(t.getTime() + 3600000)) {
+    buckets[t.toISOString().slice(0, 13)] = 0;
+  }
+
+  jogs.forEach(j => {
+    const key = new Date(new Date(j.created_at).getTime() - 3 * 3600000).toISOString().slice(0, 13);
+    if (key in buckets) buckets[key]++;
+  });
+
+  const keys = Object.keys(buckets);
+  const labels = keys.map(k => {
+    const [date, hour] = k.split('T');
+    const [, m, d] = date.split('-');
+    return `${d}/${m} ${hour}h`;
+  });
+  const data = Object.values(buckets);
+  const marketingKeys = keys.filter(k => k.startsWith(MARKETING_DATE));
+
+  destroyChart('timeline');
+  const def = chartDefaults();
+  charts['timeline'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Acessos',
+          data,
+          borderColor: COLORS[0],
+          backgroundColor: hex2rgba(COLORS[0], 0.15),
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+        },
+        {
+          label: 'Dia Reddit',
+          data: keys.map((k, i) => marketingKeys.includes(k) ? data[i] : null),
+          borderColor: 'rgba(193,154,107,0.9)',
+          backgroundColor: 'rgba(193,154,107,0.25)',
+          borderWidth: 1.5,
+          tension: 0.3,
+          fill: true,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          spanGaps: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, labels: { color: def.color, font: { size: 12 } } },
+        tooltip: {
+          backgroundColor: def.tooltipBg, titleColor: def.tooltipColor, bodyColor: def.tooltipColor,
+          callbacks: { label: c => c.dataset.label === 'Dia Reddit' ? null : ` ${c.raw} acesso(s)` }
+        }
+      },
+      scales: {
+        x: { ticks: { color: def.color, font: { size: 10 }, maxTicksLimit: 32, maxRotation: 45 }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { color: def.color, precision: 0 }, grid: { color: def.gridColor } }
+      }
+    }
+  });
+}
+
+// ── Tabela de partidas recentes ────────────────────────────────────────────────────
+function renderTabela(salas, jogs) {
+  const cnt = {};
+  jogs.forEach(j => { cnt[j.sala_id] = (cnt[j.sala_id]||0)+1; });
+  const rows = salas.slice(0,30).map(s => {
+    const badges = { esperando:'badge-esperando', sorteado:'badge-sorteado', revelado:'badge-revelado', expirado:'badge-expirado' };
+    const labels = { esperando:'Aguardando', sorteado:'Em Jogo', revelado:'Concluída', expirado:'Expirada' };
+    const badge = `<span class="badge ${badges[s.status]||''}">${labels[s.status]||s.status}</span>`;
+    const tema = s.tema ? (s.tema.length>48 ? s.tema.slice(0,45)+'…' : s.tema) : '<em style="color:var(--text-muted)">—</em>';
+    const dt = new Date(s.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<tr>
+      <td><code style="font-weight:700">${s.id}</code></td>
+      <td>${badge}</td>
+      <td style="font-size:12px">${tema}</td>
+      <td style="text-align:center"><strong>${cnt[s.id]||0}</strong></td>
+      <td style="font-size:12px;color:var(--text-muted)">${dt}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tabela-body').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Nenhuma partida.</td></tr>';
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.filter-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const f = btn.dataset.filter;
+    if (f === 'custom') {
+      activeFilter = { type: 'custom', from: activeFilter.from || '', to: activeFilter.to || '' };
+      updateFilterUI();
+      return;
+    }
+    activeFilter = { type: f };
+    applyFilterAndRender();
+  });
+});
+
+document.getElementById('apply-custom').addEventListener('click', () => {
+  const from = document.getElementById('date-from').value;
+  const to   = document.getElementById('date-to').value;
+  if (!from && !to) return;
+  activeFilter = { type: 'custom', from, to };
+  applyFilterAndRender();
+});
+
+setupRealtime();
+loadAll(true);
+loadRedditStats();
+</script>
+</body>
+</html>
