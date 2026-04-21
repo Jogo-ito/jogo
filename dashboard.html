@@ -71,6 +71,48 @@
     }
     #refresh-btn:hover { border-color: var(--accent); }
 
+    /* FILTER BAR */
+    #filter-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 28px;
+      display: flex; align-items: center; gap: 14px;
+      position: sticky; top: 73px; z-index: 99;
+      flex-wrap: wrap;
+    }
+    .filter-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted); white-space: nowrap;
+    }
+    .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-pill {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 20px; padding: 5px 14px;
+      font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .filter-pill:hover { border-color: var(--accent); color: var(--text); }
+    .filter-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    #custom-range {
+      display: none; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--text-muted);
+    }
+    #custom-range input[type="date"] {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px; padding: 5px 10px;
+      font-family: 'Jost', sans-serif; font-size: 12px;
+      cursor: pointer; color-scheme: dark;
+    }
+    #custom-range input[type="date"]:focus { outline: none; border-color: var(--accent); }
+    #apply-custom {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px; padding: 5px 12px;
+      font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: border-color 0.2s;
+    }
+    #apply-custom:hover { border-color: var(--accent); }
+    #filter-active-label { font-size: 11px; color: var(--accent); font-weight: 600; margin-left: 4px; }
+
     /* MAIN */
     main { padding: 28px; max-width: 1440px; margin: 0 auto; }
 
@@ -92,6 +134,7 @@
     }
     .kpi-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
     .kpi-card.highlight { border-color: var(--accent); }
+    .kpi-card.live-only { border-style: dashed; }
     .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
     .kpi-value { font-size: 32px; font-weight: 900; line-height: 1; }
     .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
@@ -163,11 +206,13 @@
     .badge-esperando { background: rgba(243,156,18,0.15); color: #f39c12; }
     .badge-sorteado  { background: rgba(52,152,219,0.15);  color: #3498db; }
     .badge-revelado  { background: rgba(46,204,113,0.15);  color: #2ecc71; }
+    .badge-expirado  { background: rgba(102,102,102,0.15); color: #777; }
 
     /* RESPONSIVE */
     @media (max-width: 960px) {
       .card.col-8, .card.col-6, .card.col-4, .card.col-3 { grid-column: span 12; }
       main { padding: 16px; }
+      #filter-bar { top: 73px; }
     }
 
     /* SCROLL */
@@ -190,21 +235,40 @@
   </div>
 </header>
 
+<div id="filter-bar">
+  <span class="filter-label">Período</span>
+  <div class="filter-pills">
+    <button class="filter-pill active" data-filter="all">Tudo</button>
+    <button class="filter-pill" data-filter="today">Hoje</button>
+    <button class="filter-pill" data-filter="yesterday">Ontem</button>
+    <button class="filter-pill" data-filter="7d">7 dias</button>
+    <button class="filter-pill" data-filter="30d">30 dias</button>
+    <button class="filter-pill" data-filter="custom">Personalizado</button>
+  </div>
+  <div id="custom-range">
+    <input type="date" id="date-from">
+    <span>até</span>
+    <input type="date" id="date-to">
+    <button id="apply-custom">Aplicar</button>
+  </div>
+  <span id="filter-active-label"></span>
+</div>
+
 <main>
 
   <!-- KPIs GERAIS -->
-  <div class="section-title">Visão Geral</div>
+  <div class="section-title">Visão Geral <span id="kpi-period-badge" style="font-size:10px;font-weight:600;color:var(--accent);text-transform:none;letter-spacing:0"></span></div>
   <div class="kpi-grid">
     <div class="kpi-card highlight">
       <div class="kpi-label">Total de Salas</div>
       <div class="kpi-value c-accent" id="kpi-salas">—</div>
-      <div class="kpi-sub">desde o início</div>
+      <div class="kpi-sub" id="kpi-salas-sub">desde o início</div>
       <div class="kpi-delta up" id="kpi-salas-hoje"></div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Total de Jogadores</div>
       <div class="kpi-value c-blue" id="kpi-jogadores">—</div>
-      <div class="kpi-sub">entradas únicas</div>
+      <div class="kpi-sub" id="kpi-jogs-sub">entradas únicas</div>
       <div class="kpi-delta up" id="kpi-jogs-hoje"></div>
     </div>
     <div class="kpi-card">
@@ -217,15 +281,30 @@
       <div class="kpi-value" id="kpi-reveladas">—</div>
       <div class="kpi-sub">status revelado</div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card live-only">
       <div class="kpi-label">Em Andamento Agora</div>
       <div class="kpi-value c-blue" id="kpi-ativas">—</div>
-      <div class="kpi-sub">status sorteado</div>
+      <div class="kpi-sub">ao vivo · status sorteado</div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card live-only">
       <div class="kpi-label">Aguardando Jogadores</div>
       <div class="kpi-value c-orange" id="kpi-esperando">—</div>
-      <div class="kpi-sub">lobbies abertos</div>
+      <div class="kpi-sub">ao vivo · lobbies abertos</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Expiradas</div>
+      <div class="kpi-value" id="kpi-expiradas" style="color:var(--text-muted)">—</div>
+      <div class="kpi-sub">encerradas por inatividade</div>
+    </div>
+    <div class="kpi-card highlight">
+      <div class="kpi-label">Taxa de Conclusão</div>
+      <div class="kpi-value c-green" id="kpi-taxa">—</div>
+      <div class="kpi-sub">revelado / (revelado + expirado)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Duração Média</div>
+      <div class="kpi-value c-blue" id="kpi-duracao">—</div>
+      <div class="kpi-sub">minutos por partida concluída</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Salas Hoje</div>
@@ -245,13 +324,13 @@
 
     <div class="card col-8">
       <div class="card-title">Salas Criadas por Dia</div>
-      <div class="card-sub">Últimos 30 dias — pico no dia de marketing destacado</div>
+      <div class="card-sub" id="chart-dia-sub">Últimos 30 dias — pico no dia de marketing destacado</div>
       <canvas id="chart-dia" class="tall"></canvas>
     </div>
 
     <div class="card col-4">
       <div class="card-title">Status das Salas</div>
-      <div class="card-sub">Distribuição atual</div>
+      <div class="card-sub">Distribuição no período</div>
       <canvas id="chart-status" class="tall"></canvas>
     </div>
 
@@ -427,13 +506,16 @@ const REDDIT_POSTS = [
   { sub: 'r/gamesEcultura', id: '1sr0shq', members: '580k', lang: 'PT' },
 ];
 const MARKETING_DATE = '2026-04-20';
-const REFRESH_INTERVAL = 30; // segundos
+const REFRESH_INTERVAL = 30;
 
 // ── Estado ──────────────────────────────────────────────────────────────────────
 let charts = {};
 let countdownVal = REFRESH_INTERVAL;
 let countdownTimer = null;
 let feedEvents = [];
+let rawSalas = [];
+let rawJogs = [];
+let activeFilter = { type: 'all' };
 
 // ── Helpers ─────────────────────────────────────────────────────────────────────
 const COLORS = ['#C19A6B','#3498db','#2ecc71','#e67e22','#9b59b6','#1abc9c','#e74c3c','#f39c12'];
@@ -471,6 +553,66 @@ function todayBR() {
   const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
   const br = new Date(utcMs - 3 * 3600000);
   return br.toISOString().slice(0, 10);
+}
+
+// ── Filtro ───────────────────────────────────────────────────────────────────────
+function getFilterRange() {
+  const { type, from, to } = activeFilter;
+  if (type === 'all') return { from: 0, to: Infinity };
+
+  if (type === 'today') {
+    const brt = new Date(Date.now() - 3 * 3600000);
+    brt.setUTCHours(0, 0, 0, 0);
+    return { from: brt.getTime() + 3 * 3600000, to: Infinity };
+  }
+  if (type === 'yesterday') {
+    const brt = new Date(Date.now() - 3 * 3600000);
+    brt.setUTCHours(0, 0, 0, 0);
+    const todayStart = brt.getTime() + 3 * 3600000;
+    return { from: todayStart - 86400000, to: todayStart };
+  }
+  if (type === '7d') return { from: Date.now() - 7 * 86400000, to: Infinity };
+  if (type === '30d') return { from: Date.now() - 30 * 86400000, to: Infinity };
+  if (type === 'custom') {
+    const f = from ? new Date(from + 'T03:00:00Z').getTime() : 0;
+    const t = to   ? new Date(to   + 'T03:00:00Z').getTime() + 86400000 : Infinity;
+    return { from: f, to: t };
+  }
+  return { from: 0, to: Infinity };
+}
+
+function applyFilterAndRender() {
+  const { from, to } = getFilterRange();
+  const salas = rawSalas.filter(s => { const t = new Date(s.created_at).getTime(); return t >= from && t < to; });
+  const jogs  = rawJogs.filter(j  => { const t = new Date(j.created_at).getTime(); return t >= from && t < to; });
+  renderAll(salas, jogs);
+  updateFilterUI();
+}
+
+function updateFilterUI() {
+  document.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === activeFilter.type);
+  });
+  const customRange = document.getElementById('custom-range');
+  customRange.style.display = activeFilter.type === 'custom' ? 'flex' : 'none';
+
+  const names = { all: '', today: 'Hoje', yesterday: 'Ontem', '7d': 'Últimos 7 dias', '30d': 'Últimos 30 dias' };
+  let label = names[activeFilter.type] || '';
+  if (activeFilter.type === 'custom' && activeFilter.from && activeFilter.to) {
+    label = `${activeFilter.from} → ${activeFilter.to}`;
+  }
+  document.getElementById('filter-active-label').textContent = label ? `· ${label}` : '';
+
+  // Update period badge in section title
+  const badge = document.getElementById('kpi-period-badge');
+  if (badge) badge.textContent = label;
+
+  // Adapt "desde o início" label in KPIs
+  const subLabel = label || 'desde o início';
+  const kpiSalasSub = document.getElementById('kpi-salas-sub');
+  const kpiJogsSub  = document.getElementById('kpi-jogs-sub');
+  if (kpiSalasSub) kpiSalasSub.textContent = subLabel;
+  if (kpiJogsSub)  kpiJogsSub.textContent  = subLabel;
 }
 
 // ── Countdown e auto-refresh ────────────────────────────────────────────────────
@@ -511,7 +653,6 @@ function addFeedEvent(type, msg) {
   feedEvents.unshift({ type, msg, ts: new Date().toISOString() });
   if (feedEvents.length > 50) feedEvents.pop();
   renderFeed();
-  // Pulsar indicador ao vivo
   const dot = document.getElementById('live-indicator');
   dot.style.color = '#fff';
   setTimeout(() => { dot.style.color = ''; }, 600);
@@ -589,7 +730,6 @@ function renderReddit(byId) {
     </div>`;
   }).join('');
 
-  // Card de totais
   const totalsCard = `<div class="reddit-card" style="border-color:rgba(193,154,107,0.3)">
     <div class="reddit-sub" style="color:var(--text)">Total Geral</div>
     <div class="reddit-members">5 posts · 2 idiomas</div>
@@ -619,6 +759,8 @@ async function loadAll(showLoading = true) {
   live.classList.add('stale');
 
   try {
+    await sb.rpc('expire_stale_rooms');
+
     const [salasRes, jogsRes] = await Promise.all([
       sb.from('salas').select('*').order('created_at', { ascending: false }),
       sb.from('jogadores').select('id,sala_id,nome,numero,created_at').order('created_at', { ascending: true }),
@@ -626,7 +768,10 @@ async function loadAll(showLoading = true) {
 
     if (salasRes.error || jogsRes.error) throw salasRes.error || jogsRes.error;
 
-    renderAll(salasRes.data || [], jogsRes.data || []);
+    rawSalas = salasRes.data || [];
+    rawJogs  = jogsRes.data  || [];
+
+    applyFilterAndRender();
 
     const now = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
     document.getElementById('countdown').textContent = `atualizado às ${now}`;
@@ -643,20 +788,38 @@ async function loadAll(showLoading = true) {
 function renderAll(salas, jogs) {
   const hoje = todayBR();
 
-  // KPIs
-  const salaHoje = salas.filter(s => s.created_at.slice(0,10) === hoje).length;
-  const jogsHoje = jogs.filter(j => j.created_at.slice(0,10) === hoje).length;
-  const esperando = salas.filter(s => s.status === 'esperando').length;
-  const sorteado  = salas.filter(s => s.status === 'sorteado').length;
+  // Live status: sempre do rawSalas (estado atual, independente do filtro)
+  const esperando = rawSalas.filter(s => s.status === 'esperando').length;
+  const sorteado  = rawSalas.filter(s => s.status === 'sorteado').length;
+
+  // Métricas do período filtrado
   const revelado  = salas.filter(s => s.status === 'revelado').length;
+  const expirado  = salas.filter(s => s.status === 'expirado').length;
   const media = salas.length > 0 ? (jogs.length / salas.length).toFixed(1) : '—';
+
+  // "Hoje" sempre do raw (independente do filtro)
+  const salaHoje = rawSalas.filter(s => s.created_at.slice(0,10) === hoje).length;
+  const jogsHoje = rawJogs.filter(j => j.created_at.slice(0,10) === hoje).length;
 
   document.getElementById('kpi-salas').textContent      = fmt(salas.length);
   document.getElementById('kpi-jogadores').textContent  = fmt(jogs.length);
   document.getElementById('kpi-media').textContent      = media;
   document.getElementById('kpi-reveladas').textContent  = fmt(revelado);
+  document.getElementById('kpi-expiradas').textContent  = fmt(expirado);
   document.getElementById('kpi-ativas').textContent     = fmt(sorteado);
   document.getElementById('kpi-esperando').textContent  = fmt(esperando);
+
+  const totalEncerradas = revelado + expirado;
+  const taxa = totalEncerradas > 0 ? Math.round((revelado / totalEncerradas) * 100) : null;
+  document.getElementById('kpi-taxa').textContent = taxa != null ? taxa + '%' : '—';
+
+  const duracoes = salas
+    .filter(s => s.status === 'revelado' && s.updated_at)
+    .map(s => (new Date(s.updated_at) - new Date(s.created_at)) / 60000);
+  const duracaoMedia = duracoes.length > 0
+    ? Math.round(duracoes.reduce((a, b) => a + b, 0) / duracoes.length)
+    : null;
+  document.getElementById('kpi-duracao').textContent = duracaoMedia != null ? duracaoMedia + 'min' : '—';
   document.getElementById('kpi-hoje-salas').textContent = fmt(salaHoje);
   document.getElementById('kpi-hoje-jogs').textContent  = fmt(jogsHoje);
   document.getElementById('kpi-hoje-data').textContent  = hoje;
@@ -664,10 +827,13 @@ function renderAll(salas, jogs) {
   if (salaHoje > 0) {
     document.getElementById('kpi-salas-hoje').textContent = `+${salaHoje} hoje`;
     document.getElementById('kpi-jogs-hoje').textContent  = `+${jogsHoje} hoje`;
+  } else {
+    document.getElementById('kpi-salas-hoje').textContent = '';
+    document.getElementById('kpi-jogs-hoje').textContent  = '';
   }
 
   renderDia(salas);
-  renderStatus(esperando, sorteado, revelado);
+  renderStatus(esperando, sorteado, revelado, expirado);
   renderHora(salas);
   renderJogsSala(salas, jogs);
   renderNumeros(jogs);
@@ -677,57 +843,84 @@ function renderAll(salas, jogs) {
   renderTimeline(jogs);
 }
 
-// ── Gráfico: salas por dia ───────────────────────────────────────────────────────
+// ── Gráfico: salas por dia (stacked: revelado / expirado / em aberto) ────────────
 function renderDia(salas) {
-  const map = {};
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 86400000);
-    map[d.toISOString().slice(0,10)] = 0;
-  }
-  salas.forEach(s => { const d = s.created_at.slice(0,10); if (d in map) map[d]++; });
+  const { type } = activeFilter;
 
-  const labels = Object.keys(map).map(d => { const [,m,day] = d.split('-'); return `${day}/${m}`; });
-  const data = Object.values(map);
-  const bgColors = Object.keys(map).map(d => d === MARKETING_DATE ? 'rgba(193,154,107,0.9)' : 'rgba(193,154,107,0.35)');
+  let windowDays = 30;
+  if (type === 'today' || type === 'yesterday') windowDays = 1;
+  else if (type === '7d') windowDays = 7;
+  else if (type === 'custom' && activeFilter.from && activeFilter.to) {
+    const diff = (new Date(activeFilter.to) - new Date(activeFilter.from)) / 86400000;
+    windowDays = Math.max(1, Math.ceil(diff) + 1);
+  }
+
+  const dateKeys = [];
+  if (type === 'yesterday') {
+    dateKeys.push(new Date(Date.now() - 86400000).toISOString().slice(0, 10));
+  } else {
+    for (let i = windowDays - 1; i >= 0; i--) {
+      dateKeys.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
+    }
+  }
+
+  const revealed = {}, expired = {}, open = {};
+  dateKeys.forEach(d => { revealed[d] = 0; expired[d] = 0; open[d] = 0; });
+
+  salas.forEach(s => {
+    const d = s.created_at.slice(0, 10);
+    if (!(d in revealed)) return;
+    if (s.status === 'revelado') revealed[d]++;
+    else if (s.status === 'expirado') expired[d]++;
+    else open[d]++;
+  });
+
+  const labels = dateKeys.map(d => { const [, m, day] = d.split('-'); return `${day}/${m}`; });
+
+  const subEl = document.getElementById('chart-dia-sub');
+  if (subEl) {
+    const names = { today: 'Hoje', yesterday: 'Ontem', '7d': 'Últimos 7 dias', '30d': 'Últimos 30 dias', all: 'Últimos 30 dias', custom: 'Período selecionado' };
+    subEl.textContent = (names[type] || 'Últimos 30 dias') + ' — verde = concluída · cinza = expirada · bege = em aberto';
+  }
 
   destroyChart('dia');
   const def = chartDefaults();
   charts['dia'] = new Chart(document.getElementById('chart-dia'), {
     type: 'bar',
-    data: { labels, datasets: [{
-      label: 'Salas', data, backgroundColor: bgColors, borderRadius: 5, borderSkipped: false,
-    }]},
+    data: {
+      labels,
+      datasets: [
+        { label: 'Concluída', data: dateKeys.map(d => revealed[d]), backgroundColor: 'rgba(46,204,113,0.75)', borderRadius: 0, borderSkipped: false, stack: 'status' },
+        { label: 'Expirada',  data: dateKeys.map(d => expired[d]),  backgroundColor: 'rgba(90,90,90,0.65)',    borderRadius: 0, borderSkipped: false, stack: 'status' },
+        { label: 'Em aberto', data: dateKeys.map(d => open[d]),     backgroundColor: dateKeys.map(d => d === MARKETING_DATE ? 'rgba(193,154,107,0.85)' : 'rgba(193,154,107,0.4)'), borderRadius: 4, borderSkipped: false, stack: 'status' },
+      ]
+    },
     options: {
       responsive: true, maintainAspectRatio: true,
       plugins: {
-        legend: { display: false },
+        legend: { display: true, labels: { color: def.color, font: { size: 11 }, boxWidth: 12, padding: 14 } },
         tooltip: {
           backgroundColor: def.tooltipBg, titleColor: def.tooltipColor, bodyColor: def.tooltipColor,
-          callbacks: { title: (items) => { const d = Object.keys(Object.fromEntries(Object.entries({}).concat([[items[0].dataIndex, '']])));
-            return items[0].label; },
-            afterTitle: (items) => { const idx = items[0].dataIndex; const dateKey = Object.keys(
-              (() => { const m={}; for(let i=29;i>=0;i--){const d=new Date(Date.now()-i*86400000);m[d.toISOString().slice(0,10)]=0;} return m; })()
-            )[idx]; return dateKey === MARKETING_DATE ? '★ Dia dos posts Reddit' : ''; }
-          }
+          callbacks: { label: c => ` ${c.dataset.label}: ${c.raw}` }
         }
       },
       scales: {
-        x: { ticks: { color: def.color, font:{size:10}, maxTicksLimit: 10 }, grid: { display: false } },
-        y: { beginAtZero: true, ticks: { color: def.color, precision: 0 }, grid: { color: def.gridColor } }
+        x: { stacked: true, ticks: { color: def.color, font: { size: 10 }, maxTicksLimit: 10 }, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true, ticks: { color: def.color, precision: 0 }, grid: { color: def.gridColor } }
       }
     }
   });
 }
 
 // ── Gráfico: status ───────────────────────────────────────────────────────────────
-function renderStatus(esp, sort, rev) {
+function renderStatus(esp, sort, rev, exp) {
   destroyChart('status');
   const def = chartDefaults();
   charts['status'] = new Chart(document.getElementById('chart-status'), {
     type: 'doughnut',
     data: {
-      labels: ['Aguardando', 'Em Jogo', 'Concluída'],
-      datasets: [{ data: [esp, sort, rev], backgroundColor: ['#e67e22','#3498db','#2ecc71'], borderWidth: 0, hoverOffset: 6 }]
+      labels: ['Aguardando', 'Em Jogo', 'Concluída', 'Expirada'],
+      datasets: [{ data: [esp, sort, rev, exp || 0], backgroundColor: ['#e67e22','#3498db','#2ecc71','#555'], borderWidth: 0, hoverOffset: 6 }]
     },
     options: {
       responsive: true, maintainAspectRatio: true, cutout: '68%',
@@ -889,7 +1082,6 @@ function renderTimeline(jogs) {
     return;
   }
 
-  // Primeiro acesso, arredondado para hora cheia em UTC-3
   const firstMs = new Date(jogs[0].created_at).getTime() - 3 * 3600000;
   const start = new Date(firstMs);
   start.setUTCMinutes(0, 0, 0);
@@ -897,7 +1089,6 @@ function renderTimeline(jogs) {
   const nowUTC3 = new Date(Date.now() - 3 * 3600000);
   nowUTC3.setUTCMinutes(0, 0, 0);
 
-  // Buckets hora a hora
   const buckets = {};
   for (let t = new Date(start); t <= nowUTC3; t = new Date(t.getTime() + 3600000)) {
     buckets[t.toISOString().slice(0, 13)] = 0;
@@ -935,7 +1126,6 @@ function renderTimeline(jogs) {
           pointRadius: 0,
           pointHoverRadius: 5,
         },
-        // Área destacada para o dia de marketing
         {
           label: 'Dia Reddit',
           data: keys.map((k, i) => marketingKeys.includes(k) ? data[i] : null),
@@ -973,8 +1163,8 @@ function renderTabela(salas, jogs) {
   const cnt = {};
   jogs.forEach(j => { cnt[j.sala_id] = (cnt[j.sala_id]||0)+1; });
   const rows = salas.slice(0,30).map(s => {
-    const badges = { esperando:'badge-esperando', sorteado:'badge-sorteado', revelado:'badge-revelado' };
-    const labels = { esperando:'Aguardando', sorteado:'Em Jogo', revelado:'Concluída' };
+    const badges = { esperando:'badge-esperando', sorteado:'badge-sorteado', revelado:'badge-revelado', expirado:'badge-expirado' };
+    const labels = { esperando:'Aguardando', sorteado:'Em Jogo', revelado:'Concluída', expirado:'Expirada' };
     const badge = `<span class="badge ${badges[s.status]||''}">${labels[s.status]||s.status}</span>`;
     const tema = s.tema ? (s.tema.length>48 ? s.tema.slice(0,45)+'…' : s.tema) : '<em style="color:var(--text-muted)">—</em>';
     const dt = new Date(s.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
@@ -990,6 +1180,27 @@ function renderTabela(salas, jogs) {
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.filter-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const f = btn.dataset.filter;
+    if (f === 'custom') {
+      activeFilter = { type: 'custom', from: activeFilter.from || '', to: activeFilter.to || '' };
+      updateFilterUI();
+      return;
+    }
+    activeFilter = { type: f };
+    applyFilterAndRender();
+  });
+});
+
+document.getElementById('apply-custom').addEventListener('click', () => {
+  const from = document.getElementById('date-from').value;
+  const to   = document.getElementById('date-to').value;
+  if (!from && !to) return;
+  activeFilter = { type: 'custom', from, to };
+  applyFilterAndRender();
+});
+
 setupRealtime();
 loadAll(true);
 loadRedditStats();

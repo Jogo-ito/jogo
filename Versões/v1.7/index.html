@@ -91,6 +91,26 @@
         .top-bar-right { position: absolute; top: 20px; right: 20px; z-index: 1000; display: flex; align-items: center; gap: 4px; }
         .top-bar-left { position: absolute; top: 20px; left: 20px; z-index: 1000; }
         #btn-lang { font-size: 0.7rem; font-weight: 900; letter-spacing: 1px; padding: 6px 8px; opacity: 0.5; }
+        .lang-wrapper { position: relative; }
+        #lang-picker {
+            position: absolute; top: calc(100% + 8px); right: 0;
+            background: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 6px; display: flex; flex-direction: column; gap: 2px;
+            min-width: 130px; z-index: 2000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            animation: fadeInPicker 0.15s ease;
+        }
+        @keyframes fadeInPicker { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        .lang-option {
+            background: transparent; border: none; cursor: pointer;
+            color: var(--text-color); font-family: 'Jost', sans-serif;
+            font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px;
+            padding: 8px 12px; border-radius: 7px; text-align: left;
+            display: flex; align-items: center; gap: 10px; opacity: 0.6;
+            transition: background 0.15s, opacity 0.15s;
+        }
+        .lang-option:hover { background: var(--border-color); opacity: 1; }
+        .lang-option.active { opacity: 1; font-weight: 800; }
         
         .icon-btn { 
             background: transparent; border: none; cursor: pointer; 
@@ -244,7 +264,16 @@
 <body>
 
     <div class="top-bar-right">
-        <button id="btn-lang" class="icon-btn" onclick="toggleLang()"></button>
+        <div class="lang-wrapper">
+            <button id="btn-lang" class="icon-btn" onclick="toggleLangPicker()"></button>
+            <div id="lang-picker" class="escondido">
+                <button class="lang-option" data-lang="pt">🇧🇷 Português</button>
+                <button class="lang-option" data-lang="en">🇺🇸 English</button>
+                <button class="lang-option" data-lang="es">🇪🇸 Español</button>
+                <button class="lang-option" data-lang="de">🇩🇪 Deutsch</button>
+                <button class="lang-option" data-lang="it">🇮🇹 Italiano</button>
+            </div>
+        </div>
         <button class="icon-btn" onclick="toggleTheme()" title="Trocar Tema">
             <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="escondido">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
@@ -410,6 +439,7 @@
                 errNotFound: 'Sala não encontrada!',
                 errFull: 'Esta sala já atingiu o limite máximo de 50 jogadores.',
                 errInProgress: 'Esta partida já está em andamento. Aguarde a próxima rodada.',
+                errExpired: 'Esta sala expirou por inatividade. Crie uma nova sala para jogar.',
                 exitHostMsg: 'Você é o host. Sair agora desfará a mesa. Confirmar?',
                 exitGuestMsg: 'Você abandonará o grupo. Confirmar?',
                 leaveGroupTitle: 'SAIR DO GRUPO',
@@ -462,6 +492,7 @@
                 errNotFound: '¡Sala no encontrada!',
                 errFull: 'Esta sala ya alcanzó el límite de 50 jugadores.',
                 errInProgress: 'Esta partida ya está en curso. Espera la próxima ronda.',
+                errExpired: 'Esta sala expiró por inactividad. Crea una nueva sala para jugar.',
                 exitHostMsg: 'Eres el host. Salir cerrará la sala. ¿Confirmar?',
                 exitGuestMsg: 'Abandonarás el grupo. ¿Confirmar?',
                 leaveGroupTitle: 'SALIR DEL GRUPO',
@@ -514,6 +545,7 @@
                 errNotFound: 'Room not found!',
                 errFull: 'This room has reached the maximum of 50 players.',
                 errInProgress: 'This game is already in progress. Wait for the next round.',
+                errExpired: 'This room has expired due to inactivity. Create a new room to play.',
                 exitHostMsg: 'You are the host. Leaving now will end the session. Confirm?',
                 exitGuestMsg: 'You will leave the group. Confirm?',
                 leaveGroupTitle: 'LEAVE GROUP',
@@ -538,10 +570,116 @@
                 leaveGame: 'Leave Game',
                 themeTitle: 'Toggle Theme',
                 langBtn: 'ES',
+            },
+            'de': {
+                yourName: 'DEIN NAME',
+                createRoom: 'RAUM ERSTELLEN',
+                orJoin: 'ODER BEITRETEN',
+                roomCode: 'RAUMCODE',
+                enter: 'BEITRETEN',
+                room: 'RAUM',
+                editName: 'NAME ÄNDERN',
+                copyLink: 'RAUMLINK KOPIEREN',
+                dealCards: 'KARTEN VERTEILEN',
+                waitingHost: 'Warte auf Host...',
+                leaveGroup: 'Gruppe verlassen',
+                revealTable: 'TISCH AUFDECKEN',
+                newRound: 'NEUE RUNDE',
+                attention: 'ACHTUNG',
+                back: 'ZURÜCK',
+                confirm: 'BESTÄTIGEN',
+                howToPlay: 'WIE MAN SPIELT',
+                understood: 'VERSTANDEN',
+                you: '(DU)',
+                remove: 'Entfernen',
+                playerDefault: 'SPIELER',
+                linkCopied: 'Link kopiert!',
+                errCreate: 'Fehler beim Erstellen. Verbindung prüfen.',
+                errNotFound: 'Raum nicht gefunden!',
+                errFull: 'Dieser Raum hat das Maximum von 50 Spielern erreicht.',
+                errInProgress: 'Das Spiel läuft bereits. Warte auf die nächste Runde.',
+                errExpired: 'Dieser Raum ist abgelaufen. Erstelle einen neuen Raum.',
+                exitHostMsg: 'Du bist der Host. Verlassen beendet die Session. Bestätigen?',
+                exitGuestMsg: 'Du verlässt die Gruppe. Bestätigen?',
+                leaveGroupTitle: 'GRUPPE VERLASSEN',
+                leaveGameTitle: 'SPIEL VERLASSEN',
+                leaveGameMsg: 'Spiel läuft. Verlassen und zum Hauptmenü?',
+                revealTitle: 'KARTEN AUFDECKEN?',
+                revealMsg: 'Alle Nummern werden sichtbar. Das kann nicht rückgängig gemacht werden.',
+                tutorial: [
+                    'Das Ziel: alle Karten in aufsteigender Reihenfolge ordnen.',
+                    'Der Haken? Ihr dürft eure Zahlen NICHT laut sagen!',
+                    'Der Host wählt ein THEMA (z.B. Nützlichstes in einer Zombie-Apokalypse).',
+                    'Gib einen Hinweis basierend auf deiner Zahl. Bei 1: nutzlos. Bei 99: das Beste. Findet gemeinsam die Reihenfolge!'
+                ],
+                themeSection: 'Spielthema',
+                themePlaceholder: 'Thema eingeben...',
+                defineTheme: 'THEMA SETZEN',
+                suggestions: 'Spielervorschläge',
+                guestThemePlaceholder: 'Thema vorschlagen...',
+                waitingTheme: 'Warte auf Host...',
+                noSuggestions: 'Noch keine Vorschläge.',
+                use: 'NUTZEN',
+                leaveGame: 'Spiel verlassen',
+                themeTitle: 'Design wechseln',
+                langBtn: 'DE',
+            },
+            'it': {
+                yourName: 'IL TUO NOME',
+                createRoom: 'CREA STANZA',
+                orJoin: 'O UNISCITI',
+                roomCode: 'CODICE STANZA',
+                enter: 'ENTRA',
+                room: 'STANZA',
+                editName: 'MODIFICA NOME',
+                copyLink: 'COPIA LINK STANZA',
+                dealCards: 'DISTRIBUISCI CARTE',
+                waitingHost: "In attesa dell'Host...",
+                leaveGroup: 'Lascia il gruppo',
+                revealTable: 'RIVELA IL TAVOLO',
+                newRound: 'NUOVO ROUND',
+                attention: 'ATTENZIONE',
+                back: 'INDIETRO',
+                confirm: 'CONFERMA',
+                howToPlay: 'COME SI GIOCA',
+                understood: 'CAPITO',
+                you: '(TU)',
+                remove: 'Rimuovi',
+                playerDefault: 'GIOCATORE',
+                linkCopied: 'Link copiato!',
+                errCreate: 'Errore nella creazione. Controlla la connessione.',
+                errNotFound: 'Stanza non trovata!',
+                errFull: 'Questa stanza ha raggiunto il massimo di 50 giocatori.',
+                errInProgress: 'La partita è già in corso. Aspetta il prossimo round.',
+                errExpired: 'Questa stanza è scaduta per inattività. Crea una nuova stanza.',
+                exitHostMsg: "Sei l'host. Uscire terminerà la sessione. Confermare?",
+                exitGuestMsg: 'Lascerai il gruppo. Confermare?',
+                leaveGroupTitle: 'LASCIA IL GRUPPO',
+                leaveGameTitle: 'LASCIA LA PARTITA',
+                leaveGameMsg: 'Partita in corso. Uscire e tornare al menu?',
+                revealTitle: 'RIVELA LE CARTE?',
+                revealMsg: 'Tutti i numeri saranno visibili. Non è possibile annullare.',
+                tutorial: [
+                    "L'obiettivo è ordinare tutte le carte in ordine crescente.",
+                    'Il trucco? NON potete dire i vostri numeri ad alta voce!',
+                    "L'Host sceglie un TEMA (es. Cose più utili in un apocalisse zombie).",
+                    'Dai un indizio basato sul tuo numero. Con 1: inutile. Con 99: la cosa migliore. Trovate l\'ordine insieme!'
+                ],
+                themeSection: 'Tema della Partita',
+                themePlaceholder: 'Scrivi il tema...',
+                defineTheme: 'IMPOSTA TEMA',
+                suggestions: 'Suggerimenti dei giocatori',
+                guestThemePlaceholder: 'Suggerisci un tema...',
+                waitingTheme: "In attesa dell'host...",
+                noSuggestions: 'Ancora nessun suggerimento.',
+                use: 'USA',
+                leaveGame: 'Lascia la partita',
+                themeTitle: 'Cambia tema',
+                langBtn: 'IT',
             }
         };
 
-        const LANG_CYCLE = ['pt', 'en', 'es'];
+        const LANG_CYCLE = ['pt', 'en', 'es', 'de', 'it'];
         let currentLang = 'pt';
 
         function detectLang() {
@@ -550,6 +688,8 @@
             const nav = (navigator.language || navigator.userLanguage || 'pt').toLowerCase();
             if (nav.startsWith('pt')) return 'pt';
             if (nav.startsWith('es')) return 'es';
+            if (nav.startsWith('de')) return 'de';
+            if (nav.startsWith('it')) return 'it';
             return 'en';
         }
 
@@ -558,7 +698,10 @@
             localStorage.setItem('ito_lang', lang);
             document.documentElement.lang = lang === 'pt' ? 'pt-BR' : lang;
             const t = I18N[lang];
-            document.getElementById('btn-lang').textContent = t.langBtn;
+            document.getElementById('btn-lang').textContent = lang.toUpperCase();
+            document.querySelectorAll('.lang-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
             document.getElementById('input-nome').placeholder = t.yourName;
             const btnCriar = document.querySelector('#setup-section .btn-primary');
             if (btnCriar) btnCriar.textContent = t.createRoom;
@@ -624,10 +767,22 @@
             }
         }
 
-        function toggleLang() {
-            const next = LANG_CYCLE[(LANG_CYCLE.indexOf(currentLang) + 1) % LANG_CYCLE.length];
-            applyLang(next);
+        function toggleLangPicker() {
+            const picker = document.getElementById('lang-picker');
+            picker.classList.toggle('escondido');
         }
+        function closeLangPicker() {
+            document.getElementById('lang-picker').classList.add('escondido');
+        }
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.lang-wrapper')) closeLangPicker();
+        });
+        document.querySelectorAll('.lang-option').forEach(btn => {
+            btn.addEventListener('click', function() {
+                applyLang(this.dataset.lang);
+                closeLangPicker();
+            });
+        });
         // ── FIM I18N ──────────────────────────────────────────────────────────
 
         function toggleTheme() {
@@ -721,7 +876,8 @@
                 const id = Math.random().toString(36).substring(4, 8).toUpperCase();
                 const nomeJogador = getPlayerName();
                 
-                const { error: errSala } = await sbClient.from('salas').insert([{ id: id, status: 'esperando' }]);
+                const utmOrigem = new URLSearchParams(window.location.search).get('utm') || null;
+                const { error: errSala } = await sbClient.from('salas').insert([{ id: id, status: 'esperando', origem: utmOrigem }]);
                 if(errSala) throw errSala;
 
                 const { data: hostData, error: errHost } = await sbClient.from('jogadores').insert([{
@@ -762,6 +918,10 @@
                     if(exData) meuIdBD = storedId;
                 }
                 
+                if (salaData.status === 'expirado') {
+                    throw new Error(I18N[currentLang].errExpired);
+                }
+
                 // [v1.6] FIX 2: Trava de penetras — bloqueia novos jogadores se partida em andamento
                 if (salaData.status !== 'esperando' && !meuIdBD) {
                     throw new Error(I18N[currentLang].errInProgress);
@@ -864,6 +1024,13 @@
             }
 
             globalStatus = salaData.status;
+
+            if (globalStatus === 'expirado') {
+                alert(I18N[currentLang].errExpired);
+                window.location.href = window.location.pathname;
+                return;
+            }
+
             const listaUl = document.getElementById('lista-jogadores');
             const newIds = jogadoresData.map(j => j.id);
             
@@ -1021,6 +1188,8 @@
         // ── FIM TEMAS ───────────────────────────────────────────
 
         window.onload = () => {
+            sbClient.rpc('expire_stale_rooms');
+
             const s = new URLSearchParams(window.location.search).get('sala');
             if(s) { document.getElementById('input-sala').value = s; entrarSala(); }
 
