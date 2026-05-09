@@ -872,6 +872,9 @@
         }
 
         async function criarSala() {
+            const btn = document.querySelector('.btn-primary');
+            if (btn.disabled) return;
+            btn.disabled = true;
             try {
                 const id = Math.random().toString(36).substring(4, 8).toUpperCase();
                 const nomeJogador = getPlayerName();
@@ -881,7 +884,7 @@
                 if(errSala) throw errSala;
 
                 const { data: hostData, error: errHost } = await sbClient.from('jogadores').insert([{
-                    sala_id: id, nome: nomeJogador, is_host: true
+                    sala_id: id, nome: nomeJogador, is_host: true, lang: navigator.language || null
                 }]).select().single();
                 if(errHost) throw errHost;
 
@@ -897,13 +900,16 @@
                 document.getElementById("qrcode").innerHTML = "";
                 new QRCode(document.getElementById("qrcode"), { text: urlSala, width: 140, height: 140, colorDark: "#000000", colorLight: "#ffffff" });
                 document.getElementById('qrcode-container').classList.remove('escondido');
-            } catch (err) { alert(I18N[currentLang].errCreate); }
+            } catch (err) { btn.disabled = false; alert(I18N[currentLang].errCreate); }
         }
 
         async function entrarSala() {
+            const btn = document.querySelector('.btn-secondary');
+            if (btn.disabled) return;
+            btn.disabled = true;
             try {
                 const id = document.getElementById('input-sala').value.toUpperCase() || new URLSearchParams(window.location.search).get('sala');
-                if(!id) return;
+                if(!id) { btn.disabled = false; return; }
                 
                 const nomeJogador = getPlayerName();
                 const { data: salaData, error } = await sbClient.from('salas').select('*').eq('id', id).single();
@@ -929,7 +935,7 @@
 
                 if(!meuIdBD) {
                     const { data: novoJogador, error: errJog } = await sbClient.from('jogadores').insert([{
-                        sala_id: id, nome: nomeJogador, is_host: false
+                        sala_id: id, nome: nomeJogador, is_host: false, lang: navigator.language || null
                     }]).select().single();
                     if(errJog) throw errJog;
                     
@@ -940,7 +946,7 @@
                 salaAtual = id;
                 souHost = localStorage.getItem(`host_${id}`) === 'true';
                 abrirSala();
-            } catch (err) { alert(err.message); }
+            } catch (err) { btn.disabled = false; alert(err.message); }
         }
 
         function abrirSala() {
@@ -964,7 +970,7 @@
         async function sortearNumeros() {
             if (!souHost) return;
             const { data: jogadoresDB } = await sbClient.from('jogadores').select('id').eq('sala_id', salaAtual).order('created_at', { ascending: true });
-            
+
             let baralho = Array.from({ length: 100 }, (_, i) => i + 1);
             for (let i = baralho.length - 1; i > 0; i--) {
                 const arrayRandom = new Uint32Array(1);
@@ -973,17 +979,19 @@
                 [baralho[i], baralho[j]] = [baralho[j], baralho[i]];
             }
 
-            const promises = jogadoresDB.map((j, index) => 
+            const promises = jogadoresDB.map((j, index) =>
                 sbClient.from('jogadores').update({ numero: baralho[index] }).eq('id', j.id)
             );
             await Promise.all(promises);
             await sbClient.from('salas').update({ status: 'sorteado' }).eq('id', salaAtual);
+            carregarEstadoSala();
         }
 
         async function voltarLobby() {
             if (!souHost) return;
             await sbClient.from('salas').update({ status: 'esperando' }).eq('id', salaAtual);
             await sbClient.from('jogadores').update({ numero: null }).eq('sala_id', salaAtual);
+            carregarEstadoSala();
         }
 
         async function kick(id) {
@@ -1099,6 +1107,7 @@
             abrirModalConfirmacao(t.revealTitle, t.revealMsg, async () => {
                 await sbClient.from('salas').update({ status: 'revelado' }).eq('id', salaAtual);
                 fecharModal();
+                carregarEstadoSala();
             });
         }
 
