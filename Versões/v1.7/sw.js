@@ -1,44 +1,37 @@
+const CACHE_NAME = 'ito-static-v1';
 
-const CACHE_NAME = 'ito-cache-v1.7.4';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
+// Cacheia só assets estáticos que nunca mudam (ícones, manifest)
+// index.html NUNCA é cacheado — sempre busca da rede para garantir código atualizado
+const STATIC_ASSETS = [
   '/manifest.json',
   '/icons/icon-light.png',
   '/icons/icon-dark.png'
 ];
 
-// Instalação: Baixa os arquivos e guarda no celular
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
   self.skipWaiting();
 });
 
-// Ativação: Limpa caches antigos (vai deletar o da versão ruim)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
-        })
-      );
-    })
+    caches.keys().then((names) =>
+      Promise.all(names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n)))
+    )
   );
   self.clients.claim();
 });
 
-// Interceptação: Entrega o cache offline
 self.addEventListener('fetch', (event) => {
+  // Navegação (HTML): sempre rede — garante código sempre atualizado após deploy
+  if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+  // Assets estáticos: cache-first
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    caches.match(event.request).then(r => r || fetch(event.request))
   );
 });
