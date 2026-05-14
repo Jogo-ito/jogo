@@ -221,6 +221,30 @@
       #filter-bar { top: 73px; }
     }
 
+    /* CAMPANHAS */
+    .camp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .camp-table th { text-align: left; padding: 8px 14px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    .camp-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .camp-table tr:last-child td { border-bottom: none; }
+    .camp-table tr.camp-new td { background: rgba(193,154,107,0.04); }
+    .camp-channels { display: flex; flex-wrap: wrap; gap: 5px; }
+    .camp-chip { font-size: 11px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border); color: var(--text-muted); white-space: nowrap; }
+    .camp-chip.en { border-color: #3498db44; color: #3498db; }
+    .camp-chip.pt { border-color: #2ecc7144; color: #2ecc71; }
+    .camp-chip.de { border-color: #f1c40f44; color: #f1c40f; }
+    .camp-chip.it { border-color: #e74c3c44; color: #e74c3c; }
+    .camp-chip.karma { border-color: #9b59b644; color: #9b59b6; }
+    .camp-chip.pending { border-color: var(--border); color: var(--text-muted); opacity: 0.6; }
+    .camp-status { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+    .camp-status.live  { background: rgba(46,204,113,0.12); color: #2ecc71; }
+    .camp-status.new   { background: rgba(193,154,107,0.18); color: var(--accent); }
+    .camp-status.pend  { background: rgba(243,156,18,0.12);  color: #f39c12; }
+    .camp-status.done  { background: rgba(102,102,102,0.12); color: #777; }
+    .karma-bar-wrap { margin-top: 6px; }
+    .karma-bar-track { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; width: 160px; }
+    .karma-bar-fill  { height: 100%; border-radius: 3px; background: #9b59b6; transition: width 0.6s; }
+    .reddit-rodada-header { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); padding: 8px 0 4px; border-top: 1px solid var(--border); margin-top: 4px; grid-column: 1 / -1; }
+
     /* SCROLL */
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -371,6 +395,18 @@
     </div>
 
     <div class="card col-6">
+      <div class="card-title">Idioma dos Jogadores</div>
+      <div class="card-sub">Baseado no idioma do navegador (navigator.language)</div>
+      <canvas id="chart-lang"></canvas>
+    </div>
+
+    <div class="card col-6">
+      <div class="card-title">Origem das Salas</div>
+      <div class="card-sub">Canal de aquisição via UTM</div>
+      <canvas id="chart-origem"></canvas>
+    </div>
+
+    <div class="card col-6">
       <div class="card-title">Número Médio por Posição</div>
       <div class="card-sub">1º jogador a entrar, 2º, 3º… qual o número médio</div>
       <canvas id="chart-posicao"></canvas>
@@ -409,6 +445,7 @@
         <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px">
           <li><span style="color:var(--green)">✅</span> r/tabuleiros — comunidade BR, alta afinidade com o jogo físico</li>
           <li><span style="color:var(--green)">✅</span> r/jogatina — BR casual, aceita bem recomendações</li>
+          <li><span style="color:var(--green)">✅</span> Ludopedia Fórum — comunidade BR de board games, ângulo fã do jogo físico</li>
           <li><span style="color:var(--orange)">⚡</span> r/boardgames — alto alcance, mas exige 10:1 e histórico</li>
           <li><span style="color:var(--orange)">⚡</span> r/partygames — removeu comentários recentes (filtro de spam)</li>
           <li><span style="color:var(--accent2)">❌</span> r/AndroidGaming — automod agressivo, 3/3 comentários removidos</li>
@@ -474,10 +511,152 @@
     </div>
   </div>
 
+  <!-- CAMPANHAS -->
+  <div class="section-title">Campanhas de Divulgação</div>
+  <div class="card col-12" style="margin-top:0;padding:0;overflow:hidden">
+    <table class="camp-table">
+      <thead>
+        <tr>
+          <th style="width:110px">Data</th>
+          <th>Ação</th>
+          <th>Canais</th>
+          <th style="width:110px">Status</th>
+          <th style="width:80px">Links</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px">20–21 abr</td>
+          <td><strong>Rodada 1</strong> — posts EN + PT</td>
+          <td><div class="camp-channels">
+            <span class="camp-chip en">r/SideProject</span>
+            <span class="camp-chip en">r/boardgames</span>
+            <span class="camp-chip en">r/IndieGaming</span>
+            <span class="camp-chip en">r/partygames</span>
+            <span class="camp-chip pt">r/gamesEcultura</span>
+          </div></td>
+          <td><span class="camp-status live">ao vivo</span></td>
+          <td style="font-size:11px;color:var(--text-muted)">5 posts</td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px">21 abr</td>
+          <td><strong>Rodada 2</strong> — posts DE + IT + EN + PT</td>
+          <td><div class="camp-channels">
+            <span class="camp-chip de">r/Brettspiele</span>
+            <span class="camp-chip it">r/giochidatavolo</span>
+            <span class="camp-chip en">r/InternetIsBeautiful</span>
+            <span class="camp-chip pt">r/portugal</span>
+          </div></td>
+          <td><span class="camp-status live">ao vivo</span></td>
+          <td style="font-size:11px;color:var(--text-muted)">4 posts</td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px">21 abr</td>
+          <td><strong>Ludopedia</strong> — fórum BR</td>
+          <td><div class="camp-channels">
+            <span class="camp-chip pt">Fórum Geral</span>
+          </div></td>
+          <td><span class="camp-status live">ao vivo</span></td>
+          <td><a href="https://ludopedia.com.br/topico/98187/" target="_blank" style="font-size:11px;color:var(--text-muted);text-decoration:none">↗ ver</a></td>
+        </tr>
+        <tr class="camp-new">
+          <td style="font-size:12px"><strong style="color:var(--accent)">14 mai ✦</strong></td>
+          <td><strong>Rodada 3</strong> — posts DE + IT + EN + PT</td>
+          <td><div class="camp-channels">
+            <span class="camp-chip de">r/Brettspiele</span>
+            <span class="camp-chip it">r/giochidatavolo</span>
+            <span class="camp-chip en">r/InternetIsBeautiful</span>
+            <span class="camp-chip pt">r/portugal</span>
+          </div></td>
+          <td><span class="camp-status new">novo hoje</span></td>
+          <td style="font-size:11px;color:var(--text-muted)">4 posts</td>
+        </tr>
+        <tr class="camp-new">
+          <td style="font-size:12px"><strong style="color:var(--accent)">14 mai ✦</strong></td>
+          <td>
+            <strong>r/boardgames</strong> — karma building
+            <div class="karma-bar-wrap">
+              <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px">4 / 10 comentários</div>
+              <div class="karma-bar-track"><div class="karma-bar-fill" style="width:40%"></div></div>
+            </div>
+          </td>
+          <td><div class="camp-channels">
+            <span class="camp-chip karma">Daily Rec thread</span>
+            <span class="camp-chip karma">BGG elitism</span>
+            <span class="camp-chip karma">Scythe thread</span>
+            <span class="camp-chip karma">Minmax thread</span>
+          </div></td>
+          <td><span class="camp-status new">em progresso</span></td>
+          <td style="font-size:11px;color:var(--text-muted)">meta: 01 jun</td>
+        </tr>
+        <tr>
+          <td style="font-size:12px;color:var(--text-muted)">pendente</td>
+          <td><strong>Ludopedia</strong> — 3 ações manuais</td>
+          <td><div class="camp-channels">
+            <span class="camp-chip pending">novo tópico</span>
+            <span class="camp-chip pending">reply Novos Temas</span>
+            <span class="camp-chip pending">versão digital</span>
+          </div></td>
+          <td><span class="camp-status pend">manual</span></td>
+          <td style="font-size:11px;color:var(--text-muted)"><a href="#" onclick="alert('Textos em: ITO/textos_divulgacao.md')" style="color:var(--accent);text-decoration:none">📋 textos</a></td>
+        </tr>
+        <tr>
+          <td style="font-size:12px;color:var(--text-muted)">pendente</td>
+          <td><strong>BoardGameGeek</strong> — fórum EN</td>
+          <td><div class="camp-channels">
+            <span class="camp-chip pending">Forum: General</span>
+          </div></td>
+          <td><span class="camp-status pend">manual</span></td>
+          <td style="font-size:11px;color:var(--text-muted)"><a href="https://boardgamegeek.com/boardgame/327778/ito" target="_blank" style="color:var(--text-muted);text-decoration:none">↗ BGG</a></td>
+        </tr>
+        <tr>
+          <td style="font-size:12px;color:var(--text-muted)">pendente</td>
+          <td><strong>Hacker News</strong> — Show HN</td>
+          <td><div class="camp-channels">
+            <span class="camp-chip pending">Show HN: browser ITO</span>
+          </div></td>
+          <td><span class="camp-status pend">manual</span></td>
+          <td style="font-size:11px;color:var(--text-muted)"><a href="https://news.ycombinator.com/submit" target="_blank" style="color:var(--text-muted);text-decoration:none">↗ HN</a></td>
+        </tr>
+        <tr>
+          <td style="font-size:12px;color:var(--text-muted)">~01 jul</td>
+          <td><strong>r/boardgames</strong> — post principal (Actual Play)</td>
+          <td><div class="camp-channels">
+            <span class="camp-chip pending">5.4M membros</span>
+            <span class="camp-chip pending">Actual Play flair</span>
+          </div></td>
+          <td><span class="camp-status done">aguarda karma</span></td>
+          <td style="font-size:11px;color:var(--text-muted)">6 semanas</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <!-- REDDIT -->
   <div class="section-title">Marketing — Reddit</div>
   <div class="reddit-grid" id="reddit-grid">
     <div style="color:var(--text-muted);font-size:13px;padding:8px">Carregando stats do Reddit…</div>
+  </div>
+
+  <!-- LUDOPEDIA -->
+  <div class="section-title">Marketing — Ludopedia</div>
+  <div class="reddit-grid">
+    <div class="reddit-card" style="border-color:rgba(193,154,107,0.3)">
+      <div class="reddit-card-top">
+        <div>
+          <div class="reddit-sub">Ludopedia · Fórum Geral</div>
+          <div class="reddit-members">Comunidade BR de board games</div>
+        </div>
+        <a href="https://ludopedia.com.br/topico/98187/fiz-uma-versao-web-do-ito?id_post=586030#id_post_586030" target="_blank" style="font-size:11px;color:var(--text-muted);text-decoration:none;white-space:nowrap">↗ ver post</a>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.5">
+        "Fiz uma versão web do ITO pra jogar sem precisar levar o baralho"<br>
+        <span style="color:var(--text-muted);font-size:11px">Publicado em 2026-04-21 · Conta nova · Monitorar respostas manualmente</span>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:8px">
+        ⚠️ Sem API pública — acompanhar engajamento direto no site
+      </div>
+    </div>
   </div>
 
   <!-- TABELA RECENTES -->
@@ -505,15 +684,22 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Config ──────────────────────────────────────────────────────────────────────
 const REDDIT_POSTS = [
-  { sub: 'r/SideProject',         id: '1sqzibp', members: '690k',  lang: 'EN' },
-  { sub: 'r/boardgames',          id: '1sqzio2', members: '5.4M',  lang: 'EN' },
-  { sub: 'r/IndieGaming',         id: '1sqzkkb', members: '474k',  lang: 'EN' },
-  { sub: 'r/partygames',          id: '1sqzl92', members: '2.8k',  lang: 'EN' },
-  { sub: 'r/gamesEcultura',       id: '1sr0shq', members: '580k',  lang: 'PT' },
-  { sub: 'r/Brettspiele',         id: '1srh1cp', members: '30.7k', lang: 'DE' },
-  { sub: 'r/giochidatavolo',      id: '1srh1ty', members: '13.6k', lang: 'IT' },
-  { sub: 'r/InternetIsBeautiful', id: '1srh2bg', members: '16.6M', lang: 'EN' },
-  { sub: 'r/portugal',            id: '1srh30z', members: '430k',  lang: 'PT' },
+  // Rodada 1 — 2026-04-20
+  { sub: 'r/SideProject',         id: '1sqzibp', members: '690k',  lang: 'EN', rodada: 1, data: '20 abr' },
+  { sub: 'r/boardgames',          id: '1sqzio2', members: '5.4M',  lang: 'EN', rodada: 1, data: '20 abr' },
+  { sub: 'r/IndieGaming',         id: '1sqzkkb', members: '474k',  lang: 'EN', rodada: 1, data: '20 abr' },
+  { sub: 'r/partygames',          id: '1sqzl92', members: '2.8k',  lang: 'EN', rodada: 1, data: '20 abr' },
+  { sub: 'r/gamesEcultura',       id: '1sr0shq', members: '580k',  lang: 'PT', rodada: 1, data: '20 abr' },
+  // Rodada 2 — 2026-04-21
+  { sub: 'r/Brettspiele',         id: '1srh1cp', members: '30.7k', lang: 'DE', rodada: 2, data: '21 abr' },
+  { sub: 'r/giochidatavolo',      id: '1srh1ty', members: '13.6k', lang: 'IT', rodada: 2, data: '21 abr' },
+  { sub: 'r/InternetIsBeautiful', id: '1srh2bg', members: '16.6M', lang: 'EN', rodada: 2, data: '21 abr' },
+  { sub: 'r/portugal',            id: '1srh30z', members: '430k',  lang: 'PT', rodada: 2, data: '21 abr' },
+  // Rodada 3 — 2026-05-14
+  { sub: 'r/InternetIsBeautiful', id: '1tdamyg', members: '16.6M', lang: 'EN', rodada: 3, data: '14 mai', novo: true },
+  { sub: 'r/Brettspiele',         id: '1tdakee', members: '30.7k', lang: 'DE', rodada: 3, data: '14 mai', novo: true },
+  { sub: 'r/portugal',            id: '1tdalbo', members: '430k',  lang: 'PT', rodada: 3, data: '14 mai', novo: true },
+  { sub: 'r/giochidatavolo',      id: '1tdam7y', members: '13.6k', lang: 'IT', rodada: 3, data: '14 mai', novo: true },
 ];
 const MARKETING_DATE = '2026-04-20';
 const REFRESH_INTERVAL = 30;
@@ -723,8 +909,9 @@ async function loadRedditStats() {
 function renderReddit(byId, commentsByPost = {}) {
   const grid = document.getElementById('reddit-grid');
   let totalUps = 0, totalComments = 0;
+  const langColors = { EN: '#3498db', PT: '#2ecc71', DE: '#f1c40f', IT: '#e74c3c', ES: '#e67e22' };
 
-  const cards = REDDIT_POSTS.map(p => {
+  function makeCard(p) {
     const d = byId[p.id] || {};
     const ups = d.ups || 0;
     const comms = d.num_comments || 0;
@@ -734,8 +921,9 @@ function renderReddit(byId, commentsByPost = {}) {
     totalComments += comms;
 
     const ratioColor = ratio >= 80 ? '#2ecc71' : ratio >= 50 ? '#e67e22' : '#e74c3c';
-    const langColors = { EN: '#3498db', PT: '#2ecc71', DE: '#f1c40f', IT: '#e74c3c', ES: '#e67e22' };
-    const langBadge = `<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:${langColors[p.lang] || '#888'}22;color:${langColors[p.lang] || '#888'};font-weight:700">${p.lang}</span>`;
+    const lc = langColors[p.lang] || '#888';
+    const langBadge = `<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:${lc}22;color:${lc};font-weight:700">${p.lang}</span>`;
+    const novoBadge = p.novo ? `<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(193,154,107,0.18);color:var(--accent);font-weight:700;margin-left:4px">NOVO</span>` : '';
 
     const topComments = (commentsByPost[p.id] || []);
     const commentsHtml = topComments.length ? `
@@ -748,13 +936,14 @@ function renderReddit(byId, commentsByPost = {}) {
           </div>`).join('')}
       </div>` : '';
 
-    return `<div class="reddit-card">
+    const border = p.novo ? 'border-color:rgba(193,154,107,0.35);' : '';
+    return `<div class="reddit-card" style="${border}">
       <div class="reddit-card-top">
         <div>
-          <div class="reddit-sub">${p.sub} ${langBadge}</div>
-          <div class="reddit-members">${p.members} membros</div>
+          <div class="reddit-sub">${p.sub} ${langBadge}${novoBadge}</div>
+          <div class="reddit-members">${p.members} membros · ${p.data}</div>
         </div>
-        ${d.permalink ? `<a href="https://reddit.com${d.permalink}" target="_blank" style="font-size:11px;color:var(--text-muted);text-decoration:none;white-space:nowrap">↗ ver post</a>` : ''}
+        ${d.permalink ? `<a href="https://reddit.com${d.permalink}" target="_blank" style="font-size:11px;color:var(--text-muted);text-decoration:none;white-space:nowrap">↗ ver</a>` : ''}
       </div>
       <div class="reddit-stats">
         <div class="reddit-stat">
@@ -774,11 +963,23 @@ function renderReddit(byId, commentsByPost = {}) {
       <div class="ratio-bar"><div class="ratio-fill" style="width:${ratio}%;background:${ratioColor}"></div></div>
       ${commentsHtml}
     </div>`;
-  }).join('');
+  }
+
+  // Agrupa por rodada
+  const rodadas = [...new Set(REDDIT_POSTS.map(p => p.rodada))].sort();
+  const rodadaLabels = { 1: 'Rodada 1 — 20 abr 2026', 2: 'Rodada 2 — 21 abr 2026', 3: 'Rodada 3 — 14 mai 2026 ✦' };
+
+  let html = '';
+  rodadas.forEach(r => {
+    const posts = REDDIT_POSTS.filter(p => p.rodada === r);
+    const isNova = posts.some(p => p.novo);
+    html += `<div class="reddit-rodada-header" style="${isNova ? 'color:var(--accent);border-color:rgba(193,154,107,0.3)' : ''}">${rodadaLabels[r] || 'Rodada ' + r}</div>`;
+    posts.forEach(p => { html += makeCard(p); });
+  });
 
   const totalsCard = `<div class="reddit-card" style="border-color:rgba(193,154,107,0.3)">
     <div class="reddit-sub" style="color:var(--text)">Total Geral</div>
-    <div class="reddit-members">9 posts · 4 idiomas</div>
+    <div class="reddit-members">${REDDIT_POSTS.length} posts · 4 idiomas · 3 rodadas</div>
     <div class="reddit-stats">
       <div class="reddit-stat">
         <div class="reddit-stat-val c-accent">▲${fmt(totalUps)}</div>
@@ -789,10 +990,10 @@ function renderReddit(byId, commentsByPost = {}) {
         <div class="reddit-stat-lbl">comentários</div>
       </div>
     </div>
-    <div class="reddit-ratio" style="color:var(--text-muted)">Alcance combinado: ~24.2M membros</div>
+    <div class="reddit-ratio" style="color:var(--text-muted)">Alcance combinado: ~50M+ membros</div>
   </div>`;
 
-  grid.innerHTML = cards + totalsCard;
+  grid.innerHTML = html + totalsCard;
 }
 
 // ── Carregar todos os dados ──────────────────────────────────────────────────────
@@ -885,6 +1086,8 @@ function renderAll(salas, jogs) {
   renderNumeros(jogs);
   renderTemas(salas);
   renderPosicao(salas, jogs);
+  renderLang(jogs);
+  renderOrigem(salas);
   renderTabela(salas, jogs);
   renderTimeline(jogs);
 }
@@ -1199,6 +1402,101 @@ function renderTimeline(jogs) {
       scales: {
         x: { ticks: { color: def.color, font: { size: 10 }, maxTicksLimit: 32, maxRotation: 45 }, grid: { display: false } },
         y: { beginAtZero: true, ticks: { color: def.color, precision: 0 }, grid: { color: def.gridColor } }
+      }
+    }
+  });
+}
+
+// ── Gráfico: idioma dos jogadores ────────────────────────────────────────────────────
+const LANG_LABELS = {
+  'pt-BR': '🇧🇷 pt-BR', 'pt-PT': '🇵🇹 pt-PT', 'pt': '🇧🇷 Português',
+  'en-US': '🇺🇸 en-US', 'en-GB': '🇬🇧 en-GB', 'en': '🌐 English',
+  'es':    '🇪🇸 Español', 'es-ES': '🇪🇸 es-ES', 'es-AR': '🇦🇷 es-AR', 'es-MX': '🇲🇽 es-MX',
+  'de':    '🇩🇪 Deutsch', 'de-DE': '🇩🇪 de-DE',
+  'it':    '🇮🇹 Italiano','it-IT': '🇮🇹 it-IT',
+  'fr':    '🇫🇷 Français','fr-FR': '🇫🇷 fr-FR',
+  'ja':    '🇯🇵 日本語',  'ko': '🇰🇷 한국어',
+  'zh':    '🇨🇳 中文',    'zh-TW': '🇹🇼 繁體中文',
+};
+
+function renderLang(jogs) {
+  const cnt = {};
+  jogs.forEach(j => {
+    if (!j.lang) { cnt['(sem dados)'] = (cnt['(sem dados)'] || 0) + 1; return; }
+    const key = j.lang;
+    cnt[key] = (cnt[key] || 0) + 1;
+  });
+
+  const sorted = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 12);
+  const labels = sorted.map(([k]) => LANG_LABELS[k] || k);
+  const data   = sorted.map(([, v]) => v);
+
+  destroyChart('lang');
+  const ctx = document.getElementById('chart-lang');
+  if (!sorted.length || (sorted.length === 1 && sorted[0][0] === '(sem dados)')) {
+    ctx.parentElement.querySelector('.card-sub').textContent = 'Aguardando dados — migration lang_migration.sql pendente.';
+    return;
+  }
+
+  const def = chartDefaults();
+  charts['lang'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label: 'Jogadores', data, backgroundColor: labels.map((_, i) => hex2rgba(COLORS[i % COLORS.length], 0.8)), borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: def.tooltipBg, titleColor: def.tooltipColor, bodyColor: def.tooltipColor, callbacks: { label: c => ` ${c.raw} jogador(es)` } }
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { color: def.color, precision: 0 }, grid: { color: def.gridColor } },
+        y: { ticks: { color: def.color, font: { size: 12 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ── Gráfico: origem das salas (UTM) ──────────────────────────────────────────────────
+const ORIGEM_LABELS = {
+  'reddit-ptbr':  '🇧🇷 Reddit PT-BR',
+  'reddit-en':    '🌐 Reddit EN',
+  'reddit-de':    '🇩🇪 Reddit DE',
+  'reddit-it':    '🇮🇹 Reddit IT',
+  'ludopedia':    '🎲 Ludopedia',
+  'direct':       '🔗 Direto',
+};
+
+function renderOrigem(salas) {
+  const cnt = {};
+  salas.forEach(s => {
+    const key = s.origem || '(direto/orgânico)';
+    cnt[key] = (cnt[key] || 0) + 1;
+  });
+
+  const sorted = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
+  const labels = sorted.map(([k]) => ORIGEM_LABELS[k] || k);
+  const data   = sorted.map(([, v]) => v);
+
+  destroyChart('origem');
+  const ctx = document.getElementById('chart-origem');
+  const def = chartDefaults();
+  charts['origem'] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: COLORS.map(c => hex2rgba(c, 0.85)), borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true, cutout: '60%',
+      plugins: {
+        legend: { position: 'right', labels: { color: def.color, font: { size: 11 }, padding: 10, boxWidth: 12 } },
+        tooltip: {
+          backgroundColor: def.tooltipBg, titleColor: def.tooltipColor, bodyColor: def.tooltipColor,
+          callbacks: { label: c => ` ${c.label}: ${c.raw} sala(s)` }
+        }
       }
     }
   });
