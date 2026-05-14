@@ -855,6 +855,8 @@
         let globalStatus = 'esperando';
         let debounceTimer;
         let canalAtivo = null;
+        let canalSugestoes = null;
+        let estadoReqId = 0;
         let temaAtual = '';
 
         // [v1.6] FIX 1: Anti-XSS — escapa HTML antes de renderizar nomes
@@ -969,29 +971,42 @@
 
         async function sortearNumeros() {
             if (!souHost) return;
-            const { data: jogadoresDB } = await sbClient.from('jogadores').select('id').eq('sala_id', salaAtual).order('created_at', { ascending: true });
+            const btn = document.getElementById('btn-sortear');
+            if (btn) btn.disabled = true;
 
-            let baralho = Array.from({ length: 100 }, (_, i) => i + 1);
-            for (let i = baralho.length - 1; i > 0; i--) {
-                const arrayRandom = new Uint32Array(1);
-                window.crypto.getRandomValues(arrayRandom);
-                const j = Math.floor((arrayRandom[0] / (0xffffffff + 1)) * (i + 1));
-                [baralho[i], baralho[j]] = [baralho[j], baralho[i]];
+            try {
+                const { data: jogadoresDB, error: errJog } = await sbClient.from('jogadores').select('id').eq('sala_id', salaAtual).order('created_at', { ascending: true });
+                if (errJog || !jogadoresDB) throw new Error('Erro ao buscar jogadores: ' + (errJog?.message || 'null'));
+
+                let baralho = Array.from({ length: 100 }, (_, i) => i + 1);
+                for (let i = baralho.length - 1; i > 0; i--) {
+                    const arrayRandom = new Uint32Array(1);
+                    window.crypto.getRandomValues(arrayRandom);
+                    const j = Math.floor((arrayRandom[0] / (0xffffffff + 1)) * (i + 1));
+                    [baralho[i], baralho[j]] = [baralho[j], baralho[i]];
+                }
+
+                const promises = jogadoresDB.map((j, index) =>
+                    sbClient.from('jogadores').update({ numero: baralho[index] }).eq('id', j.id)
+                );
+                await Promise.all(promises);
+
+                const { error: errSala } = await sbClient.from('salas').update({ status: 'sorteado' }).eq('id', salaAtual);
+                if (errSala) throw new Error('Erro ao atualizar sala: ' + errSala.message);
+
+                await carregarEstadoSala();
+            } catch (err) {
+                console.error('[ITO] sortearNumeros:', err);
+                if (btn) btn.disabled = false;
             }
-
-            const promises = jogadoresDB.map((j, index) =>
-                sbClient.from('jogadores').update({ numero: baralho[index] }).eq('id', j.id)
-            );
-            await Promise.all(promises);
-            await sbClient.from('salas').update({ status: 'sorteado' }).eq('id', salaAtual);
-            carregarEstadoSala();
         }
 
         async function voltarLobby() {
             if (!souHost) return;
-            await sbClient.from('salas').update({ status: 'esperando' }).eq('id', salaAtual);
+            const { error: errSala } = await sbClient.from('salas').update({ status: 'esperando' }).eq('id', salaAtual);
+            if (errSala) { console.error('[ITO] voltarLobby:', errSala); return; }
             await sbClient.from('jogadores').update({ numero: null }).eq('sala_id', salaAtual);
-            carregarEstadoSala();
+            await carregarEstadoSala();
         }
 
         async function kick(id) {
@@ -1005,21 +1020,31 @@
         }
 
         function inscreverNoJogo() {
-            // [v1.6] FIX 3: Evita vazamento de canais Realtime — remove canal antigo antes de criar novo
             if (canalAtivo) sbClient.removeChannel(canalAtivo);
+            if (canalSugestoes) sbClient.removeChannel(canalSugestoes);
 
             const channel = sbClient.channel('ito_' + salaAtual);
             channel.on('postgres_changes', { event: '*', schema: 'public', table: 'salas', filter: `id=eq.${salaAtual}` }, () => carregarEstadoSala());
             channel.on('postgres_changes', { event: '*', schema: 'public', table: 'jogadores', filter: `sala_id=eq.${salaAtual}` }, () => carregarEstadoSala());
-            channel.on('postgres_changes', { event: '*', schema: 'public', table: 'sugestoes_tema', filter: `sala_id=eq.${salaAtual}` }, () => carregarSugestoes());
             channel.subscribe();
             canalAtivo = channel;
+
+            // Canal separado para sugestões — evita que falha nesta subscription quebre o canal principal
+            if (souHost) {
+                const chSug = sbClient.channel('ito_sug_' + salaAtual);
+                chSug.on('postgres_changes', { event: '*', schema: 'public', table: 'sugestoes_tema', filter: `sala_id=eq.${salaAtual}` }, () => carregarSugestoes());
+                chSug.subscribe();
+                canalSugestoes = chSug;
+            }
+
             carregarEstadoSala();
         }
 
         async function carregarEstadoSala() {
+            const reqId = ++estadoReqId;
             const { data: salaData } = await sbClient.from('salas').select('*').eq('id', salaAtual).single();
             const { data: jogadoresData } = await sbClient.from('jogadores').select('*').eq('sala_id', salaAtual).order('created_at', { ascending: true });
+            if (reqId !== estadoReqId) return;
             if(salaData && jogadoresData) atualizarInterface(salaData, jogadoresData);
             atualizarTema(salaData?.tema || '');
             if (souHost) carregarSugestoes();
