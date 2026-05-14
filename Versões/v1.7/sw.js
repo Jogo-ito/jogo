@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'ito-cache-v1.7.3';
+const CACHE_NAME = 'ito-cache-v1.7.4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
