@@ -1026,7 +1026,7 @@ async function loadAll(showLoading = true) {
 
     const [salasRes, jogsRes] = await Promise.all([
       sb.from('salas').select('*').order('created_at', { ascending: false }),
-      sb.from('jogadores').select('id,sala_id,nome,numero,created_at').order('created_at', { ascending: true }),
+      sb.from('jogadores').select('id,sala_id,nome,numero,created_at').order('created_at', { ascending: false }),
     ]);
 
     if (salasRes.error || jogsRes.error) throw salasRes.error || jogsRes.error;
@@ -1522,7 +1522,7 @@ function renderOrigem(salas) {
 function renderTabela(salas, jogs) {
   const cnt = {};
   jogs.forEach(j => { cnt[j.sala_id] = (cnt[j.sala_id]||0)+1; });
-  const rows = salas.slice(0,30).map(s => {
+  const rows = salas.filter(s => (cnt[s.id]||0) > 0).slice(0,30).map(s => {
     const badges = { esperando:'badge-esperando', sorteado:'badge-sorteado', revelado:'badge-revelado', expirado:'badge-expirado' };
     const labels = { esperando:'Aguardando', sorteado:'Em Jogo', revelado:'Concluída', expirado:'Expirada' };
     const badge = `<span class="badge ${badges[s.status]||''}">${labels[s.status]||s.status}</span>`;

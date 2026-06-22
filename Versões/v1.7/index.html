@@ -1014,6 +1014,7 @@
             const { error: errSala } = await sbClient.from('salas').update({ status: 'esperando' }).eq('id', salaAtual);
             if (errSala) { console.error('[ITO] voltarLobby:', errSala); return; }
             await sbClient.from('jogadores').update({ numero: null }).eq('sala_id', salaAtual);
+            if (canalAtivo) canalAtivo.send({ type: 'broadcast', event: 'volta_lobby', payload: {} });
             await carregarEstadoSala();
         }
 
@@ -1034,6 +1035,7 @@
             const channel = sbClient.channel('ito_' + salaAtual);
             channel.on('postgres_changes', { event: '*', schema: 'public', table: 'salas', filter: `id=eq.${salaAtual}` }, () => carregarEstadoSala());
             channel.on('postgres_changes', { event: '*', schema: 'public', table: 'jogadores', filter: `sala_id=eq.${salaAtual}` }, () => carregarEstadoSala());
+            channel.on('broadcast', { event: 'volta_lobby' }, () => carregarEstadoSala());
             channel.subscribe();
             canalAtivo = channel;
 
@@ -1240,6 +1242,9 @@
                 navigator.serviceWorker.register('/sw.js')
                     .then(() => console.log('Service Worker Registrado!'))
                     .catch(err => console.error('Erro no SW:', err));
+                // Recarrega automaticamente quando um SW novo ativa — garante que todos
+                // rodem sempre o código mais recente sem precisar fechar o app manualmente
+                navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
             }
         };
     </script>
