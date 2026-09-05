@@ -1,5 +1,8 @@
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/Versões/v1.7/$1" }
+  ],
+  "crons": [
+    { "path": "/api/cron/expire-rooms", "schedule": "*/30 * * * *" }
   ]
 }
