@@ -3,6 +3,6 @@
     { "source": "/((?!api/).*)", "destination": "/Versões/v1.7/$1" }
   ],
   "crons": [
-    { "path": "/api/cron/expire-rooms", "schedule": "*/30 * * * *" }
+    { "path": "/api/cron/expire-rooms", "schedule": "0 5 * * *" }
   ]
 }
