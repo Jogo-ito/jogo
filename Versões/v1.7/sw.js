@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ito-static-v1';
+const CACHE_NAME = 'ito-static-v2';
 
 // Cacheia só assets estáticos que nunca mudam (ícones, manifest)
 // index.html NUNCA é cacheado — sempre busca da rede para garantir código atualizado

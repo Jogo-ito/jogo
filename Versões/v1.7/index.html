@@ -1113,6 +1113,11 @@
                 document.getElementById('tema-convidado').classList.toggle('escondido', souHost);
                 document.getElementById('lobby-host-controls').classList.toggle('escondido', !souHost);
                 document.getElementById('wait-message-lobby').classList.toggle('escondido', souHost);
+                // Reabilita o botão de sortear ao voltar ao lobby — sortearNumeros() só o
+                // reabilita no caminho de erro, então após uma rodada bem-sucedida ele
+                // ficava travado em "disabled", impedindo iniciar uma nova rodada na mesma sala.
+                const btnSortearLobby = document.getElementById('btn-sortear');
+                if (btnSortearLobby) btnSortearLobby.disabled = false;
             } else if (souHost) {
                 document.getElementById('btn-revelar').classList.toggle('escondido', globalStatus !== 'sorteado');
                 document.getElementById('btn-reset').classList.toggle('escondido', globalStatus !== 'revelado');
