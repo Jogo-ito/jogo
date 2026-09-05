@@ -8,7 +8,7 @@
 const SUPABASE_URL = 'https://zatuzblawpfumwxzkfpu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphdHV6Ymxhd3BmdW13eHprZnB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NDE4NzEsImV4cCI6MjA4ODUxNzg3MX0.jKkfclscnkGk2SocjfCI9q5QVGBpSjxEzR07PXhdeHo';
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (process.env.CRON_SECRET && req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ ok: false, error: 'unauthorized' });
   }
