@@ -278,21 +278,15 @@
     }
     .auth-title { font-size: 17px; font-weight: 700; }
     .auth-sub { font-size: 13px; color: var(--text-muted); }
-    #auth-input {
-      width: 100%; padding: 12px 16px; border-radius: 10px;
-      background: var(--surface2); border: 1px solid var(--border);
-      color: var(--text); font-family: 'Jost', sans-serif; font-size: 15px;
-      text-align: center; letter-spacing: 2px; outline: none;
-      transition: border-color 0.2s;
+    #btn-google-login {
+      display: flex; align-items: center; gap: 10px;
+      background: #fff; color: #1a1a1a; border: none; border-radius: 10px;
+      padding: 12px 20px; font-family: 'Jost', sans-serif;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: opacity 0.2s; width: 100%; justify-content: center;
     }
-    #auth-input:focus { border-color: var(--accent); }
-    #btn-entrar {
-      width: 100%; padding: 12px; border-radius: 10px;
-      background: var(--accent); color: #fff; border: none;
-      font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 700;
-      cursor: pointer; transition: opacity 0.2s;
-    }
-    #btn-entrar:hover { opacity: 0.85; }
+    #btn-google-login:hover { opacity: 0.88; }
+    #btn-google-login svg { flex-shrink: 0; }
     #auth-error { font-size: 12px; color: #e74c3c; display: none; }
     #dashboard-root { display: none; }
   </style>
@@ -306,9 +300,11 @@
       <div class="auth-title">Dashboard Privado</div>
       <div class="auth-sub">Acesso restrito ao dono do projeto</div>
     </div>
-    <input id="auth-input" type="password" placeholder="••••••••••••••" onkeydown="if(event.key==='Enter')checkPassword()" autofocus>
-    <button id="btn-entrar" onclick="checkPassword()">Entrar</button>
-    <div id="auth-error">Senha incorreta.</div>
+    <button id="btn-google-login" onclick="loginWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Entrar com Google
+    </button>
+    <div id="auth-error">Acesso negado para este e-mail.</div>
   </div>
 </div>
 
@@ -1659,12 +1655,7 @@ document.getElementById('apply-custom').addEventListener('click', () => {
 });
 
 // ── Auth ───────────────────────────────────────────────────────────────────────
-const PASS_HASH = '57f0ea8306adfc05673b219b829e99811dc25e3f5d9a7ea74d50b1018906aeda';
-
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
+const ALLOWED_EMAILS = ['gala.alt911@gmail.com', 'g.s.almeida66@gmail.com'];
 
 function showDashboard() {
   document.getElementById('auth-gate').style.display = 'none';
@@ -1674,23 +1665,44 @@ function showDashboard() {
   loadRedditStats();
 }
 
-async function checkPassword() {
-  const val = document.getElementById('auth-input').value;
-  const hash = await sha256(val);
-  if (hash === PASS_HASH) {
-    sessionStorage.setItem('ito_auth', hash);
-    showDashboard();
-  } else {
-    document.getElementById('auth-error').style.display = 'block';
-    document.getElementById('auth-input').value = '';
-    document.getElementById('auth-input').focus();
-  }
+function showGate(error) {
+  document.getElementById('auth-gate').style.display = 'flex';
+  document.getElementById('dashboard-root').style.display = 'none';
+  if (error) document.getElementById('auth-error').style.display = 'block';
 }
 
-// Auto-login se já autenticou nessa aba
-if (sessionStorage.getItem('ito_auth') === PASS_HASH) {
-  document.addEventListener('DOMContentLoaded', showDashboard);
+async function loginWithGoogle() {
+  const btn = document.getElementById('btn-google-login');
+  btn.textContent = 'Redirecionando…';
+  btn.disabled = true;
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
 }
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN') {
+    if (ALLOWED_EMAILS.includes(session?.user?.email)) {
+      showDashboard();
+    } else {
+      sb.auth.signOut();
+      showGate(true);
+    }
+  } else if (event === 'SIGNED_OUT') {
+    showGate(false);
+  }
+});
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (ALLOWED_EMAILS.includes(session?.user?.email)) {
+    showDashboard();
+  } else {
+    if (session) await sb.auth.signOut();
+    showGate(false);
+  }
+})();
 </script>
 </body>
 </html>
