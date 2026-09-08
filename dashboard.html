@@ -63,6 +63,15 @@
     .live-dot.stale::before { background: var(--text-muted); animation: none; }
 
     #countdown { font-size: 12px; color: var(--text-muted); }
+    #campanhas-link {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px; padding: 7px 14px;
+      font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 600;
+      text-decoration: none; transition: border-color 0.2s;
+    }
+    #campanhas-link:hover { border-color: var(--accent); }
+    html { scroll-behavior: smooth; }
+    #campanhas { scroll-margin-top: 130px; }
     #refresh-btn {
       background: var(--surface2); border: 1px solid var(--border);
       color: var(--text); border-radius: 8px; padding: 7px 14px;
@@ -311,6 +320,7 @@
     <div class="logo-text">Dashboard <small>Indicadores em Tempo Real</small></div>
   </div>
   <div class="header-right">
+    <a href="#campanhas" id="campanhas-link">📣 Campanhas</a>
     <span class="live-dot" id="live-indicator">AO VIVO</span>
     <span id="countdown"></span>
     <button id="refresh-btn" onclick="loadAll(true)">↻ Agora</button>
@@ -564,7 +574,7 @@
   </div>
 
   <!-- CAMPANHAS -->
-  <div class="section-title">Campanhas de Divulgação</div>
+  <div class="section-title" id="campanhas">Campanhas de Divulgação</div>
   <div class="card col-12" style="margin-top:0;padding:0;overflow:hidden">
     <table class="camp-table">
       <thead>
